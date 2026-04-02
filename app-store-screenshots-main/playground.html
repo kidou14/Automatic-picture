@@ -1,0 +1,1364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>App Store Screenshots Playground</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    :root {
+      --ui-bg: #f4efe7;
+      --ui-panel: rgba(255, 255, 255, 0.74);
+      --ui-panel-strong: rgba(255, 255, 255, 0.92);
+      --ui-border: rgba(28, 21, 17, 0.12);
+      --ui-text: #1d1815;
+      --ui-muted: #70645a;
+      --ui-accent: #ca6a35;
+      --ui-shadow: 0 24px 60px rgba(69, 45, 21, 0.12);
+      --slide-bg: #f3eadf;
+      --slide-fg: #171411;
+      --slide-muted: rgba(23, 20, 17, 0.68);
+      --slide-accent: #ca6a35;
+      --slide-accent-2: #f0a166;
+      --slide-card: rgba(255, 255, 255, 0.24);
+      --slide-chip: rgba(255, 255, 255, 0.42);
+      --slide-shadow: rgba(48, 29, 10, 0.22);
+      --slide-glow: rgba(202, 106, 53, 0.16);
+      --slide-font: "Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+      --preview-width: 210px;
+      --slide-ratio: calc(1320 / 2868);
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--ui-text);
+      background:
+        radial-gradient(circle at top left, rgba(255, 255, 255, 0.82), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(238, 188, 146, 0.24), transparent 26%),
+        linear-gradient(135deg, #f8f2eb, #efe7db 44%, #ebe1d5);
+      font-family: "Avenir Next", "Segoe UI", sans-serif;
+    }
+
+    .shell {
+      width: min(1520px, calc(100vw - 32px));
+      margin: 18px auto;
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .panel {
+      border: 1px solid var(--ui-border);
+      background: var(--ui-panel);
+      backdrop-filter: blur(18px);
+      border-radius: 24px;
+      box-shadow: var(--ui-shadow);
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 18px;
+      padding: 22px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.65);
+      border: 1px solid rgba(23, 20, 17, 0.08);
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--ui-muted);
+      width: fit-content;
+    }
+
+    .eyebrow::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--ui-accent);
+      box-shadow: 0 0 14px rgba(202, 106, 53, 0.55);
+    }
+
+    h1 {
+      margin: 0;
+      font-family: var(--slide-font);
+      font-size: 34px;
+      line-height: 1;
+      letter-spacing: -0.04em;
+      font-weight: 700;
+    }
+
+    .lede {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--ui-muted);
+    }
+
+    .section {
+      padding: 16px;
+      border-radius: 18px;
+      background: var(--ui-panel-strong);
+      border: 1px solid rgba(23, 20, 17, 0.06);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .section h2,
+    .preview-head h2 {
+      margin: 0;
+      font-size: 13px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--ui-muted);
+      font-weight: 700;
+    }
+
+    .fields {
+      display: grid;
+      gap: 10px;
+    }
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--ui-muted);
+    }
+
+    input[type="text"],
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%;
+      border-radius: 14px;
+      border: 1px solid rgba(23, 20, 17, 0.1);
+      background: rgba(247, 243, 238, 0.94);
+      color: var(--ui-text);
+      padding: 12px 14px;
+      font: inherit;
+      outline: none;
+      transition: border-color 0.15s ease, transform 0.15s ease, background 0.15s ease;
+    }
+
+    textarea {
+      min-height: 96px;
+      resize: vertical;
+      line-height: 1.55;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: rgba(202, 106, 53, 0.7);
+      background: #fffdfb;
+      transform: translateY(-1px);
+    }
+
+    input[type="color"] {
+      width: 100%;
+      height: 46px;
+      border: 1px solid rgba(23, 20, 17, 0.1);
+      border-radius: 14px;
+      background: rgba(247, 243, 238, 0.94);
+      padding: 6px;
+      cursor: pointer;
+    }
+
+    input[type="file"] {
+      font: inherit;
+      font-size: 12px;
+      color: var(--ui-muted);
+    }
+
+    .hint,
+    .summary,
+    .empty-copy {
+      font-size: 12px;
+      line-height: 1.6;
+      color: var(--ui-muted);
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .preset {
+      border-radius: 16px;
+      border: 1px solid rgba(23, 20, 17, 0.08);
+      background: rgba(255, 255, 255, 0.82);
+      padding: 12px;
+      text-align: left;
+      cursor: pointer;
+      transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .preset:hover,
+    .preset.active {
+      transform: translateY(-2px);
+      border-color: rgba(202, 106, 53, 0.45);
+      box-shadow: 0 16px 30px rgba(57, 33, 13, 0.08);
+    }
+
+    .preset-name {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .preset-swatches {
+      display: flex;
+      gap: 6px;
+    }
+
+    .preset-swatches span {
+      width: 24px;
+      height: 24px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      display: block;
+    }
+
+    .asset-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .asset-chip {
+      padding: 7px 10px;
+      border-radius: 999px;
+      background: rgba(238, 231, 223, 0.9);
+      border: 1px solid rgba(23, 20, 17, 0.08);
+      font-size: 12px;
+      color: var(--ui-muted);
+      max-width: 100%;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .preview {
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      min-width: 0;
+    }
+
+    .preview-head {
+      padding: 18px 20px;
+      border-radius: 22px;
+      background:
+        radial-gradient(circle at top right, rgba(202, 106, 53, 0.14), transparent 24%),
+        linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(251, 248, 243, 0.92));
+      border: 1px solid rgba(23, 20, 17, 0.08);
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: flex-start;
+    }
+
+    .preview-head p {
+      margin: 6px 0 0;
+      color: var(--ui-muted);
+      font-size: 14px;
+      line-height: 1.65;
+      max-width: 720px;
+    }
+
+    .preview-stats {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .stat {
+      min-width: 116px;
+      border-radius: 16px;
+      padding: 12px 14px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(23, 20, 17, 0.08);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--ui-muted);
+      margin-bottom: 6px;
+    }
+
+    .stat span {
+      font-family: var(--slide-font);
+      font-size: 19px;
+      letter-spacing: -0.03em;
+    }
+
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+      min-width: 0;
+    }
+
+    .slide-card {
+      background: rgba(255, 255, 255, 0.56);
+      border: 1px solid rgba(23, 20, 17, 0.08);
+      border-radius: 24px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      box-shadow: 0 20px 36px rgba(57, 33, 13, 0.08);
+    }
+
+    .slide-meta {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      font-size: 12px;
+      color: var(--ui-muted);
+    }
+
+    .slide-meta strong {
+      color: var(--ui-text);
+      font-size: 13px;
+    }
+
+    .slide-frame {
+      width: 100%;
+      aspect-ratio: 1320 / 2868;
+      border-radius: 34px;
+      overflow: hidden;
+      position: relative;
+      color: var(--slide-fg);
+      background:
+        radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.42), transparent 22%),
+        radial-gradient(circle at 84% 16%, var(--slide-glow), transparent 20%),
+        linear-gradient(160deg, var(--slide-bg), color-mix(in srgb, var(--slide-bg) 72%, #ffffff));
+      box-shadow: 0 28px 50px var(--slide-shadow);
+      isolation: isolate;
+      font-family: var(--slide-font);
+    }
+
+    .slide-frame::before,
+    .slide-frame::after {
+      content: "";
+      position: absolute;
+      border-radius: 999px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .slide-frame::before {
+      inset: auto auto 16% -24%;
+      width: 58%;
+      height: 20%;
+      background: color-mix(in srgb, var(--slide-accent) 12%, transparent);
+      filter: blur(16px);
+    }
+
+    .slide-frame::after {
+      inset: 10% -16% auto auto;
+      width: 44%;
+      height: 14%;
+      background: color-mix(in srgb, var(--slide-accent-2) 18%, transparent);
+      filter: blur(12px);
+    }
+
+    .grain {
+      position: absolute;
+      inset: 0;
+      opacity: 0.14;
+      background-image:
+        linear-gradient(rgba(255,255,255,0.18) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.18) 1px, transparent 1px);
+      background-size: 16px 16px;
+      mask-image: linear-gradient(180deg, rgba(0,0,0,0.42), transparent 76%);
+      z-index: 0;
+    }
+
+    .content {
+      position: absolute;
+      inset: 0;
+      padding: 8.3% 7%;
+      z-index: 1;
+    }
+
+    .kicker {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: var(--slide-chip);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      color: var(--slide-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      font: 700 11px/1.1 "Avenir Next", "Segoe UI", sans-serif;
+      backdrop-filter: blur(8px);
+    }
+
+    .kicker::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--slide-accent);
+      box-shadow: 0 0 12px color-mix(in srgb, var(--slide-accent) 60%, transparent);
+    }
+
+    .hero-cluster {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-top: 26px;
+      margin-bottom: 16px;
+    }
+
+    .icon-badge {
+      width: 82px;
+      height: 82px;
+      border-radius: 23px;
+      overflow: hidden;
+      flex: 0 0 auto;
+      background:
+        radial-gradient(circle at 32% 28%, rgba(255, 255, 255, 0.7), transparent 38%),
+        linear-gradient(135deg, color-mix(in srgb, var(--slide-accent) 82%, white), color-mix(in srgb, var(--slide-accent-2) 76%, white));
+      box-shadow: 0 20px 35px rgba(0, 0, 0, 0.12);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+    }
+
+    .icon-badge img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .app-mark {
+      text-align: right;
+      color: var(--slide-muted);
+      font: 700 12px/1.3 "Avenir Next", "Segoe UI", sans-serif;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .slide-title {
+      margin: 0;
+      font-size: clamp(34px, 2.65vw, 66px);
+      line-height: 0.95;
+      letter-spacing: -0.06em;
+      max-width: 92%;
+      white-space: pre-line;
+    }
+
+    .slide-subtitle {
+      margin: 14px 0 0;
+      max-width: 76%;
+      color: var(--slide-muted);
+      font: 500 16px/1.6 "Avenir Next", "Segoe UI", sans-serif;
+    }
+
+    .pill-list {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 24px;
+      max-width: 88%;
+    }
+
+    .pill-list span {
+      display: inline-flex;
+      align-items: center;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.58);
+      border: 1px solid rgba(23, 20, 17, 0.08);
+      font: 700 12px/1.1 "Avenir Next", "Segoe UI", sans-serif;
+      letter-spacing: 0.04em;
+      color: color-mix(in srgb, var(--slide-fg) 82%, var(--slide-accent));
+    }
+
+    .quote-box {
+      margin-top: 22px;
+      width: 58%;
+      padding: 18px;
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.52);
+      border: 1px solid rgba(255, 255, 255, 0.24);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.5);
+      font: 600 14px/1.6 "Avenir Next", "Segoe UI", sans-serif;
+      color: var(--slide-muted);
+    }
+
+    .device {
+      position: absolute;
+      width: 55%;
+      aspect-ratio: 1022 / 2082;
+    }
+
+    .device.center {
+      left: 50%;
+      bottom: 4%;
+      transform: translateX(-50%);
+    }
+
+    .device.right {
+      right: 5%;
+      bottom: 4%;
+    }
+
+    .device.left {
+      left: 5%;
+      bottom: 4%;
+    }
+
+    .device.secondary {
+      width: 32%;
+      left: 48%;
+      bottom: 13%;
+      opacity: 0.56;
+      transform: translateX(-50%);
+    }
+
+    .device-shadow,
+    .device-aura,
+    .device-chassis,
+    .device-screen,
+    .device-mockup {
+      position: absolute;
+      pointer-events: none;
+    }
+
+    .device-aura {
+      inset: 9% 7% 3%;
+      border-radius: 26%;
+      background:
+        radial-gradient(circle at 50% 18%, color-mix(in srgb, var(--slide-accent) 18%, transparent) 0%, transparent 42%),
+        radial-gradient(circle at 52% 68%, rgba(6, 10, 18, 0.24) 0%, transparent 72%);
+      filter: blur(24px);
+      opacity: 0.9;
+    }
+
+    .device-shadow {
+      inset: 11% 12% 1%;
+      border-radius: 30%;
+      background:
+        radial-gradient(circle at 50% 30%, rgba(255, 255, 255, 0.12) 0%, transparent 45%),
+        radial-gradient(circle at 50% 76%, rgba(6, 10, 18, 0.34) 0%, transparent 68%);
+      filter: blur(28px);
+      opacity: 0.7;
+      transform: translateY(4%);
+    }
+
+    .device-chassis {
+      inset: 1.1% 2.8% 0.9%;
+      border-radius: 11.5% / 5.8%;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02) 8%, rgba(8, 10, 14, 0.14) 100%),
+        linear-gradient(120deg, rgba(245, 216, 160, 0.26), rgba(255, 255, 255, 0.06) 18%, rgba(24, 28, 36, 0.22) 52%, rgba(242, 222, 187, 0.18) 82%, rgba(255, 255, 255, 0.08));
+      box-shadow: 0 24px 52px rgba(3, 6, 14, 0.24);
+      opacity: 0.42;
+    }
+
+    .device-screen {
+      left: 5.088%;
+      top: 2.209%;
+      width: 89.824%;
+      height: 95.581%;
+      border-radius: 13.725% / 6.332%;
+      overflow: hidden;
+      z-index: 2;
+      background:
+        radial-gradient(circle at top, rgba(255, 255, 255, 0.05), transparent 30%),
+        #0f1721;
+      box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+        inset 0 -22px 40px rgba(0, 0, 0, 0.14),
+        inset 0 22px 26px rgba(255, 255, 255, 0.03);
+    }
+
+    .device-screen img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      object-position: center top;
+    }
+
+    .device-placeholder {
+      width: 100%;
+      height: 100%;
+      padding: 14% 12%;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      gap: 10px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 28%),
+        linear-gradient(160deg, color-mix(in srgb, var(--slide-accent) 10%, #101522), color-mix(in srgb, var(--slide-accent-2) 10%, #08101a));
+    }
+
+    .device-placeholder span {
+      display: block;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.18);
+      height: 10px;
+    }
+
+    .device-placeholder span:nth-child(1) { width: 42%; }
+    .device-placeholder span:nth-child(2) { width: 78%; }
+    .device-placeholder span:nth-child(3) { width: 64%; }
+
+    .device-mockup {
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      z-index: 3;
+      display: block;
+      user-select: none;
+      -webkit-user-drag: none;
+    }
+
+    .layout-hero .copy {
+      position: absolute;
+      left: 7%;
+      right: 7%;
+      top: 8.2%;
+    }
+
+    .layout-hero .slide-subtitle,
+    .layout-center .slide-subtitle,
+    .layout-trust .slide-subtitle {
+      max-width: 78%;
+    }
+
+    .layout-right .copy {
+      position: absolute;
+      left: 7%;
+      top: 8%;
+      width: 48%;
+    }
+
+    .layout-left .copy {
+      position: absolute;
+      right: 7%;
+      top: 8%;
+      width: 47%;
+      text-align: right;
+    }
+
+    .layout-left .pill-list,
+    .layout-left .slide-subtitle {
+      margin-left: auto;
+    }
+
+    .layout-left .kicker {
+      margin-left: auto;
+    }
+
+    .layout-duo .copy {
+      position: absolute;
+      left: 7%;
+      right: 7%;
+      top: 8%;
+      text-align: center;
+    }
+
+    .layout-duo .slide-title,
+    .layout-center .slide-title,
+    .layout-trust .slide-title {
+      margin-inline: auto;
+      max-width: 90%;
+      text-align: center;
+    }
+
+    .layout-duo .slide-subtitle,
+    .layout-center .slide-subtitle,
+    .layout-trust .slide-subtitle,
+    .layout-center .pill-list,
+    .layout-trust .quote-box {
+      margin-inline: auto;
+      text-align: center;
+    }
+
+    .layout-duo .kicker,
+    .layout-center .kicker,
+    .layout-trust .kicker {
+      margin-inline: auto;
+    }
+
+    .layout-center .copy,
+    .layout-trust .copy {
+      position: absolute;
+      left: 7%;
+      right: 7%;
+      top: 8%;
+      text-align: center;
+    }
+
+    .layout-trust {
+      background:
+        radial-gradient(circle at 50% 0%, rgba(255, 255, 255, 0.72), transparent 34%),
+        linear-gradient(180deg, #fbf9f5, #ece6dc);
+    }
+
+    .layout-trust .quote-box {
+      width: 64%;
+    }
+
+    .empty-state {
+      border-radius: 22px;
+      border: 1px dashed rgba(23, 20, 17, 0.16);
+      padding: 22px;
+      background: rgba(255, 255, 255, 0.46);
+    }
+
+    .empty-state strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    @media (max-width: 1120px) {
+      .shell {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+      }
+    }
+
+    @media (max-width: 720px) {
+      .shell {
+        width: min(100vw - 20px, 1520px);
+        margin: 10px auto;
+      }
+
+      .sidebar,
+      .preview {
+        padding: 14px;
+      }
+
+      .field-row,
+      .preset-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .preview-head {
+        flex-direction: column;
+      }
+
+      .preview-stats {
+        justify-content: flex-start;
+      }
+
+      .gallery {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <aside class="panel sidebar">
+      <span class="eyebrow">Skill Playground</span>
+      <div>
+        <h1>App Store 截图预览台</h1>
+        <p class="lede">这个页面不是完整的 Next.js 生成器，而是一个更快的前端 playground，用来验证 `app-store-screenshots-main` 这套截图风格、文案结构和版式节奏。</p>
+      </div>
+
+      <section class="section">
+        <h2>基础信息</h2>
+        <div class="fields">
+          <div class="field">
+            <label for="app-name">App 名称</label>
+            <input id="app-name" type="text" value="Northstar Budget" />
+          </div>
+          <div class="field">
+            <label for="hero-title">主标题</label>
+            <textarea id="hero-title">Spend with more calm.</textarea>
+          </div>
+          <div class="field">
+            <label for="hero-subtitle">副标题</label>
+            <textarea id="hero-subtitle">Turn messy daily spending into one clear money rhythm your future self can actually trust.</textarea>
+          </div>
+          <div class="field">
+            <label for="features">功能卖点
+            </label>
+            <textarea id="features">See every expense in one glance
+Spot trends before they become habits
+Build quieter weekly money routines
+Share budgets without awkward spreadsheets
+Keep saving goals visible every day</textarea>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>素材</h2>
+        <div class="fields">
+          <div class="field">
+            <label for="icon-upload">上传 App Icon</label>
+            <input id="icon-upload" type="file" accept="image/*" />
+          </div>
+          <div class="field">
+            <label for="screens-upload">上传截图（可多选）</label>
+            <input id="screens-upload" type="file" accept="image/*" multiple />
+            <div class="hint">按上传顺序映射到 slide。建议放 4-6 张真实设备截图。</div>
+          </div>
+          <div class="field">
+            <label>当前素材</label>
+            <div id="asset-list" class="asset-list"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>风格</h2>
+        <div id="preset-grid" class="preset-grid"></div>
+        <div class="field-row">
+          <div class="field">
+            <label for="accent-color">Accent</label>
+            <input id="accent-color" type="color" value="#ca6a35" />
+          </div>
+          <div class="field">
+            <label for="bg-color">背景</label>
+            <input id="bg-color" type="color" value="#f3eadf" />
+          </div>
+          <div class="field">
+            <label for="text-color">文字</label>
+            <input id="text-color" type="color" value="#171411" />
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>布局控制</h2>
+        <div class="fields">
+          <div class="field-row">
+            <div class="field">
+              <label for="slide-count">Slide 数量</label>
+              <input id="slide-count" type="number" value="5" min="3" max="8" />
+            </div>
+            <div class="field">
+              <label for="size-preset">预览尺寸</label>
+              <select id="size-preset">
+                <option value="1320x2868">6.9" · 1320×2868</option>
+                <option value="1284x2778">6.5" · 1284×2778</option>
+                <option value="1206x2622">6.3" · 1206×2622</option>
+                <option value="1125x2436">6.1" · 1125×2436</option>
+              </select>
+            </div>
+            <div class="field">
+              <label for="copy-tone">文案语气</label>
+              <select id="copy-tone">
+                <option value="calm">Calm</option>
+                <option value="bold">Bold</option>
+                <option value="warm">Warm</option>
+              </select>
+            </div>
+          </div>
+          <div class="summary" id="summary"></div>
+        </div>
+      </section>
+    </aside>
+
+    <main class="panel preview">
+      <div class="preview-head">
+        <div>
+          <h2>实时预览</h2>
+          <p>这里模拟的是 `app-store-screenshots-main` 里强调的“广告感 App Store 营销图”，每张图只卖一个观点，而不是堆功能说明。你可以一边换截图，一边观察版式是否足够有节奏。</p>
+        </div>
+        <div class="preview-stats">
+          <div class="stat">
+            <strong>Theme</strong>
+            <span id="stat-theme">Warm Editorial</span>
+          </div>
+          <div class="stat">
+            <strong>Slides</strong>
+            <span id="stat-slides">5</span>
+          </div>
+          <div class="stat">
+            <strong>Device</strong>
+            <span id="stat-size">6.9"</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="empty-state" class="empty-state">
+        <strong>先上传几张真实截图会更准。</strong>
+        <div class="empty-copy">现在页面会先用占位态渲染手机画面。上传后，右侧会即时替换为你的真实 app 截图。</div>
+      </div>
+
+      <div id="gallery" class="gallery"></div>
+    </main>
+  </div>
+
+  <script>
+    const presets = {
+      warm: {
+        name: "Warm Editorial",
+        accent: "#ca6a35",
+        accent2: "#f0a166",
+        bg: "#f3eadf",
+        text: "#171411",
+        muted: "rgba(23, 20, 17, 0.68)",
+        card: "rgba(255, 255, 255, 0.24)",
+        chip: "rgba(255, 255, 255, 0.42)",
+        glow: "rgba(202, 106, 53, 0.16)",
+        shadow: "rgba(48, 29, 10, 0.22)",
+        font: '"Iowan Old Style", "Palatino Linotype", "Book Antiqua", Palatino, serif'
+      },
+      clean: {
+        name: "Clean Light",
+        accent: "#3576f6",
+        accent2: "#7fc4ff",
+        bg: "#edf5ff",
+        text: "#0f172a",
+        muted: "rgba(15, 23, 42, 0.66)",
+        card: "rgba(255, 255, 255, 0.24)",
+        chip: "rgba(255, 255, 255, 0.46)",
+        glow: "rgba(53, 118, 246, 0.16)",
+        shadow: "rgba(21, 48, 86, 0.18)",
+        font: '"Avenir Next Condensed", "Gill Sans", "Trebuchet MS", sans-serif'
+      },
+      dark: {
+        name: "Dark Bold",
+        accent: "#9d7aff",
+        accent2: "#3ac7ff",
+        bg: "#111827",
+        text: "#f8fafc",
+        muted: "rgba(248, 250, 252, 0.72)",
+        card: "rgba(255, 255, 255, 0.08)",
+        chip: "rgba(255, 255, 255, 0.1)",
+        glow: "rgba(74, 222, 255, 0.18)",
+        shadow: "rgba(0, 0, 0, 0.4)",
+        font: '"Avenir Next Condensed", "Arial Narrow", sans-serif'
+      },
+      electric: {
+        name: "Electric Neon",
+        accent: "#00d4ff",
+        accent2: "#7c3aed",
+        bg: "#0a0f1f",
+        text: "#ecfeff",
+        muted: "rgba(236, 254, 255, 0.7)",
+        card: "rgba(255, 255, 255, 0.08)",
+        chip: "rgba(0, 212, 255, 0.12)",
+        glow: "rgba(0, 212, 255, 0.22)",
+        shadow: "rgba(2, 8, 23, 0.5)",
+        font: '"Avenir Next Condensed", "Trebuchet MS", sans-serif'
+      },
+      botanical: {
+        name: "Soft Botanical",
+        accent: "#4f7a5a",
+        accent2: "#d4a373",
+        bg: "#eef3ea",
+        text: "#1d2a20",
+        muted: "rgba(29, 42, 32, 0.66)",
+        card: "rgba(255, 255, 255, 0.3)",
+        chip: "rgba(255, 255, 255, 0.48)",
+        glow: "rgba(79, 122, 90, 0.14)",
+        shadow: "rgba(48, 68, 53, 0.18)",
+        font: 'Georgia, "Times New Roman", serif'
+      },
+      luxe: {
+        name: "Mono Luxe",
+        accent: "#d4b483",
+        accent2: "#9f8a6b",
+        bg: "#f7f3ee",
+        text: "#151515",
+        muted: "rgba(21, 21, 21, 0.62)",
+        card: "rgba(255, 255, 255, 0.36)",
+        chip: "rgba(255, 255, 255, 0.56)",
+        glow: "rgba(212, 180, 131, 0.12)",
+        shadow: "rgba(38, 32, 24, 0.2)",
+        font: '"Didot", "Bodoni MT", "Times New Roman", serif'
+      }
+    };
+
+    const sizeLabels = {
+      "1320x2868": '6.9"',
+      "1284x2778": '6.5"',
+      "1206x2622": '6.3"',
+      "1125x2436": '6.1"'
+    };
+
+    const state = {
+      preset: "warm",
+      iconUrl: "",
+      screenshots: []
+    };
+
+    const nodes = {
+      presetGrid: document.getElementById("preset-grid"),
+      appName: document.getElementById("app-name"),
+      heroTitle: document.getElementById("hero-title"),
+      heroSubtitle: document.getElementById("hero-subtitle"),
+      features: document.getElementById("features"),
+      iconUpload: document.getElementById("icon-upload"),
+      screensUpload: document.getElementById("screens-upload"),
+      accentColor: document.getElementById("accent-color"),
+      bgColor: document.getElementById("bg-color"),
+      textColor: document.getElementById("text-color"),
+      slideCount: document.getElementById("slide-count"),
+      sizePreset: document.getElementById("size-preset"),
+      copyTone: document.getElementById("copy-tone"),
+      gallery: document.getElementById("gallery"),
+      assetList: document.getElementById("asset-list"),
+      summary: document.getElementById("summary"),
+      statTheme: document.getElementById("stat-theme"),
+      statSlides: document.getElementById("stat-slides"),
+      statSize: document.getElementById("stat-size"),
+      emptyState: document.getElementById("empty-state")
+    };
+
+    const baseLayouts = ["hero", "right", "left", "duo", "trust", "center"];
+
+    function escapeHtml(text) {
+      return String(text || "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;");
+    }
+
+    function lineBreakTitle(text) {
+      const value = String(text || "").trim();
+      if (!value) return "Your next\nbest slide";
+      if (value.includes("\n")) return value;
+      const words = value.split(/\s+/);
+      if (words.length < 4) return value;
+      const pivot = Math.ceil(words.length / 2);
+      return `${words.slice(0, pivot).join(" ")}\n${words.slice(pivot).join(" ")}`;
+    }
+
+    function getFeatures() {
+      return nodes.features.value
+        .split(/\n|,/)
+        .map((item) => item.trim())
+        .filter(Boolean);
+    }
+
+    function getTonePrefix(tone, index) {
+      const calm = ["See", "Keep", "Build", "Find", "Track", "Share"];
+      const bold = ["Stop", "Cut", "Own", "Push", "Fix", "Drive"];
+      const warm = ["Make", "Feel", "Bring", "Keep", "Shape", "Hold"];
+      const source = tone === "bold" ? bold : tone === "warm" ? warm : calm;
+      return source[index % source.length];
+    }
+
+    function titleFromFeature(feature, index) {
+      const tone = nodes.copyTone.value;
+      const cleaned = String(feature || "").replace(/[.。]$/, "");
+      if (!cleaned) return `Show the\nnext benefit`;
+      const words = cleaned.split(/\s+/);
+      if (words.length <= 4) return lineBreakTitle(cleaned);
+      return lineBreakTitle(`${getTonePrefix(tone, index)} ${words.slice(1).join(" ")}`);
+    }
+
+    function subtitleFromFeature(feature, index) {
+      const tone = nodes.copyTone.value;
+      const suffixes = {
+        calm: [
+          "Built to feel clear at a glance, even when life gets noisy.",
+          "So the main action stays obvious the first time someone opens the app.",
+          "A calmer frame for the behavior people actually repeat every week."
+        ],
+        bold: [
+          "Put the strongest value right in front of the user, not buried in a menu.",
+          "This is where the screenshot starts selling outcome instead of mechanics.",
+          "One slide. One promise. Zero wasted words."
+        ],
+        warm: [
+          "The composition keeps the product close and the promise human.",
+          "It feels guided, gentle, and still sharp enough for App Store browsing.",
+          "The image carries the proof while the copy carries the emotion."
+        ]
+      };
+      return `${feature}. ${suffixes[tone][index % suffixes[tone].length]}`;
+    }
+
+    function applyThemeVariables() {
+      const preset = presets[state.preset];
+      const accent = nodes.accentColor.value || preset.accent;
+      const bg = nodes.bgColor.value || preset.bg;
+      const text = nodes.textColor.value || preset.text;
+      document.documentElement.style.setProperty("--slide-accent", accent);
+      document.documentElement.style.setProperty("--slide-accent-2", preset.accent2);
+      document.documentElement.style.setProperty("--slide-bg", bg);
+      document.documentElement.style.setProperty("--slide-fg", text);
+      document.documentElement.style.setProperty("--slide-muted", preset.muted);
+      document.documentElement.style.setProperty("--slide-card", preset.card);
+      document.documentElement.style.setProperty("--slide-chip", preset.chip);
+      document.documentElement.style.setProperty("--slide-glow", preset.glow);
+      document.documentElement.style.setProperty("--slide-shadow", preset.shadow);
+      document.documentElement.style.setProperty("--slide-font", preset.font);
+      document.documentElement.style.setProperty("--ui-accent", accent);
+    }
+
+    function renderPresetButtons() {
+      nodes.presetGrid.innerHTML = Object.entries(presets).map(([key, preset]) => `
+        <button class="preset ${key === state.preset ? "active" : ""}" type="button" data-preset="${key}">
+          <span class="preset-name">${escapeHtml(preset.name)}</span>
+          <span class="preset-swatches">
+            <span style="background:${preset.bg}"></span>
+            <span style="background:${preset.accent}"></span>
+            <span style="background:${preset.text}"></span>
+          </span>
+        </button>
+      `).join("");
+
+      nodes.presetGrid.querySelectorAll("[data-preset]").forEach((button) => {
+        button.addEventListener("click", () => {
+          state.preset = button.dataset.preset;
+          const preset = presets[state.preset];
+          nodes.accentColor.value = preset.accent;
+          nodes.bgColor.value = preset.bg;
+          nodes.textColor.value = preset.text;
+          renderPresetButtons();
+          render();
+        });
+      });
+    }
+
+    function renderAssets() {
+      const chips = [];
+      chips.push(`<span class="asset-chip">${state.iconUrl ? "Icon ready" : "No icon yet"}</span>`);
+      if (state.screenshots.length) {
+        state.screenshots.forEach((shot, index) => {
+          chips.push(`<span class="asset-chip">#${index + 1} ${escapeHtml(shot.name)}</span>`);
+        });
+      } else {
+        chips.push(`<span class="asset-chip">No screenshots yet</span>`);
+      }
+      nodes.assetList.innerHTML = chips.join("");
+      nodes.emptyState.style.display = state.screenshots.length ? "none" : "block";
+    }
+
+    function readImageAsObjectUrl(file) {
+      return URL.createObjectURL(file);
+    }
+
+    function handleIconUpload(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      if (state.iconUrl) {
+        URL.revokeObjectURL(state.iconUrl);
+      }
+      state.iconUrl = readImageAsObjectUrl(file);
+      render();
+    }
+
+    function handleScreensUpload(event) {
+      const files = Array.from(event.target.files || []);
+      if (!files.length) return;
+      state.screenshots.forEach((shot) => {
+        if (shot && shot.url) {
+          URL.revokeObjectURL(shot.url);
+        }
+      });
+      state.screenshots = files.map((file) => ({
+        name: file.name,
+        url: readImageAsObjectUrl(file)
+      }));
+      render();
+    }
+
+    function makeSlides() {
+      const appName = nodes.appName.value.trim() || "Your App";
+      const heroTitle = lineBreakTitle(nodes.heroTitle.value);
+      const heroSubtitle = nodes.heroSubtitle.value.trim() || "A faster, cleaner way to show what your app really changes.";
+      const features = getFeatures();
+      const count = Math.max(3, Math.min(8, Number(nodes.slideCount.value) || 5));
+      const slides = [];
+
+      slides.push({
+        layout: "hero",
+        kicker: "Hero benefit",
+        title: heroTitle,
+        subtitle: heroSubtitle,
+        screenshot: state.screenshots[0] || null,
+        pills: features.slice(0, 3),
+        note: "首屏应该只卖最强收益"
+      });
+
+      for (let i = 1; i < count; i += 1) {
+        const feature = features[(i - 1) % Math.max(features.length, 1)] || `Feature ${i}`;
+        const layout = baseLayouts[i % baseLayouts.length];
+        slides.push({
+          layout,
+          kicker: i === count - 1 ? "Trust signal" : `Feature ${String(i).padStart(2, "0")}`,
+          title: i === count - 1 ? lineBreakTitle(`Built for\nclearer habits`) : titleFromFeature(feature, i),
+          subtitle: i === count - 1
+            ? "Use the second-to-last or last slide to slow the rhythm down and make the product feel crafted, not just functional."
+            : subtitleFromFeature(feature, i),
+          screenshot: state.screenshots[i] || state.screenshots[i % Math.max(state.screenshots.length, 1)] || null,
+          secondary: state.screenshots[i + 1] || state.screenshots[(i + 1) % Math.max(state.screenshots.length, 1)] || null,
+          pills: features.slice(i, i + 3),
+          note: i === count - 1 ? "后段 slide 适合做 trust / identity" : "每张图只讲一个观点"
+        });
+      }
+
+      return { appName, slides };
+    }
+
+    function renderDevice(shot, positionClass) {
+      const screenInner = shot
+        ? `<img src="${escapeHtml(shot.url)}" alt="${escapeHtml(shot.name)}" />`
+        : `<div class="device-placeholder"><span></span><span></span><span></span></div>`;
+
+      return `
+        <div class="device ${positionClass}">
+          <div class="device-aura"></div>
+          <div class="device-shadow"></div>
+          <div class="device-chassis"></div>
+          <div class="device-screen">${screenInner}</div>
+          <img class="device-mockup" src="skills/app-store-screenshots/mockup.png" alt="" />
+        </div>
+      `;
+    }
+
+    function renderHeroIcon() {
+      if (state.iconUrl) {
+        return `<div class="icon-badge"><img src="${escapeHtml(state.iconUrl)}" alt="App icon" /></div>`;
+      }
+      return `<div class="icon-badge"></div>`;
+    }
+
+    function renderSlide(appName, slide, index) {
+      const pills = (slide.pills || []).slice(0, 3).map((pill) => `<span>${escapeHtml(pill)}</span>`).join("");
+      const kicker = `<div class="kicker">${escapeHtml(slide.kicker)}</div>`;
+      const title = `<h3 class="slide-title">${escapeHtml(slide.title)}</h3>`;
+      const subtitle = `<p class="slide-subtitle">${escapeHtml(slide.subtitle)}</p>`;
+      const heroCluster = `
+        <div class="hero-cluster">
+          ${renderHeroIcon()}
+          <div class="app-mark">${escapeHtml(appName)}<br />App Store Preview</div>
+        </div>
+      `;
+      const pillList = pills ? `<div class="pill-list">${pills}</div>` : "";
+      const quoteBox = `<div class="quote-box">“Strong App Store images feel like small posters. The screenshot proves it. The copy sells it.”</div>`;
+
+      let copy = "";
+      let deviceMarkup = "";
+
+      if (slide.layout === "hero") {
+        copy = `${kicker}${heroCluster}${title}${subtitle}${pillList}`;
+        deviceMarkup = renderDevice(slide.screenshot, "center");
+      } else if (slide.layout === "right") {
+        copy = `${kicker}${title}${subtitle}${pillList}`;
+        deviceMarkup = renderDevice(slide.screenshot, "right");
+      } else if (slide.layout === "left") {
+        copy = `${kicker}${title}${subtitle}${pillList}`;
+        deviceMarkup = renderDevice(slide.screenshot, "left");
+      } else if (slide.layout === "duo") {
+        copy = `${kicker}${title}${subtitle}${pillList}`;
+        deviceMarkup = renderDevice(slide.secondary, "secondary") + renderDevice(slide.screenshot, "right");
+      } else if (slide.layout === "trust") {
+        copy = `${kicker}${title}${subtitle}${quoteBox}`;
+        deviceMarkup = renderDevice(slide.screenshot, "center");
+      } else {
+        copy = `${kicker}${title}${subtitle}${pillList}`;
+        deviceMarkup = renderDevice(slide.screenshot, "center");
+      }
+
+      return `
+        <article class="slide-card">
+          <div class="slide-meta">
+            <strong>#${index + 1}</strong>
+            <span>${escapeHtml(slide.note)}</span>
+          </div>
+          <div class="slide-frame layout-${slide.layout}">
+            <div class="grain"></div>
+            <div class="content">
+              <div class="copy">${copy}</div>
+              ${deviceMarkup}
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderSummary(slides) {
+      const features = getFeatures();
+      const count = slides.length;
+      nodes.summary.textContent = `${count} 张图，${features.length || 0} 条卖点，当前采用 ${presets[state.preset].name} 风格。优先观察：首屏够不够强、相邻布局有没有变化、文案是不是一句一个意思。`;
+      nodes.statTheme.textContent = presets[state.preset].name;
+      nodes.statSlides.textContent = String(count);
+      nodes.statSize.textContent = sizeLabels[nodes.sizePreset.value] || '6.9"';
+    }
+
+    function render() {
+      applyThemeVariables();
+      renderAssets();
+      const { appName, slides } = makeSlides();
+      nodes.gallery.innerHTML = slides.map((slide, index) => renderSlide(appName, slide, index)).join("");
+      renderSummary(slides);
+    }
+
+    function bindInputs() {
+      [
+        nodes.appName,
+        nodes.heroTitle,
+        nodes.heroSubtitle,
+        nodes.features,
+        nodes.accentColor,
+        nodes.bgColor,
+        nodes.textColor,
+        nodes.slideCount,
+        nodes.sizePreset,
+        nodes.copyTone
+      ].forEach((node) => {
+        node.addEventListener("input", render);
+        node.addEventListener("change", render);
+      });
+
+      nodes.iconUpload.addEventListener("change", handleIconUpload);
+      nodes.screensUpload.addEventListener("change", handleScreensUpload);
+    }
+
+    renderPresetButtons();
+    bindInputs();
+    render();
+  </script>
+</body>
+</html>

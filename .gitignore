@@ -1,0 +1,23 @@
+.DS_Store
+
+# Local secrets
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+appstore-auto-screenshots/node_modules/
+
+# Runtime artifacts
+*.log
+dist/
+build/
+.cache/
+
+# OS / editor
+.vscode/
+.claude/
+
+# Generated exports
+Downloads/
