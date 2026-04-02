@@ -489,22 +489,31 @@
   .render-slide::before {
     content: "";
     position: absolute;
-    inset: auto auto 16% -18%;
-    width: 58%;
+    inset: auto auto 10% -24%;
+    width: 78%;
     aspect-ratio: 1;
     border-radius: 50%;
-    background: radial-gradient(circle, color-mix(in srgb, var(--theme-accent) 30%, transparent) 0%, transparent 70%);
+    background: radial-gradient(circle, color-mix(in srgb, var(--theme-accent) 48%, transparent) 0%, transparent 70%);
     pointer-events: none;
+    opacity: var(--glow-strength, 0.7);
   }
   .render-slide::after {
     content: "";
     position: absolute;
-    inset: 10% -12% auto auto;
-    width: 42%;
+    inset: 6% -18% auto auto;
+    width: 62%;
     aspect-ratio: 1;
     border-radius: 50%;
-    background: radial-gradient(circle, color-mix(in srgb, var(--theme-accent-2) 24%, transparent) 0%, transparent 72%);
+    background: radial-gradient(circle, color-mix(in srgb, var(--theme-accent-2) 42%, transparent) 0%, transparent 72%);
     pointer-events: none;
+    opacity: var(--glow-strength, 0.7);
+  }
+  /* Even slides: flip gradient to come from top-left / bottom-right instead */
+  .glow-flip::before {
+    inset: 16% auto auto -18%;
+  }
+  .glow-flip::after {
+    inset: auto -12% 10% auto;
   }
   .render-copy {
     position: absolute;
@@ -545,6 +554,7 @@
     left: 50%;
     bottom: 8%;
     transform: translateX(-50%);
+    transform-origin: 50% 100%;
   }
   .render-device {
     width: 100%;
@@ -750,6 +760,65 @@
     max-width: 100%;
     margin-top: 12px;
   }
+
+  /* ── GEOMETRIC PATTERNS ── */
+  .render-pattern {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+  /* mono-luxe: fine crosshatch grid */
+  [data-style="mono-luxe"] .render-pattern {
+    background-image:
+      repeating-linear-gradient(0deg, transparent, transparent 23px, rgba(182,146,94,0.18) 23px, rgba(182,146,94,0.18) 24px),
+      repeating-linear-gradient(90deg, transparent, transparent 23px, rgba(182,146,94,0.18) 23px, rgba(182,146,94,0.18) 24px);
+  }
+  /* electric-neon: dot matrix */
+  [data-style="electric-neon"] .render-pattern {
+    background-image: radial-gradient(circle, rgba(56,189,248,0.35) 1.5px, transparent 1.5px);
+    background-size: 20px 20px;
+  }
+  /* dark-bold: diagonal scan lines */
+  [data-style="dark-bold"] .render-pattern {
+    background-image: repeating-linear-gradient(
+      45deg,
+      rgba(139,124,255,0.18) 0, rgba(139,124,255,0.18) 1px,
+      transparent 0, transparent 50%
+    );
+    background-size: 14px 14px;
+  }
+  /* warm-editorial: soft dots, bottom-left corner accent */
+  [data-style="warm-editorial"] .render-pattern {
+    background-image: radial-gradient(circle, rgba(217,119,6,0.30) 2px, transparent 2px);
+    background-size: 22px 22px;
+    -webkit-mask-image: radial-gradient(ellipse at 0% 100%, black 0%, transparent 52%);
+    mask-image: radial-gradient(ellipse at 0% 100%, black 0%, transparent 52%);
+  }
+  /* soft-botanical: organic dots, top-right corner accent */
+  [data-style="soft-botanical"] .render-pattern {
+    background-image: radial-gradient(circle, rgba(79,122,90,0.32) 2.5px, transparent 2.5px);
+    background-size: 28px 28px;
+    -webkit-mask-image: radial-gradient(ellipse at 100% 0%, black 0%, transparent 55%);
+    mask-image: radial-gradient(ellipse at 100% 0%, black 0%, transparent 55%);
+  }
+  /* clean-light: subtle inset rectangular frame */
+  [data-style="clean-light"] .render-pattern {
+    inset: 6% 5%;
+    border: 1.5px solid rgba(34,118,255,0.22);
+    border-radius: 6px;
+  }
+
+  /* Inverted layout: device at top, text at bottom (even-indexed slides) */
+  .layout-inverted.layout-standard .render-copy {
+    top: auto;
+    bottom: calc(8% - 12px);
+  }
+  .layout-inverted.layout-standard .render-device-wrap {
+    bottom: auto;
+    top: calc(8% - 20px);
+  }
+
   .layout-pills {
     padding: 130px 80px;
   }
@@ -989,6 +1058,7 @@
       keywords: ['温暖', '杂志感', '故事化'],
       summary: '适合记账、习惯、阅读、慢生活类产品，强调有温度的高级感。',
       prompt: '视觉方向像高质量生活方式杂志封面，使用温暖奶油色、陶土色和克制留白，文案描述更好的生活状态，不做科技霓虹。',
+      deviceMode: 'upright',
       theme: {
         bgStart: '#f8efe4',
         bgEnd: '#e7d5c2',
@@ -1006,6 +1076,7 @@
       keywords: ['清晰', '可信', '现代'],
       summary: '适合工具、教育、效率与金融类产品，优先表达 clarity 和 trust。',
       prompt: '整体要干净、现代、可信，像成熟科技产品的高质量 light mode marketing page，装饰少，结构清晰。',
+      deviceMode: 'upright',
       theme: {
         bgStart: '#f7fbff',
         bgEnd: '#dfeeff',
@@ -1023,6 +1094,7 @@
       keywords: ['强对比', '科技感', '冲击力'],
       summary: '适合 AI、开发者工具、金融数据类产品，强调 punchline 式表达。',
       prompt: '使用深色背景和高亮强调色，文案短促强势，局部允许发光与玻璃感，但要保持聚焦和秩序。',
+      deviceMode: 'tilt',
       theme: {
         bgStart: '#0c1020',
         bgEnd: '#182033',
@@ -1040,6 +1112,7 @@
       keywords: ['霓虹', '未来感', '速度'],
       summary: '适合 AI 创作、影音、电竞、实验型产品，目标是让用户停下来多看一眼。',
       prompt: '比 dark-bold 更年轻更激进，使用夜色背景、电蓝霓虹、亮紫光效和更强速度感，但特效不能杂乱。',
+      deviceMode: 'tilt',
       theme: {
         bgStart: '#091227',
         bgEnd: '#301060',
@@ -1057,6 +1130,7 @@
       keywords: ['疗愈', '自然', '呼吸感'],
       summary: '适合睡眠、冥想、健康、家庭与情绪支持类产品，强调恢复与平衡。',
       prompt: '视觉上应联想到自然、呼吸、恢复和平静，使用浅鼠尾草绿、燕麦白和有机曲线，避免锐利科技感。',
+      deviceMode: 'upright',
       theme: {
         bgStart: '#eef3ea',
         bgEnd: '#d6e3d3',
@@ -1074,6 +1148,7 @@
       keywords: ['极简', '奢感', '高级'],
       summary: '适合时尚、美妆、摄影、高端效率与精品电商，强调 premium 与 curated 感。',
       prompt: '整体应极简、精致、有奢感，以黑白暖灰和低饱和暖金为主，留白大胆，截图像精品对象被陈列展示。',
+      deviceMode: 'upright',
       theme: {
         bgStart: '#f8f5f0',
         bgEnd: '#e7e0d8',
@@ -1087,6 +1162,24 @@
 
   const DEFAULT_STYLE_PRESET_ID = 'warm-editorial';
   const STANDARD_SLIDE_LAYOUT = 'layout-standard';
+
+  // 6-slide tilt sequence — perspective included so transform-origin works correctly
+  const TILT_TRANSFORMS = [
+    'translateX(-50%)',                                                         // slide 1: upright
+    'perspective(800px) translateX(-50%) rotateY(10deg) rotateX(-3deg)',        // slide 2: right lean
+    'perspective(800px) translateX(-50%) rotateY(-8deg)',                       // slide 3: left lean
+    'translateX(-50%)',                                                         // slide 4: upright
+    'perspective(800px) translateX(-50%) rotateY(12deg) rotateX(4deg)',         // slide 5: right + overhead
+    'perspective(800px) translateX(-50%) rotateY(-6deg) rotateX(-2deg)',        // slide 6: left + uptilt
+  ];
+
+  // Pure alternating left/right tilt — no upright frames, used by 'tilt' deviceMode styles
+  const TILT_TRANSFORMS_ALT = [
+    'perspective(800px) translateX(-50%) rotateY(10deg) rotateX(-3deg)',        // right lean
+    'perspective(800px) translateX(-50%) rotateY(-8deg)',                       // left lean
+    'perspective(800px) translateX(-50%) rotateY(12deg) rotateX(4deg)',         // right + overhead
+    'perspective(800px) translateX(-50%) rotateY(-6deg) rotateX(-2deg)',        // left + uptilt
+  ];
 
   let toastTimer = null;
   let renderedSlides = [];
@@ -1203,7 +1296,8 @@
     });
   }
 
-  function themeVars(theme) {
+  function themeVars(theme, slideIndex) {
+    const isEven = typeof slideIndex === 'number' && (slideIndex % 2 === 1);
     return [
       `--theme-bg-start:${theme.bgStart}`,
       `--theme-bg-end:${theme.bgEnd}`,
@@ -1211,6 +1305,7 @@
       `--theme-text:${theme.text}`,
       `--theme-accent:${theme.accent}`,
       `--theme-accent-2:${theme.accent2}`,
+      `--glow-strength:${isEven ? '1.0' : '0.55'}`,
     ].join(';');
   }
 
@@ -1401,6 +1496,10 @@
     return String(text || '').replace(/^<em>/, '').replace(/<\/em>$/, '');
   }
 
+  function applyHighlight(text) {
+    return escapeHtml(String(text || ''));
+  }
+
   function normalizeCopyLines(slide) {
     const headlineLines = Array.isArray(slide.headline)
       ? slide.headline.filter(Boolean)
@@ -1419,7 +1518,7 @@
       || slide.kicker
       || '';
 
-    return { headline, subheadline };
+    return { headline, subheadline, highlight: slide.highlight || null };
   }
 
   function fitSingleLineText(element, maxSize, minSize) {
@@ -1530,6 +1629,7 @@
         ...slide,
         headline: generated.headline || generated.titleLG || slide.headline || slide.headlineText || stripEmTags((Array.isArray(slide.headline) ? slide.headline[0] : slide.headline) || ''),
         subheadline: generated.subheadline || generated.titleSM || slide.subheadline || slide.subtitle || generated.subtitle || generated.kicker || slide.kicker || '',
+        highlight: generated.highlight || slide.highlight || null,
       };
     });
   }
@@ -1557,6 +1657,7 @@
         layout: STANDARD_SLIDE_LAYOUT,
         headline: generated && (generated.headline || generated.titleLG) ? (generated.headline || generated.titleLG) : '',
         subheadline: generated && (generated.subheadline || generated.titleSM || generated.subtitle) ? (generated.subheadline || generated.titleSM || generated.subtitle) : '',
+        highlight: generated && generated.highlight ? generated.highlight : null,
         copyLoading: !generated,
         routeA: routeValue,
         routeB: screenshots[index + 1]
@@ -1691,8 +1792,21 @@
     return mergeCopyPlan(slides, getGeneratedCopyPlan(state));
   }
 
-  function renderSlideArtwork(slide, state) {
-    const style = themeVars(state.theme);
+  function renderSlideArtwork(slide, state, slideIndex) {
+    const preset = STYLE_PRESETS[state.styleId];
+    const deviceMode = preset?.deviceMode ?? 'tilt';
+
+    let layoutClass, tiltTransform;
+    if (deviceMode === 'upright') {
+      layoutClass = slide.layout;
+      tiltTransform = 'translateX(-50%)';
+    } else {
+      const isEven = typeof slideIndex === 'number' && (slideIndex % 2 === 1);
+      layoutClass = isEven ? `${slide.layout} layout-inverted glow-flip` : slide.layout;
+      tiltTransform = TILT_TRANSFORMS_ALT[typeof slideIndex === 'number' ? slideIndex % TILT_TRANSFORMS_ALT.length : 0];
+    }
+
+    const style = themeVars(state.theme, slideIndex);
     const copy = normalizeCopyLines(slide);
     const copyMarkup = (slide.loading || slide.copyLoading)
       ? `
@@ -1705,15 +1819,16 @@
       `
       : `
         <div class="render-copy">
-          <div class="render-headline">${escapeHtml(copy.headline)}</div>
+          <div class="render-headline">${applyHighlight(copy.headline)}</div>
           <div class="render-subheadline">${escapeHtml(copy.subheadline)}</div>
         </div>
       `;
 
     return `
-      <div class="render-slide ${slide.layout}" data-export-root="true" style="${style}">
+      <div class="render-slide ${layoutClass}" data-style="${escapeHtml(state.styleId || '')}" data-export-root="true" style="${style}">
+        <div class="render-pattern"></div>
         ${copyMarkup}
-        <div class="render-device-wrap">${renderPreviewDevice(state, slide.routeA)}</div>
+        <div class="render-device-wrap" style="transform:${tiltTransform}">${renderPreviewDevice(state, slide.routeA)}</div>
       </div>
     `;
   }
@@ -1733,7 +1848,7 @@
             <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 2v8M4 7l4 4 4-4M2 12h12"/></svg>
             导出 PNG
           </div>
-          ${renderSlideArtwork(slide, state)}
+          ${renderSlideArtwork(slide, state, index)}
         </div>
       </div>
     `).join('');
