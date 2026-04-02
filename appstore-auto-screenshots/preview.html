@@ -776,17 +776,17 @@
   }
   /* electric-neon: dot matrix */
   [data-style="electric-neon"] .render-pattern {
-    background-image: radial-gradient(circle, rgba(56,189,248,0.35) 1.5px, transparent 1.5px);
+    background-image: radial-gradient(circle, rgba(56,189,248,0.20) 1.5px, transparent 1.5px);
     background-size: 20px 20px;
   }
   /* dark-bold: diagonal scan lines */
   [data-style="dark-bold"] .render-pattern {
     background-image: repeating-linear-gradient(
       45deg,
-      rgba(139,124,255,0.18) 0, rgba(139,124,255,0.18) 1px,
+      rgba(139,124,255,0.12) 0, rgba(139,124,255,0.12) 1px,
       transparent 0, transparent 50%
     );
-    background-size: 14px 14px;
+    background-size: 10px 10px;
   }
   /* warm-editorial: soft dots, bottom-left corner accent */
   [data-style="warm-editorial"] .render-pattern {
@@ -802,11 +802,34 @@
     -webkit-mask-image: radial-gradient(ellipse at 100% 0%, black 0%, transparent 55%);
     mask-image: radial-gradient(ellipse at 100% 0%, black 0%, transparent 55%);
   }
-  /* clean-light: subtle inset rectangular frame */
+  /* clean-light: diagonal motion stripes fading in from bottom-right */
   [data-style="clean-light"] .render-pattern {
-    inset: 6% 5%;
-    border: 1.5px solid rgba(34,118,255,0.22);
-    border-radius: 6px;
+    inset: 0;
+    border: none;
+    border-radius: 0;
+    background-image: repeating-linear-gradient(
+      120deg,
+      rgba(34,118,255,0.09) 0, rgba(34,118,255,0.09) 1px,
+      transparent 0, transparent 44px
+    );
+    -webkit-mask-image: radial-gradient(ellipse at 100% 100%, black 0%, transparent 62%);
+    mask-image: radial-gradient(ellipse at 100% 100%, black 0%, transparent 62%);
+  }
+
+  /* mono-luxe: suppress glow for true minimalist luxury aesthetic */
+  [data-style="mono-luxe"] .render-slide::before,
+  [data-style="mono-luxe"] .render-slide::after {
+    opacity: calc(var(--glow-strength, 0.7) * 0.15);
+  }
+  /* mono-luxe: thin headline with wide tracking — high-end brand typography */
+  [data-style="mono-luxe"] .render-headline {
+    font-weight: 300;
+    letter-spacing: 0.08em;
+  }
+
+  /* electric-neon: glowing headline text */
+  [data-style="electric-neon"] .render-headline {
+    text-shadow: 0 0 28px color-mix(in srgb, var(--theme-accent) 60%, transparent);
   }
 
   /* Inverted layout: device at top, text at bottom (even-indexed slides) */
@@ -817,6 +840,10 @@
   .layout-inverted.layout-standard .render-device-wrap {
     bottom: auto;
     top: calc(8% - 20px);
+  }
+  /* electric-neon inverted: add more breathing room at top to prevent mockup clipping */
+  [data-style="electric-neon"] .layout-inverted.layout-standard .render-device-wrap {
+    top: calc(8% + 4px);
   }
 
   .layout-pills {
@@ -1059,6 +1086,7 @@
       summary: '适合记账、习惯、阅读、慢生活类产品，强调有温度的高级感。',
       prompt: '视觉方向像高质量生活方式杂志封面，使用温暖奶油色、陶土色和克制留白，文案描述更好的生活状态，不做科技霓虹。',
       deviceMode: 'upright',
+      invertEven: true,
       theme: {
         bgStart: '#f8efe4',
         bgEnd: '#e7d5c2',
@@ -1112,7 +1140,7 @@
       keywords: ['霓虹', '未来感', '速度'],
       summary: '适合 AI 创作、影音、电竞、实验型产品，目标是让用户停下来多看一眼。',
       prompt: '比 dark-bold 更年轻更激进，使用夜色背景、电蓝霓虹、亮紫光效和更强速度感，但特效不能杂乱。',
-      deviceMode: 'tilt',
+      deviceMode: 'tilt-reversed',
       theme: {
         bgStart: '#091227',
         bgEnd: '#301060',
@@ -1131,6 +1159,7 @@
       summary: '适合睡眠、冥想、健康、家庭与情绪支持类产品，强调恢复与平衡。',
       prompt: '视觉上应联想到自然、呼吸、恢复和平静，使用浅鼠尾草绿、燕麦白和有机曲线，避免锐利科技感。',
       deviceMode: 'upright',
+      invertEven: true,
       theme: {
         bgStart: '#eef3ea',
         bgEnd: '#d6e3d3',
@@ -1149,6 +1178,7 @@
       summary: '适合时尚、美妆、摄影、高端效率与精品电商，强调 premium 与 curated 感。',
       prompt: '整体应极简、精致、有奢感，以黑白暖灰和低饱和暖金为主，留白大胆，截图像精品对象被陈列展示。',
       deviceMode: 'upright',
+      invertEven: true,
       theme: {
         bgStart: '#f8f5f0',
         bgEnd: '#e7e0d8',
@@ -1176,9 +1206,17 @@
   // Pure alternating left/right tilt — no upright frames, used by 'tilt' deviceMode styles
   const TILT_TRANSFORMS_ALT = [
     'perspective(800px) translateX(-50%) rotateY(10deg) rotateX(-3deg)',        // right lean
-    'perspective(800px) translateX(-50%) rotateY(-8deg)',                       // left lean
-    'perspective(800px) translateX(-50%) rotateY(12deg) rotateX(4deg)',         // right + overhead
+    'perspective(800px) translateX(-50%) rotateY(-11deg)',                      // left lean (bolder)
+    'perspective(800px) translateX(-50%) rotateY(15deg) rotateX(4deg)',         // right + overhead (bolder)
     'perspective(800px) translateX(-50%) rotateY(-6deg) rotateX(-2deg)',        // left + uptilt
+  ];
+
+  // Reversed tilt sequence for electric-neon — starts left, mirrors dark-bold
+  const TILT_TRANSFORMS_ALT_REVERSED = [
+    'perspective(800px) translateX(-50%) rotateY(-8deg) rotateZ(1.5deg)',       // left lean + twist
+    'perspective(800px) translateX(-50%) rotateY(10deg) rotateX(-3deg)',        // right lean
+    'perspective(800px) translateX(-50%) rotateY(-6deg) rotateX(-2deg) rotateZ(-1deg)', // left + uptilt + twist
+    'perspective(800px) translateX(-50%) rotateY(12deg) rotateX(4deg)',         // right + overhead
   ];
 
   let toastTimer = null;
@@ -1798,8 +1836,14 @@
 
     let layoutClass, tiltTransform;
     if (deviceMode === 'upright') {
-      layoutClass = slide.layout;
+      const isEven = typeof slideIndex === 'number' && (slideIndex % 2 === 1);
+      const shouldInvert = preset?.invertEven && isEven;
+      layoutClass = shouldInvert ? `${slide.layout} layout-inverted glow-flip` : slide.layout;
       tiltTransform = 'translateX(-50%)';
+    } else if (deviceMode === 'tilt-reversed') {
+      const isEven = typeof slideIndex === 'number' && (slideIndex % 2 === 1);
+      layoutClass = isEven ? `${slide.layout} layout-inverted glow-flip` : slide.layout;
+      tiltTransform = TILT_TRANSFORMS_ALT_REVERSED[typeof slideIndex === 'number' ? slideIndex % TILT_TRANSFORMS_ALT_REVERSED.length : 0];
     } else {
       const isEven = typeof slideIndex === 'number' && (slideIndex % 2 === 1);
       layoutClass = isEven ? `${slide.layout} layout-inverted glow-flip` : slide.layout;
