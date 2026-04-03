@@ -115,10 +115,21 @@ async function main() {
 
   // Helper: navigate, settle, optionally click, then screenshot
   async function capture(targetUrl, label, suffix = "") {
-    await page.goto(targetUrl, { waitUntil: "networkidle", timeout: 30000 }).catch(async () => {
-      // Fallback: wait for domcontentloaded if networkidle times out (e.g. polling apps)
-      await page.goto(targetUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
-    });
+    // Try progressively more lenient wait conditions
+    try {
+      await page.goto(targetUrl, { waitUntil: "networkidle", timeout: 60000 });
+    } catch {
+      try {
+        await page.goto(targetUrl, { waitUntil: "load", timeout: 60000 });
+      } catch {
+        try {
+          await page.goto(targetUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
+        } catch {
+          // Last resort: just wait for navigation to commit (response headers received)
+          await page.goto(targetUrl, { waitUntil: "commit", timeout: 60000 });
+        }
+      }
+    }
     await page.waitForTimeout(waitMs);
 
     if (clickSelector) {

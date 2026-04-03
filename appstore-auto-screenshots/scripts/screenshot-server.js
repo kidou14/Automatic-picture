@@ -392,7 +392,7 @@ function formatCaptureError(error, targetUrl) {
   }
 
   if (message.includes("Navigation timeout")) {
-    return `页面加载超时，请确认目标地址能在 30 秒内打开：${targetUrl}`;
+    return `页面加载超时，请确认目标地址能在 60 秒内打开：${targetUrl}`;
   }
 
   return message;
@@ -584,13 +584,19 @@ function extractJsonObject(text) {
 
   try {
     return JSON.parse(candidate);
-  } catch (error) {
+  } catch (_) {
     const start = candidate.indexOf("{");
-    const end = candidate.lastIndexOf("}");
-    if (start >= 0 && end > start) {
-      return JSON.parse(candidate.slice(start, end + 1));
+    if (start < 0) throw new Error("No JSON object found in AI response");
+    // Walk backwards from the end to find the largest valid JSON prefix
+    for (let end = candidate.length - 1; end > start; end--) {
+      if (candidate[end] !== "}") continue;
+      try {
+        return JSON.parse(candidate.slice(start, end + 1));
+      } catch (_) {
+        // keep scanning backwards
+      }
     }
-    throw error;
+    throw new Error("Could not extract valid JSON from AI response");
   }
 }
 
@@ -634,6 +640,37 @@ function buildCopyBlueprints(job) {
   return [...base, ...extras];
 }
 
+function sanitizeFloatCards(rawCards) {
+  if (!Array.isArray(rawCards) || !rawCards.length) return null;
+  const result = rawCards
+    .filter((c) => c && ["stat", "badge", "chart"].includes(c.type))
+    .slice(0, 3)
+    .map((c) => {
+      if (c.type === "stat")   return { type: "stat",  value: squeezeText(String(c.value || ""), 8) || "↑ -", label: squeezeText(String(c.label || ""), 5) };
+      if (c.type === "badge")  return { type: "badge", text: squeezeText(String(c.text || c.value || c.label || ""), 6) || "-" };
+      if (c.type === "chart")  return { type: "chart", label: squeezeText(String(c.label || c.text || ""), 6) || "趋势 ↑" };
+      return null;
+    })
+    .filter(Boolean);
+  return result.length ? result : null;
+}
+
+const FLOAT_CARD_FALLBACKS = {
+  hero:    [{ type: "badge", text: "核心亮点" }],
+  core:    [{ type: "badge", text: "流程优化" }],
+  feature: [{ type: "badge", text: "差异化" }],
+  trust:   [{ type: "badge", text: "已验证" }],
+  more:    [{ type: "badge", text: "更多功能" }],
+};
+
+function generateFallbackFloatCards(blueprintKey, headline) {
+  if (FLOAT_CARD_FALLBACKS[blueprintKey]) {
+    return FLOAT_CARD_FALLBACKS[blueprintKey];
+  }
+  const text = squeezeText(String(headline || blueprintKey || "亮点"), 6);
+  return [{ type: "badge", text: text || "亮点" }];
+}
+
 function sanitizeCopyPlan(rawPlan, job) {
   const blueprints = buildCopyBlueprints(job);
   const slidesByKey = new Map(
@@ -669,23 +706,35 @@ function sanitizeCopyPlan(rawPlan, job) {
         headline,
         subheadline,
         highlight: typeof source.highlight === 'string' ? source.highlight.trim().slice(0, 4) : '',
+        floatCards: sanitizeFloatCards(source.floatCards) ||
+          (job.styleId === "electric-neon" ? generateFallbackFloatCards(blueprint.key, headline) : null),
       };
     }),
   };
 }
 
 function buildCopyPrompt(job, blueprints) {
+  const isFloatStyle = job.styleId === "electric-neon";
+  const screenshotSummary = (job.screenshots || []).slice(0, blueprints.length).map((shot, i) => {
+    const route = shot.route || shot.requestUrl || "/";
+    const title = shot.title || "";
+    return `  slide ${i + 1} (key=${blueprints[i]?.key || i}): route=${route}${title ? ` title="${title}"` : ""}`;
+  }).join("\n");
+
   return [
     "You are writing Apple App Store screenshot copy in Simplified Chinese.",
-    "Analyze the screenshots and URL. Produce concise, product-specific marketing copy, not generic placeholders.",
+    "Analyze EACH screenshot individually. Every slide's content must reflect what is ACTUALLY VISIBLE in its own screenshot.",
     "Return JSON only with this shape:",
     JSON.stringify({
       appName: "应用名",
-      slides: blueprints.map((item) => ({
+      slides: blueprints.map((item, i) => ({
         key: item.key,
         headline: "最多7个字",
         subheadline: "最多12个字",
-        highlight: "1-3字（可选，留空则不高亮）",
+        highlight: "1-3字",
+        floatCards: i % 2 === 0
+          ? [{ type: "stat", value: "该页具体数字", label: "该页对应说明" }, { type: "badge", text: "该页特有标签" }]
+          : [{ type: "chart", label: "该页趋势词" }, { type: "badge", text: "该页功能名" }],
       })),
     }, null, 2),
     "Rules:",
@@ -693,7 +742,7 @@ function buildCopyPrompt(job, blueprints) {
     "- Use appNameHint/descriptionHint only as weak hints.",
     "- Use stylePrompt/styleKeywords as art-direction hints for tone only.",
     "- No placeholder wording like 未填写, URL驱动, 多页面, 自动生成.",
-    "- Only output three fields per slide: headline, subheadline, and highlight.",
+    "- Only output four fields per slide: headline, subheadline, highlight, floatCards.",
     "- headline must be 7 Chinese characters or fewer.",
     "- Avoid making every headline a 4-character slogan; vary headline length naturally across the set, usually between 4 and 7 Chinese characters.",
     "- headline should express the single most important feature or value of that page.",
@@ -704,6 +753,20 @@ function buildCopyPrompt(job, blueprints) {
     "- Prefer concrete user benefit over feature jargon.",
     "- Use youthful, energetic, emotionally engaging language.",
     "- Keep copy compact because long copy will break layout.",
+    isFloatStyle
+      ? "CRITICAL — floatCards (electric-neon style): These cards are rendered as visible floating overlay chips on the final image. They MUST be present for EVERY slide — never omit this field or return an empty array. They MUST be unique per slide and reflect the SPECIFIC data, metrics, or features visible in that slide's screenshot. Never repeat the same card content across slides."
+      : "floatCards: These are secondary data chips rendered on the visual. Include them for every slide and make them specific to each slide.",
+    "floatCards rules:",
+    "- floatCards is a REQUIRED field for every slide. Never omit it. Always return at least 1 card.",
+    "- EACH slide's floatCards must be derived from what is visible or strongly implied in THAT slide's own screenshot — not shared generic values.",
+    "- No two slides should have identical floatCard content.",
+    "- Return 1 to 2 floatCards per slide.",
+    "- type 'stat': specific numeric metric (value ≤8 chars, e.g.'↑24.5%','98分','3x快'). Also provide label ≤5 chars.",
+    "- type 'badge': short status or feature name (text ≤6 chars, e.g.'实时信号','已验证','多头').",
+    "- type 'chart': trend/time-series context (label ≤6 chars, e.g.'7日↑','胜率走势'). No value needed.",
+    "- Read numbers, labels, chart titles, and UI text directly from the screenshot. Do not invent data.",
+    "- If a screenshot shows no numeric data, infer the page's primary feature name as a badge card.",
+    `Slide-to-screenshot mapping:\n${screenshotSummary}`,
     `styleId: ${job.styleId || "(empty)"}`,
     `styleLabel: ${job.styleLabel || "(empty)"}`,
     `styleKeywords: ${Array.isArray(job.styleKeywords) && job.styleKeywords.length ? job.styleKeywords.join(", ") : "(empty)"}`,
@@ -839,7 +902,7 @@ async function generateCopyPlanViaAnthropic(job, blueprints, prompt) {
       },
       body: JSON.stringify({
         model: ANTHROPIC_MODEL,
-        max_tokens: 1200,
+        max_tokens: 4096,
         temperature: 0.4,
         messages: [
           {
@@ -860,9 +923,13 @@ async function generateCopyPlanViaAnthropic(job, blueprints, prompt) {
       ? payload.content.map((item) => item && item.text ? item.text : "").join("\n")
       : "";
 
+    console.log("[AI raw response]", text.slice(0, 3000));
+    const parsed = extractJsonObject(text);
+    console.log("[AI parsed floatCards sample]", JSON.stringify(parsed?.slides?.map(s => ({ key: s.key, floatCards: s.floatCards }))));
+
     return {
       provider: modeLabel,
-      plan: sanitizeCopyPlan(extractJsonObject(text), job),
+      plan: sanitizeCopyPlan(parsed, job),
     };
   };
 
@@ -901,7 +968,7 @@ async function generateCopyPlanViaOpenAI(job, blueprints, prompt) {
       body: JSON.stringify({
         model: OPENAI_MODEL,
         temperature: 0.4,
-        max_output_tokens: 1200,
+        max_output_tokens: 4096,
         input,
       }),
     });
@@ -914,9 +981,13 @@ async function generateCopyPlanViaOpenAI(job, blueprints, prompt) {
     const payload = await response.json();
     const text = extractOpenAIOutputText(payload);
 
+    console.log("[AI raw response]", text.slice(0, 3000));
+    const parsed = extractJsonObject(text);
+    console.log("[AI parsed floatCards sample]", JSON.stringify(parsed?.slides?.map(s => ({ key: s.key, floatCards: s.floatCards }))));
+
     return {
       provider: modeLabel,
-      plan: sanitizeCopyPlan(extractJsonObject(text), job),
+      plan: sanitizeCopyPlan(parsed, job),
     };
   };
 
@@ -1090,9 +1161,19 @@ async function capturePreview(targetUrl, requestedMode) {
 
   const page = await context.newPage();
   try {
-    await page.goto(targetUrl, { waitUntil: "networkidle", timeout: 30000 }).catch(async () => {
-      await page.goto(targetUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
-    });
+    try {
+      await page.goto(targetUrl, { waitUntil: "networkidle", timeout: 60000 });
+    } catch {
+      try {
+        await page.goto(targetUrl, { waitUntil: "load", timeout: 60000 });
+      } catch {
+        try {
+          await page.goto(targetUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
+        } catch {
+          await page.goto(targetUrl, { waitUntil: "commit", timeout: 60000 });
+        }
+      }
+    }
 
     await page.waitForTimeout(CAPTURE_WAIT_MS);
 
@@ -1170,9 +1251,19 @@ async function captureJobScreenshots(job) {
       const prefix = String(index + 1).padStart(2, "0");
       pushJobEvent(job, "run", `截图 ${prefix}-${target.label}.png …`);
 
-      await page.goto(target.targetUrl, { waitUntil: "networkidle", timeout: 30000 }).catch(async () => {
-        await page.goto(target.targetUrl, { waitUntil: "domcontentloaded", timeout: 30000 });
-      });
+      try {
+        await page.goto(target.targetUrl, { waitUntil: "networkidle", timeout: 60000 });
+      } catch {
+        try {
+          await page.goto(target.targetUrl, { waitUntil: "load", timeout: 60000 });
+        } catch {
+          try {
+            await page.goto(target.targetUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
+          } catch {
+            await page.goto(target.targetUrl, { waitUntil: "commit", timeout: 60000 });
+          }
+        }
+      }
 
       await page.waitForTimeout(CAPTURE_WAIT_MS);
 

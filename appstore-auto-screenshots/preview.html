@@ -144,7 +144,7 @@
   .form-group.span-2 { grid-column: span 2; }
   .form-group.span-4 { grid-column: 1 / -1; }
   .form-label { font-size: 12px; font-weight: 600; color: var(--muted); display: flex; align-items: center; gap: 6px; }
-  .form-label .required { color: var(--accent2); }
+  .form-label .required { color: #ffffff; }
   .form-input {
     background: var(--surface2); border: 1px solid var(--border);
     border-radius: 8px; padding: 9px 12px;
@@ -485,6 +485,7 @@
     background: linear-gradient(160deg, var(--theme-bg-start), var(--theme-bg-end));
     color: var(--theme-text);
     isolation: isolate;
+    container-type: inline-size;
   }
   .render-slide::before {
     content: "";
@@ -768,18 +769,15 @@
     z-index: 0;
     pointer-events: none;
   }
-  /* mono-luxe: fine crosshatch grid */
-  [data-style="mono-luxe"] .render-pattern {
-    background-image:
-      repeating-linear-gradient(0deg, transparent, transparent 23px, rgba(182,146,94,0.18) 23px, rgba(182,146,94,0.18) 24px),
-      repeating-linear-gradient(90deg, transparent, transparent 23px, rgba(182,146,94,0.18) 23px, rgba(182,146,94,0.18) 24px);
-  }
-  /* electric-neon: dot matrix */
+  /* mono-luxe: no pattern — decoration handled by concentric rings */
+  /* electric-neon: dot matrix — mask origin shifts per slide */
   [data-style="electric-neon"] .render-pattern {
     background-image: radial-gradient(circle, rgba(56,189,248,0.20) 1.5px, transparent 1.5px);
     background-size: 20px 20px;
+    -webkit-mask-image: radial-gradient(ellipse 85% 85% at var(--pattern-x, 50%) var(--pattern-y, 50%), black 0%, rgba(0,0,0,0.3) 55%, transparent 100%);
+    mask-image: radial-gradient(ellipse 85% 85% at var(--pattern-x, 50%) var(--pattern-y, 50%), black 0%, rgba(0,0,0,0.3) 55%, transparent 100%);
   }
-  /* dark-bold: diagonal scan lines */
+  /* dark-bold: diagonal scan lines — mask origin shifts per slide */
   [data-style="dark-bold"] .render-pattern {
     background-image: repeating-linear-gradient(
       45deg,
@@ -787,20 +785,22 @@
       transparent 0, transparent 50%
     );
     background-size: 10px 10px;
+    -webkit-mask-image: radial-gradient(ellipse 80% 80% at var(--pattern-x, 50%) var(--pattern-y, 50%), black 0%, rgba(0,0,0,0.25) 52%, transparent 100%);
+    mask-image: radial-gradient(ellipse 80% 80% at var(--pattern-x, 50%) var(--pattern-y, 50%), black 0%, rgba(0,0,0,0.25) 52%, transparent 100%);
   }
   /* warm-editorial: soft dots, bottom-left corner accent */
   [data-style="warm-editorial"] .render-pattern {
     background-image: radial-gradient(circle, rgba(217,119,6,0.30) 2px, transparent 2px);
     background-size: 22px 22px;
-    -webkit-mask-image: radial-gradient(ellipse at 0% 100%, black 0%, transparent 52%);
-    mask-image: radial-gradient(ellipse at 0% 100%, black 0%, transparent 52%);
+    -webkit-mask-image: radial-gradient(ellipse at var(--pattern-x, 0%) var(--pattern-y, 100%), black 0%, transparent 52%);
+    mask-image: radial-gradient(ellipse at var(--pattern-x, 0%) var(--pattern-y, 100%), black 0%, transparent 52%);
   }
   /* soft-botanical: organic dots, top-right corner accent */
   [data-style="soft-botanical"] .render-pattern {
     background-image: radial-gradient(circle, rgba(79,122,90,0.32) 2.5px, transparent 2.5px);
     background-size: 28px 28px;
-    -webkit-mask-image: radial-gradient(ellipse at 100% 0%, black 0%, transparent 55%);
-    mask-image: radial-gradient(ellipse at 100% 0%, black 0%, transparent 55%);
+    -webkit-mask-image: radial-gradient(ellipse at var(--pattern-x, 100%) var(--pattern-y, 0%), black 0%, transparent 55%);
+    mask-image: radial-gradient(ellipse at var(--pattern-x, 100%) var(--pattern-y, 0%), black 0%, transparent 55%);
   }
   /* clean-light: diagonal motion stripes fading in from bottom-right */
   [data-style="clean-light"] .render-pattern {
@@ -812,8 +812,60 @@
       rgba(34,118,255,0.09) 0, rgba(34,118,255,0.09) 1px,
       transparent 0, transparent 44px
     );
-    -webkit-mask-image: radial-gradient(ellipse at 100% 100%, black 0%, transparent 62%);
-    mask-image: radial-gradient(ellipse at 100% 100%, black 0%, transparent 62%);
+    -webkit-mask-image: radial-gradient(ellipse at var(--pattern-x, 100%) var(--pattern-y, 100%), black 0%, transparent 62%);
+    mask-image: radial-gradient(ellipse at var(--pattern-x, 100%) var(--pattern-y, 100%), black 0%, transparent 62%);
+  }
+  /* street-drop: bold diagonal racing chevrons, bottom-right corner */
+  [data-style="street-drop"] .render-pattern {
+    background: none;
+    overflow: hidden;
+  }
+  [data-style="street-drop"] .render-pattern svg {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  /* street-drop: heavy uppercase headline */
+  [data-style="street-drop"] .render-headline {
+    text-transform: uppercase;
+    letter-spacing: -0.03em;
+    font-weight: 900;
+  }
+  /* street-drop: amplify the orange glow on dark bg */
+  [data-style="street-drop"] .render-slide::before,
+  [data-style="street-drop"] .render-slide::after {
+    opacity: calc(var(--glow-strength, 0.7) * 1.35);
+  }
+  /* street-drop: yellow tinted subheadline */
+  [data-style="street-drop"] .render-subheadline {
+    color: color-mix(in srgb, var(--theme-accent-2) 45%, var(--theme-text));
+  }
+
+  /* acid-rave: dense neon green dot grid, bottom-left corner */
+  [data-style="acid-rave"] .render-pattern {
+    background-image: radial-gradient(circle, rgba(0, 255, 127, 0.26) 1.5px, transparent 1.5px);
+    background-size: 16px 16px;
+    -webkit-mask-image: radial-gradient(ellipse at var(--pattern-x, -5%) var(--pattern-y, 105%), black 0%, transparent 56%);
+    mask-image: radial-gradient(ellipse at var(--pattern-x, -5%) var(--pattern-y, 105%), black 0%, transparent 56%);
+  }
+  /* acid-rave: electric glowing headline */
+  [data-style="acid-rave"] .render-headline {
+    text-shadow:
+      0 0 20px color-mix(in srgb, var(--theme-accent) 70%, transparent),
+      0 0 55px color-mix(in srgb, var(--theme-accent) 32%, transparent);
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    font-weight: 900;
+  }
+  /* acid-rave: hot pink subheadline tint */
+  [data-style="acid-rave"] .render-subheadline {
+    color: color-mix(in srgb, var(--theme-accent-2) 60%, var(--theme-text));
+  }
+  /* acid-rave: amplify the dual-color glow */
+  [data-style="acid-rave"] .render-slide::before,
+  [data-style="acid-rave"] .render-slide::after {
+    opacity: calc(var(--glow-strength, 0.7) * 1.2);
   }
 
   /* mono-luxe: suppress glow for true minimalist luxury aesthetic */
@@ -827,9 +879,207 @@
     letter-spacing: 0.08em;
   }
 
+  /* mono-luxe: concentric gold rings centered on device */
+  .render-luxe-circle {
+    display: none;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+    z-index: 0;
+  }
+  [data-style="mono-luxe"] .render-luxe-circle {
+    display: block;
+  }
+
   /* electric-neon: glowing headline text */
   [data-style="electric-neon"] .render-headline {
     text-shadow: 0 0 28px color-mix(in srgb, var(--theme-accent) 60%, transparent);
+  }
+
+  /* electric-neon: ghost phone silhouettes flanking the main mockup */
+  .render-ghost-left,
+  .render-ghost-right {
+    display: none;
+    position: absolute;
+    width: 58%;
+    aspect-ratio: 1022 / 2082;
+    border-radius: 11.5% / 5.7%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  [data-style="electric-neon"] .render-ghost-left,
+  [data-style="electric-neon"] .render-ghost-right {
+    display: block;
+  }
+  [data-style="electric-neon"] .render-ghost-left {
+    left: -14%;
+    bottom: calc(6% - 10px);
+    border: 1.5px solid rgba(56,189,248,0.32);
+    background: linear-gradient(160deg, rgba(56,189,248,0.05) 0%, rgba(9,18,39,0.08) 100%);
+    box-shadow: 0 0 24px rgba(56,189,248,0.15), 0 0 48px rgba(56,189,248,0.06);
+    transform: rotate(-9deg);
+    opacity: 0.75;
+  }
+  [data-style="electric-neon"] .render-ghost-right {
+    right: -14%;
+    bottom: calc(6% - 10px);
+    border: 1.5px solid rgba(139,92,246,0.28);
+    background: linear-gradient(160deg, rgba(139,92,246,0.05) 0%, rgba(9,18,39,0.08) 100%);
+    box-shadow: 0 0 24px rgba(139,92,246,0.14), 0 0 48px rgba(139,92,246,0.05);
+    transform: rotate(8deg);
+    opacity: 0.65;
+  }
+  /* ghost frames for inverted slides (device at top) */
+  [data-style="electric-neon"].layout-inverted .render-ghost-left {
+    bottom: auto;
+    top: calc(6% - 10px);
+    transform: rotate(9deg);
+  }
+  [data-style="electric-neon"].layout-inverted .render-ghost-right {
+    bottom: auto;
+    top: calc(6% - 10px);
+    transform: rotate(-8deg);
+  }
+
+  /* ── FLOATING UI CARDS (electric-neon only) ── */
+  .render-float-cards {
+    display: none;
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 2;
+  }
+  [data-style="electric-neon"] .render-float-cards {
+    display: block;
+  }
+
+  /* base card */
+  .rfc {
+    position: absolute;
+    background: rgba(9,18,39,0.66);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border-radius: 2.4cqw;
+    display: flex;
+    flex-direction: column;
+    gap: 0.8cqw;
+    padding: 2cqw 2.6cqw;
+  }
+  .rfc-value {
+    font-family: 'Inter', sans-serif;
+    font-size: 6.8cqw;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+  .rfc-label {
+    font-family: 'Inter', sans-serif;
+    font-size: 3.6cqw;
+    font-weight: 400;
+    line-height: 1;
+    letter-spacing: 0.02em;
+    color: rgba(245,216,160,0.55);
+  }
+
+  /* stat card: two-line column layout */
+  .rfc--stat { width: 34%; }
+
+  /* badge card: circle shape */
+  .rfc--badge {
+    width: 22cqw;
+    height: 22cqw;
+    border-radius: 50%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2cqw;
+    gap: 0;
+  }
+  .rfc-badge-text {
+    font-family: 'Inter', sans-serif;
+    font-size: 4.4cqw;
+    font-weight: 600;
+    color: rgba(245,216,160,0.92);
+    white-space: normal;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+    text-align: center;
+    overflow-wrap: break-word;
+    word-break: break-word;
+  }
+
+  /* chart card: bars + label */
+  .rfc--chart { width: 23%; gap: 1.2cqw; }
+  .rfc-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.7cqw;
+    height: 4.8cqw;
+  }
+  .rfc-bar {
+    flex: 1;
+    height: var(--h, 50%);
+    border-radius: 0.5cqw 0.5cqw 0 0;
+    background: linear-gradient(to top, rgba(56,189,248,0.55), rgba(139,92,246,0.75));
+  }
+
+  /* ── GLASS REFLECTION PLATFORM (clean-light only) ── */
+  .render-device-reflection {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: -6%;
+    width: 112%;
+    height: 56cqw;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+  [data-style="clean-light"] .render-device-reflection {
+    display: block;
+  }
+  /* contact line — soft frosted edge where phone meets surface */
+  .render-device-reflection::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 8%;
+    width: 84%;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(200, 220, 255, 0.5) 20%,
+      rgba(220, 235, 255, 0.85) 50%,
+      rgba(200, 220, 255, 0.5) 80%,
+      transparent
+    );
+    z-index: 2;
+  }
+  /* cloned device — full content reflection with correct downward fade */
+  .render-device-reflection-clone {
+    position: absolute;
+    top: 0;
+    left: 6%;
+    width: 88%;
+    transform: scaleY(-1);
+    transform-origin: center center;
+    opacity: 0.24;
+    filter: blur(0.6px) saturate(0.5) brightness(1.0);
+    /* mask in pre-transform coords: bottom = phone bottom = contact line → opaque;
+       top = phone top = far end → transparent */
+    -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.55) 28%, rgba(0,0,0,0.15) 55%, transparent 78%);
+    mask-image: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.55) 28%, rgba(0,0,0,0.15) 55%, transparent 78%);
+    pointer-events: none;
+  }
+  /* aura/shadow are lighting artifacts — don't reflect them */
+  .render-device-reflection-clone .render-device-aura,
+  .render-device-reflection-clone .render-device-shadow {
+    display: none;
   }
 
   /* Inverted layout: device at top, text at bottom (even-indexed slides) */
@@ -984,7 +1234,6 @@
 <!-- NAV -->
 <nav class="nav">
   <div class="nav-brand">
-    <div class="nav-dot"></div>
     AppStore Auto-Screenshots
   </div>
   <span class="nav-badge">SKILL PREVIEW · LAYOUT V2</span>
@@ -996,7 +1245,6 @@
   <!-- LEFT: Input Panel -->
   <div class="panel-left">
     <div class="panel-header">
-      <div class="panel-header-dot"></div>
       输入配置
     </div>
     <div class="form">
@@ -1077,6 +1325,24 @@
   };
 
   const STYLE_PRESETS = {
+    'clean-light': {
+      id: 'clean-light',
+      label: 'Clean Light',
+      type: 'Skill 示例',
+      description: '明亮克制，强调清晰与产品可信度。',
+      keywords: ['清晰', '可信', '现代'],
+      summary: '适合工具、教育、效率与金融类产品，优先表达 clarity 和 trust。',
+      prompt: '整体要干净、现代、可信，像成熟科技产品的高质量 light mode marketing page，装饰少，结构清晰。',
+      deviceMode: 'upright',
+      theme: {
+        bgStart: '#f7fbff',
+        bgEnd: '#dfeeff',
+        panel: '#ffffff',
+        text: '#182033',
+        accent: '#2276ff',
+        accent2: '#61d7ff',
+      },
+    },
     'warm-editorial': {
       id: 'warm-editorial',
       label: 'Warm Editorial',
@@ -1094,24 +1360,6 @@
         text: '#2b1d17',
         accent: '#d97706',
         accent2: '#f0a166',
-      },
-    },
-    'clean-light': {
-      id: 'clean-light',
-      label: 'Clean Light',
-      type: 'Skill 示例',
-      description: '明亮克制，强调清晰与产品可信度。',
-      keywords: ['清晰', '可信', '现代'],
-      summary: '适合工具、教育、效率与金融类产品，优先表达 clarity 和 trust。',
-      prompt: '整体要干净、现代、可信，像成熟科技产品的高质量 light mode marketing page，装饰少，结构清晰。',
-      deviceMode: 'upright',
-      theme: {
-        bgStart: '#f7fbff',
-        bgEnd: '#dfeeff',
-        panel: '#ffffff',
-        text: '#182033',
-        accent: '#2276ff',
-        accent2: '#61d7ff',
       },
     },
     'dark-bold': {
@@ -1178,7 +1426,6 @@
       summary: '适合时尚、美妆、摄影、高端效率与精品电商，强调 premium 与 curated 感。',
       prompt: '整体应极简、精致、有奢感，以黑白暖灰和低饱和暖金为主，留白大胆，截图像精品对象被陈列展示。',
       deviceMode: 'upright',
-      invertEven: true,
       theme: {
         bgStart: '#f8f5f0',
         bgEnd: '#e7e0d8',
@@ -1188,9 +1435,46 @@
         accent2: '#6b7280',
       },
     },
+    'street-drop': {
+      id: 'street-drop',
+      label: 'Street Drop',
+      type: '新风格',
+      description: '街头潮牌运营海报感，暗金高反差冲击力。',
+      keywords: ['潮流', '电商', '金色'],
+      summary: '适合消费品、时尚、电商促销、新品首发，视觉冲击强，像头部电商运营海报。',
+      prompt: '电商运营海报风格，极致高反差暗底+暗金撞色，粗重大字标题像 Hypebeast 限定款 Drop 公告，视觉张力强，能量感十足。',
+      deviceMode: 'tilt',
+      invertEven: true,
+      theme: {
+        bgStart: '#0f0e08',
+        bgEnd: '#1a1500',
+        panel: '#1c1a08',
+        text: '#ffffff',
+        accent: '#ffb300',
+        accent2: '#ffe566',
+      },
+    },
+    'acid-rave': {
+      id: 'acid-rave',
+      label: 'Acid Rave',
+      type: '新风格',
+      description: 'Web3 / Discord 年轻人会喜欢的电子节活泼感。',
+      keywords: ['Web3', '活泼', 'Discord'],
+      summary: '适合 Web3、NFT、社区产品、创意工具和年轻人向产品，像电子音乐节视觉或 Discord Nitro 宣传图。',
+      prompt: '电子节/Web3 风格，极致暗黑底色配双绿色系，像 rave 海报或 Web3 mint 页面，活泼有冲劲但不做紫色 AI 感。',
+      deviceMode: 'upright',
+      theme: {
+        bgStart: '#050f05',
+        bgEnd: '#020a02',
+        panel: '#0a140a',
+        text: '#f0fff4',
+        accent: '#00ff7f',
+        accent2: '#7fff00',
+      },
+    },
   };
 
-  const DEFAULT_STYLE_PRESET_ID = 'warm-editorial';
+  const DEFAULT_STYLE_PRESET_ID = 'clean-light';
   const STANDARD_SLIDE_LAYOUT = 'layout-standard';
 
   // 6-slide tilt sequence — perspective included so transform-origin works correctly
@@ -1217,6 +1501,16 @@
     'perspective(800px) translateX(-50%) rotateY(10deg) rotateX(-3deg)',        // right lean
     'perspective(800px) translateX(-50%) rotateY(-6deg) rotateX(-2deg) rotateZ(-1deg)', // left + uptilt + twist
     'perspective(800px) translateX(-50%) rotateY(12deg) rotateX(4deg)',         // right + overhead
+  ];
+
+  // 6-position rotation for background pattern decoration — cycles through corners/edges per slide
+  const PATTERN_POSITIONS = [
+    { x: '0%',   y: '100%' },   // slide 0: bottom-left
+    { x: '100%', y: '0%'   },   // slide 1: top-right
+    { x: '100%', y: '100%' },   // slide 2: bottom-right
+    { x: '0%',   y: '0%'   },   // slide 3: top-left
+    { x: '50%',  y: '100%' },   // slide 4: bottom-center
+    { x: '100%', y: '50%'  },   // slide 5: right-center
   ];
 
   let toastTimer = null;
@@ -1336,6 +1630,7 @@
 
   function themeVars(theme, slideIndex) {
     const isEven = typeof slideIndex === 'number' && (slideIndex % 2 === 1);
+    const pos = PATTERN_POSITIONS[typeof slideIndex === 'number' ? slideIndex % PATTERN_POSITIONS.length : 0];
     return [
       `--theme-bg-start:${theme.bgStart}`,
       `--theme-bg-end:${theme.bgEnd}`,
@@ -1344,6 +1639,8 @@
       `--theme-accent:${theme.accent}`,
       `--theme-accent-2:${theme.accent2}`,
       `--glow-strength:${isEven ? '1.0' : '0.55'}`,
+      `--pattern-x:${pos.x}`,
+      `--pattern-y:${pos.y}`,
     ].join(';');
   }
 
@@ -1566,6 +1863,7 @@
 
     element.style.removeProperty('--fit-font-size');
     element.style.removeProperty('--fit-letter-spacing');
+    element.style.removeProperty('white-space');
     let size = maxSize;
     element.style.setProperty('--fit-font-size', `${size}px`);
     const parent = element.parentElement;
@@ -1586,6 +1884,11 @@
     while (letterSpacing > minLetterSpacing && element.scrollWidth > getAvailableWidth() + 1) {
       letterSpacing = Number((letterSpacing - 0.2).toFixed(1));
       element.style.setProperty('--fit-letter-spacing', `${letterSpacing}px`);
+    }
+
+    // 压缩到极限仍然溢出（常见于长英文标题）：退化为多行，避免硬裁
+    if (element.scrollWidth > getAvailableWidth() + 1) {
+      element.style.whiteSpace = 'normal';
     }
   }
 
@@ -1630,11 +1933,12 @@
     return JSON.stringify({
       url: state.normalizedUrl || state.url,
       slideCount: state.slideCount,
+      styleId: state.styleId || DEFAULT_STYLE_PRESET_ID,
     });
   }
 
   function getGeneratedCopyPlan(state) {
-    // Style-agnostic cache takes priority so copy survives style switches
+    // Style-keyed cache takes priority so copy survives URL-only rechecks but not style switches
     const urlKey = buildCopyUrlSignature(state);
     if (copyPlanUrlCache.has(urlKey)) {
       return copyPlanUrlCache.get(urlKey);
@@ -1668,6 +1972,8 @@
         headline: generated.headline || generated.titleLG || slide.headline || slide.headlineText || stripEmTags((Array.isArray(slide.headline) ? slide.headline[0] : slide.headline) || ''),
         subheadline: generated.subheadline || generated.titleSM || slide.subheadline || slide.subtitle || generated.subtitle || generated.kicker || slide.kicker || '',
         highlight: generated.highlight || slide.highlight || null,
+        floatCards: generated.floatCards || slide.floatCards || null,
+        copyLoading: false,
       };
     });
   }
@@ -1696,6 +2002,7 @@
         headline: generated && (generated.headline || generated.titleLG) ? (generated.headline || generated.titleLG) : '',
         subheadline: generated && (generated.subheadline || generated.titleSM || generated.subtitle) ? (generated.subheadline || generated.titleSM || generated.subtitle) : '',
         highlight: generated && generated.highlight ? generated.highlight : null,
+        floatCards: generated && Array.isArray(generated.floatCards) ? generated.floatCards : null,
         copyLoading: !generated,
         routeA: routeValue,
         routeB: screenshots[index + 1]
@@ -1760,8 +2067,9 @@
         title: 'Hero / 主卖点',
         file: 'hero',
         layout: STANDARD_SLIDE_LAYOUT,
-        headline: '产品亮点',
-        subheadline: '真实界面更可信',
+        headline: '',
+        subheadline: '',
+        copyLoading: true,
         routeA: '/',
       },
       {
@@ -1769,8 +2077,9 @@
         title: '核心路径',
         file: 'core-flow',
         layout: STANDARD_SLIDE_LAYOUT,
-        headline: '输入重建',
-        subheadline: '换地址即更新',
+        headline: '',
+        subheadline: '',
+        copyLoading: true,
         routeA: '/',
       },
       {
@@ -1778,8 +2087,9 @@
         title: '页面编排',
         file: 'route-story',
         layout: STANDARD_SLIDE_LAYOUT,
-        headline: '自动发现',
-        subheadline: '页面自动成线',
+        headline: '',
+        subheadline: '',
+        copyLoading: true,
         routeA: '/',
         routeB: '/',
       },
@@ -1788,8 +2098,9 @@
         title: '差异化亮点',
         file: 'feature',
         layout: STANDARD_SLIDE_LAYOUT,
-        headline: '聚焦价值',
-        subheadline: '每张图只讲一点',
+        headline: '',
+        subheadline: '',
+        copyLoading: true,
         routeA: '/',
       },
       {
@@ -1797,8 +2108,9 @@
         title: '信任感',
         file: 'trust',
         layout: STANDARD_SLIDE_LAYOUT,
-        headline: '建立信任',
-        subheadline: '真实截图更可信',
+        headline: '',
+        subheadline: '',
+        copyLoading: true,
         routeA: '/',
       },
       {
@@ -1806,8 +2118,9 @@
         title: '更多功能',
         file: 'more-features',
         layout: STANDARD_SLIDE_LAYOUT,
-        headline: '更多能力',
-        subheadline: '承接更多卖点',
+        headline: '',
+        subheadline: '',
+        copyLoading: true,
         routeA: '/',
       },
     ];
@@ -1821,13 +2134,228 @@
         title: `补充卖点 ${index + 1}`,
         file: `extra-${index + 1}`,
         layout: STANDARD_SLIDE_LAYOUT,
-        headline: '继续展开',
-        subheadline: '补一个新场景',
+        headline: '',
+        subheadline: '',
+        copyLoading: true,
         routeA: route,
       };
     })];
 
     return mergeCopyPlan(slides, getGeneratedCopyPlan(state));
+  }
+
+  // ── FLOATING CARD SLOT POOLS (electric-neon) ──
+  // Each slot: position props, rotation, border/glow colors, value/dot/label accent colors
+  const _RFC_BASE_COLORS = [
+    { border: 'rgba(245,208,100,0.45)', glow1: 'rgba(245,208,100,0.20)', glow2: 'rgba(245,208,100,0.08)', accent: '#f5d064', dot: '#f5d064', dotGlow: 'rgba(245,208,100,0.85)', lbl: 'rgba(245,208,100,0.75)' },
+    { border: 'rgba(230,190,120,0.42)', glow1: 'rgba(230,190,120,0.18)', glow2: 'rgba(230,190,120,0.07)', accent: '#e6be78', dot: '#e6be78', dotGlow: 'rgba(230,190,120,0.82)', lbl: 'rgba(230,190,120,0.73)' },
+    { border: 'rgba(245,216,160,0.38)', glow1: 'rgba(245,216,160,0.16)', glow2: 'rgba(245,216,160,0.06)', accent: '#f5d8a0', dot: '#f5d8a0', dotGlow: 'rgba(245,216,160,0.80)', lbl: 'rgba(245,216,160,0.72)' },
+    { border: 'rgba(230,190,120,0.36)', glow1: 'rgba(230,190,120,0.15)', glow2: 'rgba(230,190,120,0.06)', accent: '#e6be78', dot: '#e6be78', dotGlow: 'rgba(230,190,120,0.78)', lbl: 'rgba(230,190,120,0.70)' },
+    { border: 'rgba(245,208,100,0.40)', glow1: 'rgba(245,208,100,0.17)', glow2: 'rgba(245,208,100,0.07)', accent: '#f5d064', dot: '#f5d064', dotGlow: 'rgba(245,208,100,0.83)', lbl: 'rgba(245,208,100,0.73)' },
+    { border: 'rgba(242,222,187,0.36)', glow1: 'rgba(242,222,187,0.15)', glow2: 'rgba(242,222,187,0.05)', accent: '#f2debe', dot: '#f2debe', dotGlow: 'rgba(242,222,187,0.78)', lbl: 'rgba(242,222,187,0.70)' },
+  ];
+  // Normal layout: device at bottom, safe card zone ~28%–83%
+  const RFC_SLOTS_NORMAL = [
+    { side: { right: '1.5%', top: '30%' }, rot:  5.0, c: _RFC_BASE_COLORS[0] },
+    { side: { left:  '2%',   top: '46%' }, rot: -4.0, c: _RFC_BASE_COLORS[1] },
+    { side: { right: '2.5%', top: '61%' }, rot:  2.5, c: _RFC_BASE_COLORS[2] },
+    { side: { left:  '3%',   top: '34%' }, rot: -6.0, c: _RFC_BASE_COLORS[3] },
+    { side: { right: '3%',   top: '53%' }, rot:  4.0, c: _RFC_BASE_COLORS[4] },
+    { side: { left:  '2%',   top: '68%' }, rot: -3.0, c: _RFC_BASE_COLORS[5] },
+  ];
+  // Inverted layout: device at top, safe card zone ~9%–67%
+  const RFC_SLOTS_INVERTED = [
+    { side: { right: '1.5%', top:  '9%' }, rot:  5.0, c: _RFC_BASE_COLORS[0] },
+    { side: { left:  '2%',   top: '24%' }, rot: -4.0, c: _RFC_BASE_COLORS[1] },
+    { side: { right: '2.5%', top: '39%' }, rot:  2.5, c: _RFC_BASE_COLORS[2] },
+    { side: { left:  '3%',   top: '13%' }, rot: -6.0, c: _RFC_BASE_COLORS[3] },
+    { side: { right: '3%',   top: '31%' }, rot:  4.0, c: _RFC_BASE_COLORS[4] },
+    { side: { left:  '2%',   top: '50%' }, rot: -3.0, c: _RFC_BASE_COLORS[5] },
+  ];
+  // Card counts per slide — no two adjacent slides share the same count
+  const RFC_COUNT_SEQUENCE = [2, 1, 3, 1, 2, 3];
+  // Bar height sets for chart cards — vary per slide for visual variety
+  const RFC_BAR_SETS = [
+    [32, 52, 44, 78, 62, 90, 70],
+    [60, 45, 72, 55, 82, 40, 76],
+    [30, 42, 58, 66, 74, 82, 90],
+    [88, 72, 62, 74, 66, 82, 76],
+  ];
+  function renderFloatCards(slide, slideIndex, isInverted) {
+    if (slide.loading || slide.copyLoading) return '';
+    const rawCards = Array.isArray(slide.floatCards) ? slide.floatCards.filter(Boolean) : [];
+    if (!rawCards.length) return '';
+    const targetCount = Math.min(rawCards.length, RFC_COUNT_SEQUENCE[slideIndex % RFC_COUNT_SEQUENCE.length]);
+    const cards = rawCards.slice(0, targetCount);
+    const slots = isInverted ? RFC_SLOTS_INVERTED : RFC_SLOTS_NORMAL;
+    const offset = (slideIndex * 2) % slots.length;
+    const barSet = RFC_BAR_SETS[slideIndex % RFC_BAR_SETS.length];
+
+    // Break CJK text into lines of ~2 chars; English/mixed text wraps at word boundaries via CSS
+    function wrapCJKText(text) {
+      if (!text) return '';
+      // Contains space or Latin letters → let CSS word-wrap handle it, don't insert breaks
+      if (/[ a-zA-Z]/.test(text)) return escapeHtml(text);
+      if (text.length <= 2) return escapeHtml(text);
+      const chunks = [];
+      let i = 0;
+      while (i < text.length) {
+        if (i + 3 >= text.length) { chunks.push(escapeHtml(text.slice(i))); break; }
+        chunks.push(escapeHtml(text.slice(i, i + 2)));
+        i += 2;
+      }
+      return chunks.join('<br>');
+    }
+
+    const html = cards.map((card, i) => {
+      const slot = slots[(offset + i) % slots.length];
+      const posCSS = Object.entries(slot.side).map(([k, v]) => `${k}:${v}`).join(';');
+      const boxShadow = `0 0 22px ${slot.c.glow1},0 0 44px ${slot.c.glow2},0 6px 20px rgba(0,0,0,0.45)`;
+      const baseStyle = `${posCSS};transform:rotate(${slot.rot}deg);border:0.16cqw solid ${slot.c.border};box-shadow:${boxShadow};`;
+
+      if (card.type === 'stat') {
+        return `<div class="rfc rfc--stat" style="${baseStyle}">
+          <div class="rfc-value" style="color:${slot.c.accent}">${escapeHtml(card.value || '')}</div>
+          ${card.label ? `<div class="rfc-label">${escapeHtml(card.label)}</div>` : ''}
+        </div>`;
+      }
+      if (card.type === 'badge') {
+        return `<div class="rfc rfc--badge" style="${baseStyle}">
+          <span class="rfc-badge-text">${wrapCJKText(card.text || '')}</span>
+        </div>`;
+      }
+      if (card.type === 'chart') {
+        const bars = barSet.map(h => `<div class="rfc-bar" style="--h:${h}%"></div>`).join('');
+        return `<div class="rfc rfc--chart" style="${baseStyle}">
+          <div class="rfc-bars">${bars}</div>
+          ${card.label ? `<div class="rfc-label" style="color:${slot.c.lbl}">${escapeHtml(card.label)}</div>` : ''}
+        </div>`;
+      }
+      return '';
+    }).join('');
+
+    return `<div class="render-float-cards">${html}</div>`;
+  }
+
+  function renderMonoLuxeCircle(slideIndex) {
+    // Concentric gold rings: inner rings thick, outer rings thin + fading
+    const variants = [
+      { cy: 62 },
+      { cy: 60 },
+      { cy: 64 },
+      { cy: 58 },
+      { cy: 63 },
+      { cy: 61 },
+    ];
+    const v = variants[slideIndex % variants.length];
+    const spacing = 24;   // px between rings
+    const maxR    = 430;  // outermost ring radius
+    const rings   = [];
+    for (let r = spacing; r <= maxR; r += spacing) {
+      const t           = r / maxR;                                   // 0→1 from center to edge
+      const strokeWidth = Math.max(0.8, 2.5 - 1.7 * t).toFixed(2);  // 2.5px → 0.8px
+      const opacity     = (0.82 * Math.pow(0.88, (r / spacing) - 1)).toFixed(3); // gentle exponential decay
+      rings.push(
+        `<circle cx="50%" cy="${v.cy}%" r="${r}" fill="none" ` +
+        `stroke="rgba(182,146,94,1)" stroke-width="${strokeWidth}" opacity="${opacity}"/>`
+      );
+    }
+    return `<svg class="render-luxe-circle" xmlns="http://www.w3.org/2000/svg" overflow="visible">${rings.join('')}</svg>`;
+  }
+
+  function renderStreetDropPattern(slideIndex) {
+    // Each slide gets a different horizontal center so S curves shift left/right
+    const centerOffsets = [-75, 75, 0, -50, 90, -25];
+    const cx = 195 + centerOffsets[slideIndex % centerOffsets.length];
+    const a = 88; // S amplitude — how far each half bows out
+
+    // 6 parallel S curves, spaced 35px apart, fading outward
+    const lines = [
+      { dx:   0, op: 0.16, w: 1.0 },
+      { dx:  30, op: 0.09, w: 0.7 },
+      { dx: -30, op: 0.08, w: 0.7 },
+      { dx:  58, op: 0.05, w: 0.5 },
+      { dx: -58, op: 0.04, w: 0.5 },
+      { dx:  85, op: 0.03, w: 0.4 },
+    ];
+
+    const paths = lines.map(({ dx, op, w }) => {
+      const x = cx + dx;
+      // C: two explicit control points for lower-half curve (bow right)
+      // S: smooth continuation for upper-half (bow left via reflection)
+      const d = [
+        'M', (x - a * 0.45).toFixed(1), '844',
+        'C', (x + a * 1.1).toFixed(1), '640',
+            (x - a * 1.1).toFixed(1), '430',
+            x.toFixed(1), '422',
+        'S', (x + a * 1.1).toFixed(1), '190',
+            (x + a * 0.45).toFixed(1), '0',
+      ].join(' ');
+      return `<path d="${d}" stroke="rgba(255,179,0,${op})" stroke-width="${w}"/>`;
+    }).join('');
+
+    // Bullish icons: up-chevrons (↑) and plus signs (+) — per-slide, low opacity, corner/edge positions
+    // Coordinates in viewBox space (390×844). Phone occupies roughly center x:80-310, y:260-844.
+    // Safe zones: top strip (y<200), left edge (x<55), right edge (x>335), bottom corners (y>750, x<60 or x>330).
+    const BULLISH_ICON_SETS = [
+      // slide 0 — 4 icons
+      [
+        { t: 'arrow', cx: 44,  cy: 82,  s: 25, op: 0.22, c: '255,179,0'   },
+        { t: 'plus',  cx: 362, cy: 155, s: 18, op: 0.19, c: '255,215,80'  },
+        { t: 'arrow', cx: 350, cy: 410, s: 20, op: 0.18, c: '255,179,0'   },
+        { t: 'plus',  cx: 36,  cy: 760, s: 15, op: 0.16, c: '255,215,80'  },
+      ],
+      // slide 1 — 3 icons
+      [
+        { t: 'plus',  cx: 335, cy: 68,  s: 21, op: 0.21, c: '255,215,80'  },
+        { t: 'arrow', cx: 26,  cy: 375, s: 29, op: 0.23, c: '255,179,0'   },
+        { t: 'arrow', cx: 358, cy: 310, s: 18, op: 0.18, c: '255,179,0'   },
+      ],
+      // slide 2 — 4 icons
+      [
+        { t: 'arrow', cx: 356, cy: 58,  s: 22, op: 0.20, c: '255,179,0'   },
+        { t: 'plus',  cx: 38,  cy: 105, s: 16, op: 0.18, c: '255,215,80'  },
+        { t: 'arrow', cx: 22,  cy: 460, s: 20, op: 0.19, c: '255,179,0'   },
+        { t: 'plus',  cx: 340, cy: 760, s: 16, op: 0.17, c: '255,215,80'  },
+      ],
+      // slide 3 — 3 icons
+      [
+        { t: 'arrow', cx: 32,  cy: 60,  s: 18, op: 0.18, c: '255,179,0'   },
+        { t: 'plus',  cx: 360, cy: 78,  s: 23, op: 0.22, c: '255,215,80'  },
+        { t: 'arrow', cx: 24,  cy: 500, s: 22, op: 0.19, c: '255,179,0'   },
+      ],
+      // slide 4 — 4 icons
+      [
+        { t: 'arrow', cx: 48,  cy: 90,  s: 27, op: 0.21, c: '255,179,0'   },
+        { t: 'plus',  cx: 370, cy: 255, s: 19, op: 0.20, c: '255,215,80'  },
+        { t: 'arrow', cx: 28,  cy: 755, s: 16, op: 0.17, c: '255,179,0'   },
+        { t: 'plus',  cx: 352, cy: 480, s: 17, op: 0.18, c: '255,215,80'  },
+      ],
+      // slide 5 — 3 icons
+      [
+        { t: 'plus',  cx: 115, cy: 62,  s: 17, op: 0.19, c: '255,215,80'  },
+        { t: 'arrow', cx: 366, cy: 345, s: 24, op: 0.22, c: '255,179,0'   },
+        { t: 'arrow', cx: 30,  cy: 148, s: 20, op: 0.18, c: '255,179,0'   },
+      ],
+    ];
+
+    const iconSvgPaths = BULLISH_ICON_SETS[slideIndex % BULLISH_ICON_SETS.length].map(({ t, cx: icx, cy: icy, s, op, c }) => {
+      if (t === 'arrow') {
+        // Chevron pointing up: two angled lines meeting at the tip
+        const tipX = icx, tipY = icy - s * 0.38;
+        const lx = (icx - s * 0.42).toFixed(1), ly = (icy + s * 0.28).toFixed(1);
+        const rx = (icx + s * 0.42).toFixed(1), ry = ly;
+        const tx = tipX.toFixed(1), ty = tipY.toFixed(1);
+        return `<path d="M ${lx},${ly} L ${tx},${ty} L ${rx},${ry}" stroke="rgba(${c},${op})" stroke-width="2.8" fill="none"/>`;
+      } else {
+        // Plus sign: two perpendicular lines
+        const r = (s * 0.44).toFixed(1);
+        const x = icx.toFixed(1), y = icy.toFixed(1);
+        return `<path d="M ${(icx - +r).toFixed(1)},${y} L ${(icx + +r).toFixed(1)},${y} M ${x},${(icy - +r).toFixed(1)} L ${x},${(icy + +r).toFixed(1)}" stroke="rgba(${c},${op})" stroke-width="2.8" fill="none"/>`;
+      }
+    }).join('');
+
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 390 844" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><g fill="none" stroke-linecap="round" stroke-linejoin="round">${paths}${iconSvgPaths}</g></svg>`;
   }
 
   function renderSlideArtwork(slide, state, slideIndex) {
@@ -1868,11 +2396,33 @@
         </div>
       `;
 
+    const ghostFrames = state.styleId === 'electric-neon'
+      ? '<div class="render-ghost-left"></div><div class="render-ghost-right"></div>'
+      : state.styleId === 'mono-luxe'
+      ? renderMonoLuxeCircle(slideIndex)
+      : '';
+
+    const isInverted = layoutClass.includes('layout-inverted');
+    const floatCards = state.styleId === 'electric-neon'
+      ? renderFloatCards(slide, slideIndex, isInverted)
+      : '';
+
+    const patternInner = state.styleId === 'street-drop'
+      ? renderStreetDropPattern(slideIndex)
+      : '';
+
+    const deviceHtml = renderPreviewDevice(state, slide.routeA);
+    const reflectionMarkup = state.styleId === 'clean-light' && !isInverted
+      ? `<div class="render-device-reflection"><div class="render-device-reflection-clone">${deviceHtml}</div></div>`
+      : '';
+
     return `
       <div class="render-slide ${layoutClass}" data-style="${escapeHtml(state.styleId || '')}" data-export-root="true" style="${style}">
-        <div class="render-pattern"></div>
+        <div class="render-pattern">${patternInner}</div>
+        ${ghostFrames}
+        ${floatCards}
         ${copyMarkup}
-        <div class="render-device-wrap" style="transform:${tiltTransform}">${renderPreviewDevice(state, slide.routeA)}</div>
+        <div class="render-device-wrap" style="transform:${tiltTransform}">${deviceHtml}${reflectionMarkup}</div>
       </div>
     `;
   }
@@ -1985,8 +2535,8 @@
 
     if (job.copyPlan && job.requestSignature) {
       copyPlanCache.set(job.requestSignature, job.copyPlan);
-      // Also cache style-agnostically so copy survives style switches
-      const urlKey = JSON.stringify({ url: job.url, slideCount: job.slideCount });
+      // Cache keyed by url+slideCount+styleId so style switches don't bleed across each other
+      const urlKey = JSON.stringify({ url: job.url, slideCount: job.slideCount, styleId: job.styleId || '' });
       copyPlanUrlCache.set(urlKey, job.copyPlan);
     }
 
