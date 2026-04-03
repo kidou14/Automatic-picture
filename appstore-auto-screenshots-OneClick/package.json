@@ -1,0 +1,16 @@
+{
+  "name": "appstore-auto-screenshots-oneclick",
+  "version": "1.0.0",
+  "description": "One-click App Store screenshot generator with AI-driven infinite visual variety",
+  "main": "index.js",
+  "scripts": {
+    "start": "bash start.sh"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "playwright": "^1.58.2"
+  }
+}
