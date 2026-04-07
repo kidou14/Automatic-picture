@@ -100,7 +100,7 @@ function sendStaticFile(res, filePath, contentType) {
   const isHtml = contentType.includes("text/html");
   res.writeHead(200, {
     "Content-Type": contentType,
-    "Cache-Control": isHtml ? "no-cache" : "public, max-age=86400",
+    "Cache-Control": "no-cache",
   });
   fs.createReadStream(filePath).pipe(res);
 }
@@ -316,11 +316,21 @@ const SVG_DECORATION_TEMPLATES = [
     // Will render as crossing lines pattern
     isCrossLines: true,
   },
+  {
+    type: "diagonal-lines",
+    // Will render as 45-degree diagonal stripe pattern (dark-bold style)
+    isDiagonalLines: true,
+  },
+  {
+    type: "street-lines",
+    // Will render as S-curve lines with accent chevron icons (street-drop style)
+    isStreetLines: true,
+  },
 ];
 
 const POSITIONS = ["top-right", "bottom-left", "top-left", "bottom-right", "center-left", "center-right"];
 
-const LAYOUTS_ALL = ["hero", "right", "left", "duo", "trust", "center"];
+const LAYOUTS_ALL = ["hero", "right", "left", "duo", "trust", "center", "bottom-right", "bottom-left"];
 
 /**
  * Generate a unique Style Recipe from scratch using algorithmic color theory.
@@ -480,7 +490,7 @@ function generateStyleRecipe(seed) {
 
     const useAccent2 = rng() > 0.5;
     const baseRgb = useAccent2 ? accent2Rgb : accentRgb;
-    const opacity = parseFloat((0.1 + rng() * 0.18).toFixed(2));
+    const opacity = parseFloat((0.15 + rng() * 0.22).toFixed(2));
 
     decorations.push({
       type: template.type,
@@ -489,6 +499,8 @@ function generateStyleRecipe(seed) {
       isRing: template.isRing || false,
       isDots: template.isDots || false,
       isCrossLines: template.isCrossLines || false,
+      isDiagonalLines: template.isDiagonalLines || false,
+      isStreetLines: template.isStreetLines || false,
       position,
       color: `rgba(${baseRgb.r},${baseRgb.g},${baseRgb.b},${opacity})`,
       scale: parseFloat((0.8 + rng() * 1.2).toFixed(2)),
@@ -498,18 +510,45 @@ function generateStyleRecipe(seed) {
   }
 
   // ─── Layout sequence ────────────────────────────────────────────────────────
-  // Always start with hero, shuffle the rest, ensuring no two adjacent are same
-  const rest = [...LAYOUTS_ALL.filter((l) => l !== "hero")];
-  for (let i = rest.length - 1; i > 0; i--) {
-    const j = randInt(0, i + 1);
-    [rest[i], rest[j]] = [rest[j], rest[i]];
+  // Axis system: pick one visual axis first; all 6 slides follow that axis.
+  // This ensures the first slide sets the tone and the rest stay coherent.
+  const axis = pick(["center", "top-corner", "bottom-corner", "flip"]);
+  let layouts;
+
+  if (axis === "center") {
+    // Text is always horizontally centered — hero / trust / duo / center family
+    const seqs = [
+      ["hero",  "trust",  "duo",    "center", "trust",  "hero"  ],
+      ["hero",  "duo",    "center", "trust",  "hero",   "duo"   ],
+      ["trust", "hero",   "duo",    "trust",  "center", "hero"  ],
+    ];
+    layouts = seqs[randInt(0, seqs.length - 1)];
+  } else if (axis === "top-corner") {
+    // Text always in a top corner; phone on the opposite bottom side
+    layouts = rng() < 0.5
+      ? ["right", "left",  "right", "left",  "right", "left" ]
+      : ["left",  "right", "left",  "right", "left",  "right"];
+  } else if (axis === "bottom-corner") {
+    // Text always in a bottom corner; phone anchored at the top
+    layouts = rng() < 0.5
+      ? ["bottom-right", "bottom-left",  "bottom-right", "bottom-left",  "bottom-right", "bottom-left" ]
+      : ["bottom-left",  "bottom-right", "bottom-left",  "bottom-right", "bottom-left",  "bottom-right"];
+  } else {
+    // Flip: top-corner and bottom-corner alternate — rhythmic inversion across slides
+    layouts = rng() < 0.5
+      ? ["right",        "bottom-right", "left",         "bottom-left",  "right",        "bottom-left"]
+      : ["bottom-right", "right",        "bottom-left",  "left",         "bottom-right", "right"       ];
   }
-  const layouts = ["hero", ...rest];
 
   // ─── Mood name ──────────────────────────────────────────────────────────────
   const mood = MOOD_NAMES[randInt(0, MOOD_NAMES.length)];
 
-  return { mood, harmony, colorMode, palette, typography, decorations, layouts, seed };
+  // Ghost wireframes: neon phone outlines flanking the main mockup (electric-neon style)
+  const ghostFrames = (colorMode === 'neon-dark' || colorMode === 'cool-dark') && rng() < 0.55;
+  // Glass reflection: mirror platform below phone (clean-light style)
+  const glassReflection = (colorMode === 'light' || colorMode === 'pastel' || colorMode === 'warm-light') && rng() < 0.55;
+
+  return { mood, harmony, colorMode, palette, typography, decorations, layouts, seed, ghostFrames, glassReflection };
 }
 
 // ─── AI copy generation ───────────────────────────────────────────────────────
@@ -534,8 +573,8 @@ async function generateCopyWithClaude(job, recipe, lang = "en") {
     ? "IMPORTANT: You MUST write ALL text (kicker, headline, subtitle) in Simplified Chinese (简体中文). Do NOT use any English words."
     : "Write all copy in English.";
   const exampleSlide = isZh
-    ? `{ "index": 0, "layout": "hero", "kicker": "产品亮点", "headline": "更智能\\n更轻松", "subtitle": "一句话说清核心价值，不超过15个字。" }`
-    : `{ "index": 0, "layout": "hero", "kicker": "short category label", "headline": "Short\\nPunchy headline", "subtitle": "One supporting sentence under 12 words." }`;
+    ? `{ "index": 0, "layout": "hero", "kicker": "产品亮点", "headline": "更智能\\n更轻松", "subtitle": "专注真正重要的事" }`
+    : `{ "index": 0, "layout": "hero", "kicker": "Smart & Simple", "headline": "Work Smarter\\nNot Harder", "subtitle": "Built for how you work." }`;
 
   const prompt = `${langHeader}
 
@@ -548,13 +587,29 @@ Visual mood: "${recipe.mood}"
 
 I will show you ${screenshots.length} real screenshot(s) of the app. Write marketing copy for ${slideCount} App Store screenshot slides.
 
+CRITICAL — SINGLE PHRASE RULE: Every text field must be ONE continuous phrase with ZERO punctuation and ZERO clause separators. No commas ,，、 no periods .。 no colons :： no ellipsis … no dashes — no semicolons ;；. Writing two ideas connected by a comma is the #1 forbidden mistake.
+
 RULES:
 - ${isZh ? "全部使用简体中文，禁止出现英文单词" : "Write in English only"}
 - Each slide sells ONE idea only
-- 3–5 words (or characters) per visual line
-- Use \\n to break headlines across lines
+- Use \\n to break headlines across exactly 2 lines
 - Never write feature lists or buzzwords
 - Match the mood: "${recipe.mood}"
+${isZh ? `- Headline: each line must be ≤6 Chinese characters (≤6字/行). No punctuation.
+- Subtitle: ≤10 Chinese characters total. No punctuation. ONE phrase expressing a single thought — never "A，B" or "A、B" structure.
+- Kicker: ≤6 Chinese characters. No punctuation.
+- FORBIDDEN subtitle patterns (two clauses = always wrong):
+    "专业工具助力决策、开启新时代"  ← two clauses with 、
+    "智能分析交易，提升表现"        ← two clauses with ，
+    "记录成长，超越自我"            ← two clauses with ，
+- CORRECT subtitle patterns (single thought = always right):
+    "专注真正重要的事"
+    "让数据替你说话"
+    "每次交易都算数"` : `- Headline: each line must be ≤20 characters including spaces. No punctuation.
+- Subtitle: ≤25 characters total. No punctuation. ONE direct phrase — never "A, B" structure.
+- Kicker: ≤20 characters. No punctuation.
+- FORBIDDEN: "Track your trades, boost your gains" ← two clauses with comma
+- CORRECT: "Trade with more confidence"`}
 
 Return ONLY valid JSON, no markdown, no explanation:
 {
@@ -602,7 +657,21 @@ Layouts in order: ${recipe.layouts.slice(0, slideCount).join(", ")}`;
   if (!jsonMatch) throw new Error("Claude returned no valid JSON");
 
   const parsed = JSON.parse(jsonMatch[0]);
-  return parsed.slides || [];
+  // If Claude included a clause separator, keep only the first clause; then strip remaining punctuation
+  const CLAUSE_RE = /[，,、]/;
+  const PUNCT_RE  = /[，,、。.：:；;！!？?…—–]/g;
+  const firstClause = (s) => typeof s === "string" ? s.split(CLAUSE_RE)[0].trim() : s;
+  const stripPunct  = (s) => typeof s === "string" ? s.replace(PUNCT_RE, "").trim() : s;
+  const clean = (s) => stripPunct(firstClause(s));
+  const slides = (parsed.slides || []).map((slide) => ({
+    ...slide,
+    kicker:   clean(slide.kicker),
+    headline: typeof slide.headline === "string"
+      ? slide.headline.split("\n").map(clean).join("\n")
+      : slide.headline,
+    subtitle: clean(slide.subtitle),
+  }));
+  return slides;
 }
 
 function buildFallbackCopy(screenshots, recipe, lang = "en") {
@@ -614,7 +683,7 @@ function buildFallbackCopy(screenshots, recipe, lang = "en") {
       ["Designed for", "Real Life"],
       ["Stay on Top", "of It All"],
       ["Your New", "Favorite App"],
-      ["Less Noise,", "More Focus"],
+      ["Less Noise", "More Focus"],
     ],
     zh: [
       ["更智能的方式", "轻松完成"],
@@ -630,8 +699,8 @@ function buildFallbackCopy(screenshots, recipe, lang = "en") {
     ? ["产品介绍", "功能 01", "功能 02", "功能 03", "功能 04", "功能 05"]
     : ["Introducing", "Feature 01", "Feature 02", "Feature 03", "Feature 04", "Feature 05"];
   const subtitle = lang === "zh"
-    ? "以最简单的方式完成最重要的事。"
-    : "The simplest way to accomplish what matters most.";
+    ? "专注真正重要的事"
+    : "Built for how you work.";
 
   return layouts.map((layout, i) => ({
     index: i,
@@ -655,6 +724,12 @@ async function getBrowser() {
       headless: true,
       executablePath,
       channel: executablePath ? undefined : "chromium",
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-gpu",
+      ],
     });
   }
   return browserPromise;
@@ -674,12 +749,18 @@ async function waitForRenderAssets(page) {
   await page.evaluate(async () => {
     if (document.fonts && document.fonts.ready) await document.fonts.ready.catch(() => {});
     const images = Array.from(document.images || []);
-    await Promise.all(images.map((img) =>
-      img.complete ? Promise.resolve() : new Promise((resolve) => {
-        img.addEventListener("load", resolve, { once: true });
-        img.addEventListener("error", resolve, { once: true });
-      })
-    ));
+    await Promise.all(images.map(async (img) => {
+      if (!img.complete) {
+        await new Promise((resolve) => {
+          img.addEventListener("load", resolve, { once: true });
+          img.addEventListener("error", resolve, { once: true });
+        });
+      }
+      if (typeof img.decode === "function") {
+        await img.decode().catch(() => {});
+      }
+    }));
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
   });
 }
 
@@ -1125,6 +1206,16 @@ const server = http.createServer(async (req, res) => {
   // Serve preview.html at root and /preview.html
   if (req.method === "GET" && (requestUrl.pathname === "/" || requestUrl.pathname === "/preview.html")) {
     sendStaticFile(res, path.resolve(__dirname, "..", "preview.html"), "text/html; charset=utf-8"); return;
+  }
+
+  // Serve design-gallery.html (visual element preview for development)
+  if (req.method === "GET" && requestUrl.pathname === "/design-gallery.html") {
+    sendStaticFile(res, path.resolve(__dirname, "..", "design-gallery.html"), "text/html; charset=utf-8"); return;
+  }
+
+  // Serve render-engine.js (shared rendering functions for preview + gallery)
+  if (req.method === "GET" && requestUrl.pathname === "/render-engine.js") {
+    sendStaticFile(res, path.resolve(__dirname, "..", "render-engine.js"), "application/javascript; charset=utf-8"); return;
   }
 
   if (req.method === "GET" && requestUrl.pathname === "/assets/iphone-mockup.png") {

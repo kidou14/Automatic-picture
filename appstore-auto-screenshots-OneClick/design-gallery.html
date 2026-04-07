@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OneClick · 设计元素预览</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #08080f; --surface: #111118; --surface2: #1a1a26;
+      --border: rgba(255,255,255,0.08); --accent: #7c3aed;
+      --text: #f0f0f5; --muted: #8b8ba0; --radius: 10px;
+    }
+    html, body { background: var(--bg); color: var(--text); font-family: -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif; min-height: 100vh; }
+
+    header { padding: 40px 48px 0; border-bottom: 1px solid var(--border); padding-bottom: 28px; margin-bottom: 0; }
+    header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+    header p { font-size: 13px; color: var(--muted); margin-top: 6px; }
+    .server-note { display:inline-block; margin-top:10px; font-size:12px; background: rgba(124,58,237,0.15); border: 1px solid rgba(124,58,237,0.3); border-radius:6px; padding:4px 10px; color:#a78bfa; }
+
+    nav { display:flex; gap:4px; padding: 16px 48px; border-bottom: 1px solid var(--border); position:sticky; top:0; z-index:100; background: rgba(8,8,15,0.92); backdrop-filter: blur(12px); flex-wrap:wrap; }
+    nav a { font-size:12px; padding:5px 12px; border-radius:6px; color:var(--muted); text-decoration:none; transition:all 0.15s; }
+    nav a:hover { background: var(--surface2); color: var(--text); }
+
+    .gallery { padding: 40px 48px 80px; display:flex; flex-direction:column; gap:60px; }
+
+    .section {}
+    .section-header { margin-bottom: 24px; }
+    .section-header h2 { font-size:18px; font-weight:700; letter-spacing:-0.02em; }
+    .section-header p { font-size:13px; color:var(--muted); margin-top:5px; }
+
+    .thumb-grid { display:flex; flex-wrap:wrap; gap:16px; align-items:flex-start; }
+    .thumb-item { display:flex; flex-direction:column; align-items:center; gap:10px; }
+    .thumb-wrap { overflow:hidden; border-radius:12px; border:1px solid var(--border); box-shadow:0 8px 32px rgba(0,0,0,0.5); background:#000; flex-shrink:0; }
+    .thumb-wrap iframe { display:block; border:none; transform-origin:top left; }
+    .thumb-label { font-size:11px; color:var(--muted); text-align:center; font-weight:500; letter-spacing:0.02em; }
+    .thumb-label strong { display:block; color:var(--text); font-size:12px; margin-bottom:2px; }
+
+    .axis-group { display:flex; flex-direction:column; gap:20px; }
+    .axis-row { }
+    .axis-row h3 { font-size:13px; font-weight:600; color:var(--accent); letter-spacing:0.04em; text-transform:uppercase; margin-bottom:12px; }
+    .axis-slides { display:flex; gap:12px; flex-wrap:wrap; }
+
+    .deco-grid { display:flex; flex-wrap:wrap; gap:16px; }
+    .deco-item { display:flex; flex-direction:column; align-items:center; gap:8px; }
+    .deco-wrap { overflow:hidden; border-radius:10px; border:1px solid var(--border); background:#0a0a16; }
+    .deco-wrap iframe { display:block; border:none; transform-origin:top left; }
+
+    .font-grid { display:flex; flex-wrap:wrap; gap:12px; }
+    .font-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px 22px; width:280px; }
+    .font-card .sample { font-size:26px; line-height:1.15; color: var(--text); margin-bottom:10px; }
+    .font-card .meta { font-size:11px; color:var(--muted); line-height:1.6; }
+
+    .subsection-title { font-size:14px; font-weight:600; color:var(--text); margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid var(--border); }
+    .subsection-desc { font-size:12px; color:var(--muted); margin-bottom:14px; }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>OneClick · 设计元素预览</h1>
+  <p>所有视觉维度的元素一览，无需点击生成即可验证效果</p>
+  <span class="server-note">⚠ 需要服务器在 http://127.0.0.1:4318 运行（用于加载样机图片）</span>
+</header>
+
+<nav>
+  <a href="#layouts">布局 (8)</a>
+  <a href="#colors">色彩模式 (7)</a>
+  <a href="#axes">轴线家族 (4)</a>
+  <a href="#decorations">装饰元素 (12)</a>
+  <a href="#fonts">字体组合 (15)</a>
+</nav>
+
+<main class="gallery" id="gallery"></main>
+
+<script src="/render-engine.js"></script>
+<script>
+// SERVER, MK_W/MK_H, SC_*, decorationSvg, phoneSvg, ghostFrameHtml, buildSlideHtml
+// are loaded from render-engine.js above.
+
+// SC_L/SC_T/SC_W/SC_H/SC_RX/SC_RY/MK_W/MK_H are defined in render-engine.js
+
+const CANVAS_W = 1320, CANVAS_H = 2868;
+const SCALE    = 0.135;
+const THUMB_W  = Math.round(CANVAS_W * SCALE);
+const THUMB_H  = Math.round(CANVAS_H * SCALE);
+
+// ── Placeholder screenshot (generic dark app UI) ──────────────────────────────
+const PLACEHOLDER_URL = 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="390" height="844" viewBox="0 0 390 844">
+  <rect width="390" height="844" fill="#0e0e1c"/>
+  <rect x="16" y="60" width="100" height="8" rx="4" fill="#ffffff22"/>
+  <rect x="16" y="76" width="160" height="6" rx="3" fill="#ffffff14"/>
+  <rect x="16" y="110" width="358" height="170" rx="14" fill="#ffffff07"/>
+  <rect x="28" y="128" width="180" height="10" rx="4" fill="#ffffff20"/>
+  <rect x="28" y="146" width="240" height="8" rx="3" fill="#ffffff12"/>
+  <rect x="28" y="162" width="140" height="8" rx="3" fill="#ffffff0a"/>
+  <rect x="28" y="192" width="88" height="36" rx="10" fill="#7c3aed60"/>
+  <rect x="124" y="192" width="88" height="36" rx="10" fill="#ffffff0a"/>
+  <rect x="16" y="302" width="358" height="56" rx="12" fill="#ffffff07"/>
+  <circle cx="44" cy="330" r="14" fill="#ffffff14"/>
+  <rect x="66" y="322" width="140" height="8" rx="4" fill="#ffffff18"/>
+  <rect x="66" y="338" width="90" height="6" rx="3" fill="#ffffff0c"/>
+  <rect x="16" y="366" width="358" height="56" rx="12" fill="#ffffff06"/>
+  <circle cx="44" cy="394" r="14" fill="#ffffff0e"/>
+  <rect x="66" y="386" width="120" height="8" rx="4" fill="#ffffff14"/>
+  <rect x="66" y="402" width="80" height="6" rx="3" fill="#ffffff0a"/>
+  <rect x="16" y="430" width="358" height="56" rx="12" fill="#ffffff05"/>
+  <circle cx="44" cy="458" r="14" fill="#ffffff0b"/>
+  <rect x="66" y="450" width="160" height="8" rx="4" fill="#ffffff12"/>
+  <rect x="66" y="466" width="100" height="6" rx="3" fill="#ffffff09"/>
+  <rect x="0" y="782" width="390" height="62" fill="#ffffff04"/>
+  <circle cx="55" cy="813" r="11" fill="#7c3aed55"/>
+  <circle cx="140" cy="813" r="11" fill="#ffffff09"/>
+  <circle cx="250" cy="813" r="11" fill="#ffffff09"/>
+  <circle cx="335" cy="813" r="11" fill="#ffffff09"/>
+</svg>`);
+
+// ── Rendering functions (from preview.html) ───────────────────────────────────
+
+function decorationSvg_REMOVED(dec, canvasW, canvasH) {
+  const sizeMap = { sm: 1.30, md: 1.80, lg: 2.30, xl: 2.80 };
+  const svgSize = canvasW * (sizeMap[dec.size] || 0.6);
+  let posStyle = "";
+  switch (dec.position) {
+    case "top-right":    posStyle = `top:-${svgSize*0.3}px;right:-${svgSize*0.3}px;`; break;
+    case "bottom-left":  posStyle = `bottom:-${svgSize*0.3}px;left:-${svgSize*0.3}px;`; break;
+    case "top-left":     posStyle = `top:-${svgSize*0.25}px;left:-${svgSize*0.25}px;`; break;
+    case "bottom-right": posStyle = `bottom:-${svgSize*0.25}px;right:-${svgSize*0.25}px;`; break;
+    case "center-left":  posStyle = `top:${(canvasH-svgSize)/2}px;left:-${svgSize*0.2}px;`; break;
+    case "center-right": posStyle = `top:${(canvasH-svgSize)/2}px;right:-${svgSize*0.2}px;`; break;
+    default:             posStyle = `top:0;right:0;`;
+  }
+  const transform = `rotate(${dec.rotation}deg) scale(${dec.scale})`;
+
+  if (dec.isRing) {
+    const sizeToMaxR = { sm: 0.9, md: 1.3, lg: 1.7, xl: 2.1 };
+    const maxR  = Math.round(canvasW * (sizeToMaxR[dec.size] || 1.3));
+    const gap   = Math.max(20, Math.round(canvasW * 0.062));
+    const swMax = Math.max(2.5, canvasW * 0.0062);
+    const swMin = Math.max(0.8, canvasW * 0.002);
+    const originMap = {
+      'top-right':    [canvasW, 0],          'bottom-left':  [0, canvasH],
+      'top-left':     [0, 0],                'bottom-right': [canvasW, canvasH],
+      'center-left':  [0, canvasH * 0.5],    'center-right': [canvasW, canvasH * 0.5],
+    };
+    const [ocx, ocy] = originMap[dec.position] || [canvasW*0.5, canvasH*0.62];
+    const ringColor = dec.color.replace(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)/, 'rgba($1,$2,$3,1)');
+    let rings = "";
+    for (let r = gap; r <= maxR; r += gap) {
+      const sw  = Math.max(swMin, swMax - (swMax - swMin) * (r / maxR)).toFixed(2);
+      const op  = (0.82 * Math.pow(0.88, (r / gap) - 1)).toFixed(3);
+      rings += `<circle cx="${ocx}" cy="${ocy}" r="${r}" fill="none" stroke="${ringColor}" stroke-width="${sw}" opacity="${op}"/>`;
+    }
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${canvasW}" height="${canvasH}" viewBox="0 0 ${canvasW} ${canvasH}" style="position:absolute;top:0;left:0;overflow:visible;pointer-events:none;z-index:0;">${rings}</svg>`;
+  }
+  if (dec.isDots) {
+    const spacing = Math.max(20, Math.round(canvasW * 0.052));
+    const dotR    = Math.max(1.5, Math.round(canvasW * 0.003));
+    const uid = Math.floor(Math.random() * 0xfffff).toString(16);
+    const dotColor = dec.color.replace(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)/, 'rgba($1,$2,$3,0.20)');
+    const focusMap = { 'top-right':['68%','32%'],'bottom-left':['32%','68%'],'top-left':['32%','32%'],'bottom-right':['68%','68%'],'center-left':['30%','50%'],'center-right':['70%','50%'] };
+    const [fx, fy] = focusMap[dec.position] || ['50%', '50%'];
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${canvasW}" height="${canvasH}" viewBox="0 0 ${canvasW} ${canvasH}" style="position:absolute;top:0;left:0;pointer-events:none;z-index:0;">
+      <defs>
+        <pattern id="dp${uid}" x="0" y="0" width="${spacing}" height="${spacing}" patternUnits="userSpaceOnUse"><circle cx="${spacing/2}" cy="${spacing/2}" r="${dotR}" fill="${dotColor}"/></pattern>
+        <radialGradient id="dg${uid}" cx="${fx}" cy="${fy}" r="50%" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="white" stop-opacity="1"/><stop offset="55%" stop-color="white" stop-opacity="0.30"/><stop offset="100%" stop-color="white" stop-opacity="0"/></radialGradient>
+        <mask id="dm${uid}"><rect width="${canvasW}" height="${canvasH}" fill="url(#dg${uid})"/></mask>
+      </defs>
+      <rect width="${canvasW}" height="${canvasH}" fill="url(#dp${uid})" mask="url(#dm${uid})"/>
+    </svg>`;
+  }
+  if (dec.isCrossLines) {
+    const spacing = Math.max(20, Math.round(canvasW * 0.026));
+    const strokeW = Math.max(0.4, (canvasW * 0.0026)).toFixed(2);
+    const uid = Math.floor(Math.random() * 0xfffff).toString(16);
+    const lineColor = dec.color.replace(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)/, 'rgba($1,$2,$3,0.18)');
+    const focusMap = { 'top-right':['68%','32%'],'bottom-left':['32%','68%'],'top-left':['32%','32%'],'bottom-right':['68%','68%'],'center-left':['30%','50%'],'center-right':['70%','50%'] };
+    const [fx, fy] = focusMap[dec.position] || ['50%', '50%'];
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${canvasW}" height="${canvasH}" viewBox="0 0 ${canvasW} ${canvasH}" style="position:absolute;top:0;left:0;pointer-events:none;z-index:0;">
+      <defs>
+        <pattern id="gp${uid}" x="0" y="0" width="${spacing}" height="${spacing}" patternUnits="userSpaceOnUse">
+          <line x1="${spacing}" y1="0" x2="${spacing}" y2="${spacing}" stroke="${lineColor}" stroke-width="${strokeW}"/>
+          <line x1="0" y1="${spacing}" x2="${spacing}" y2="${spacing}" stroke="${lineColor}" stroke-width="${strokeW}"/>
+        </pattern>
+        <radialGradient id="gg${uid}" cx="${fx}" cy="${fy}" r="50%" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="white" stop-opacity="1"/><stop offset="55%" stop-color="white" stop-opacity="0.30"/><stop offset="100%" stop-color="white" stop-opacity="0"/></radialGradient>
+        <mask id="gm${uid}"><rect width="${canvasW}" height="${canvasH}" fill="url(#gg${uid})"/></mask>
+      </defs>
+      <rect width="${canvasW}" height="${canvasH}" fill="url(#gp${uid})" mask="url(#gm${uid})"/>
+    </svg>`;
+  }
+  if (dec.isDiagonalLines) {
+    const spacing = Math.max(20, Math.round(canvasW * 0.026));
+    const strokeW = Math.max(0.4, canvasW * 0.0026).toFixed(2);
+    const uid = Math.floor(Math.random() * 0xfffff).toString(16);
+    const lineColor = dec.color.replace(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)/, 'rgba($1,$2,$3,0.15)');
+    const focusMap = { 'top-right':['68%','32%'],'bottom-left':['32%','68%'],'top-left':['32%','32%'],'bottom-right':['68%','68%'],'center-left':['30%','50%'],'center-right':['70%','50%'] };
+    const [fx, fy] = focusMap[dec.position] || ['50%', '50%'];
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${canvasW}" height="${canvasH}" viewBox="0 0 ${canvasW} ${canvasH}" style="position:absolute;top:0;left:0;pointer-events:none;z-index:0;">
+      <defs>
+        <pattern id="dlp${uid}" x="0" y="0" width="${spacing}" height="${spacing}" patternUnits="userSpaceOnUse" patternTransform="rotate(45 ${canvasW/2} ${canvasH/2})">
+          <line x1="0" y1="0" x2="0" y2="${spacing * 2}" stroke="${lineColor}" stroke-width="${strokeW}"/>
+        </pattern>
+        <radialGradient id="dlg${uid}" cx="${fx}" cy="${fy}" r="55%" gradientUnits="objectBoundingBox"><stop offset="0%" stop-color="white" stop-opacity="1"/><stop offset="52%" stop-color="white" stop-opacity="0.25"/><stop offset="100%" stop-color="white" stop-opacity="0"/></radialGradient>
+        <mask id="dlm${uid}"><rect width="${canvasW}" height="${canvasH}" fill="url(#dlg${uid})"/></mask>
+      </defs>
+      <rect width="${canvasW}" height="${canvasH}" fill="url(#dlp${uid})" mask="url(#dlm${uid})"/>
+    </svg>`;
+  }
+  if (dec.isStreetLines) {
+    const sx = canvasW / 390, sy = canvasH / 844;
+    const cxMap = { 'top-right':270,'bottom-left':120,'top-left':130,'bottom-right':260,'center-left':145,'center-right':245 };
+    const cxBase = cxMap[dec.position] || 195;
+    const cx = cxBase * sx, a = 88 * sx;
+    const getRgb = (c) => { const m = c.match(/rgba\((\d+),\s*(\d+),\s*(\d+)/); return m ? [m[1],m[2],m[3]] : ['255','255','255']; };
+    const [r,g,b] = getRgb(dec.color);
+    const lines = [{ dx:0,op:0.16,w:1.0 },{ dx:30*sx,op:0.09,w:0.7 },{ dx:-30*sx,op:0.08,w:0.7 },{ dx:58*sx,op:0.05,w:0.5 },{ dx:-58*sx,op:0.04,w:0.5 }];
+    const paths = lines.map(({ dx, op, w }) => {
+      const x = cx + dx;
+      const d = ['M',(x-a*0.45).toFixed(1),canvasH.toFixed(1),'C',(x+a*1.1).toFixed(1),(0.758*canvasH).toFixed(1),(x-a*1.1).toFixed(1),(0.509*canvasH).toFixed(1),x.toFixed(1),(0.5*canvasH).toFixed(1),'S',(x+a*1.1).toFixed(1),(0.225*canvasH).toFixed(1),(x+a*0.45).toFixed(1),'0'].join(' ');
+      return `<path d="${d}" stroke="rgba(${r},${g},${b},${op})" stroke-width="${(w*sx).toFixed(2)}" fill="none"/>`;
+    }).join('');
+    const chevrons = [{ icx:44*sx,icy:82*sy },{ icx:350*sx,icy:410*sy },{ icx:36*sx,icy:760*sy }].map(({ icx, icy }) => {
+      const s = 22*sx, tx=icx.toFixed(1), ty=(icy-s*0.38).toFixed(1), lx=(icx-s*0.42).toFixed(1), ly=(icy+s*0.28).toFixed(1), rx=(icx+s*0.42).toFixed(1);
+      return `<path d="M ${lx},${ly} L ${tx},${ty} L ${rx},${ly}" stroke="rgba(${r},${g},${b},0.22)" stroke-width="${(2.8*sx).toFixed(2)}" fill="none"/>`;
+    }).join('');
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${canvasW}" height="${canvasH}" viewBox="0 0 ${canvasW} ${canvasH}" style="position:absolute;top:0;left:0;pointer-events:none;z-index:0;"><g fill="none" stroke-linecap="round" stroke-linejoin="round">${paths}${chevrons}</g></svg>`;
+  }
+  const glowSize = Math.round(svgSize * 0.90);
+  const glowColor = dec.color.replace(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/, (_, r, g, b, a) => `rgba(${r},${g},${b},${Math.min(0.52, parseFloat(a) * 1.6).toFixed(2)})`);
+  return `<div style="position:absolute;${posStyle}width:${glowSize}px;height:${glowSize}px;border-radius:50%;background:radial-gradient(circle,${glowColor} 0%,transparent 70%);transform:${transform};pointer-events:none;z-index:0;"></div>`;
+}
+
+function phoneSvg_REMOVED(canvasW, screenshotUrl, accentHex, showReflection = false) {
+  const phoneW = Math.round(canvasW * 0.72);
+  const mockupSrc = `${SERVER}/assets/iphone-mockup.png`;
+  const ah = (accentHex || '#6c63ff').replace('#', '');
+  const ar = parseInt(ah.slice(0, 2), 16);
+  const ag = parseInt(ah.slice(2, 4), 16);
+  const ab = parseInt(ah.slice(4, 6), 16);
+  const phoneInner = `
+    <div style="position:absolute;inset:9% 7% 3%;border-radius:26%;background:radial-gradient(circle at 50% 18%,rgba(${ar},${ag},${ab},0.16) 0%,transparent 40%),radial-gradient(circle at 52% 68%,rgba(6,10,18,0.24) 0%,transparent 72%);filter:blur(28px);opacity:0.9;transform:scale(1.02);pointer-events:none;z-index:0;"></div>
+    <div style="position:absolute;inset:11% 12% 1%;border-radius:30%;background:radial-gradient(circle at 50% 30%,rgba(255,255,255,0.08) 0%,transparent 45%),radial-gradient(circle at 50% 76%,rgba(6,10,18,0.38) 0%,transparent 68%);filter:blur(32px);opacity:0.78;transform:translateY(4%);pointer-events:none;z-index:0;"></div>
+    <div style="position:absolute;inset:1.1% 2.8% 0.9%;border-radius:11.5%/5.8%;background:linear-gradient(180deg,rgba(255,255,255,0.32),rgba(255,255,255,0.06) 7%,rgba(8,10,14,0.10) 100%),linear-gradient(120deg,rgba(245,216,160,0.55),rgba(255,255,255,0.12) 18%,rgba(24,28,36,0.30) 52%,rgba(242,222,187,0.42) 82%,rgba(255,255,255,0.18));box-shadow:0 28px 60px rgba(2,4,10,0.42),0 10px 24px rgba(2,4,10,0.28),0 0 0 1px rgba(255,255,255,0.10);opacity:0.82;pointer-events:none;"></div>
+    <img src="${mockupSrc}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2;pointer-events:none;user-select:none;" loading="eager" decoding="sync" />
+    <div style="position:absolute;left:${SC_L.toFixed(3)}%;top:${SC_T.toFixed(3)}%;width:${SC_W.toFixed(3)}%;height:${SC_H.toFixed(3)}%;border-radius:${SC_RX.toFixed(3)}%/${SC_RY.toFixed(3)}%;overflow:hidden;background:#04060b;z-index:3;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.08),inset 0 -24px 40px rgba(0,0,0,0.22),inset 0 24px 32px rgba(255,255,255,0.04);">
+      <img src="${screenshotUrl}" style="display:block;width:100%;height:100%;object-fit:cover;object-position:top;" loading="eager" decoding="sync" />
+      <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0.11),transparent 18%,transparent 78%,rgba(0,0,0,0.12)),linear-gradient(90deg,rgba(255,255,255,0.04),transparent 20%,transparent 80%,rgba(0,0,0,0.06));z-index:2;pointer-events:none;"></div>
+    </div>`;
+  const reflectionHtml = showReflection ? `
+    <div style="position:absolute;top:100%;left:-6%;width:112%;height:${Math.round(canvasW * 0.56)}px;overflow:hidden;pointer-events:none;z-index:0;">
+      <div style="position:absolute;top:0;left:8%;width:84%;height:1px;background:linear-gradient(90deg,transparent,rgba(200,220,255,0.5) 20%,rgba(220,235,255,0.85) 50%,rgba(200,220,255,0.5) 80%,transparent);z-index:2;"></div>
+      <div style="position:absolute;top:0;left:6%;width:88%;aspect-ratio:${MK_W}/${MK_H};transform:scaleY(-1);transform-origin:center center;opacity:0.24;filter:blur(0.6px) saturate(0.5) brightness(1.0);-webkit-mask-image:linear-gradient(to top,rgba(0,0,0,0.9) 0%,rgba(0,0,0,0.55) 28%,rgba(0,0,0,0.15) 55%,transparent 78%);mask-image:linear-gradient(to top,rgba(0,0,0,0.9) 0%,rgba(0,0,0,0.55) 28%,rgba(0,0,0,0.15) 55%,transparent 78%);pointer-events:none;">${phoneInner}</div>
+    </div>` : '';
+  return `<div style="width:${phoneW}px;aspect-ratio:${MK_W}/${MK_H};position:relative;flex-shrink:0;">${phoneInner}${reflectionHtml}</div>`;
+}
+
+function ghostFrameHtml_REMOVED(canvasW, canvasH, recipe) {
+  if (!recipe.ghostFrames) return '';
+  const p = recipe.palette;
+  const phoneW = Math.round(canvasW * 0.58);
+  const getRgb = (hex) => { const h = (hex||'#6c63ff').replace('#',''); return [parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)]; };
+  const [r1,g1,b1] = getRgb(p.accent);
+  const [r2,g2,b2] = getRgb(p.accent2);
+  const bw = Math.max(1, Math.round(canvasW * 0.002));
+  const glowPx = Math.round(canvasW * 0.04);
+  const left  = `<div style="position:absolute;left:-14%;bottom:4%;width:${phoneW}px;aspect-ratio:${MK_W}/${MK_H};border-radius:11.5%/5.8%;border:${bw}px solid rgba(${r1},${g1},${b1},0.32);background:linear-gradient(160deg,rgba(${r1},${g1},${b1},0.05),transparent);box-shadow:0 0 ${glowPx}px rgba(${r1},${g1},${b1},0.15);transform:rotate(-9deg);opacity:0.75;pointer-events:none;z-index:1;"></div>`;
+  const right = `<div style="position:absolute;right:-14%;bottom:4%;width:${phoneW}px;aspect-ratio:${MK_W}/${MK_H};border-radius:11.5%/5.8%;border:${bw}px solid rgba(${r2},${g2},${b2},0.28);background:linear-gradient(160deg,rgba(${r2},${g2},${b2},0.05),transparent);box-shadow:0 0 ${glowPx}px rgba(${r2},${g2},${b2},0.14);transform:rotate(8deg);opacity:0.65;pointer-events:none;z-index:1;"></div>`;
+  return left + right;
+}
+
+function buildSlideHtml_REMOVED(recipe, copySlide, screenshotUrl, canvasW, canvasH) {
+  const p = recipe.palette;
+  const t = recipe.typography;
+  const layout = copySlide.layout || "hero";
+  const headlineSize = Math.round(canvasW * t.headlineSize);
+  const subtitleSize = Math.round(canvasW * t.subtitleSize);
+  const headline  = (copySlide.headline || "").replace(/\n/g, "<br/>");
+  const subtitle  = copySlide.subtitle || "";
+  const decorHtml = (recipe.decorations || []).map((d) => decorationSvg(d, canvasW, canvasH)).join("");
+  const showRefl  = recipe.glassReflection || false;
+  const phoneHtml    = phoneSvg(canvasW, screenshotUrl, p.accent, showRefl);
+  const phoneWide    = phoneSvg(canvasW, screenshotUrl, p.accent, showRefl).replace(`width:${Math.round(canvasW*0.72)}px`, `width:${Math.round(canvasW*0.78)}px`);
+  const phoneSmall   = phoneSvg(canvasW, screenshotUrl, p.accent, showRefl).replace(`width:${Math.round(canvasW*0.72)}px`, `width:${Math.round(canvasW*0.65)}px`);
+  const phoneMid     = phoneSvg(canvasW, screenshotUrl, p.accent, showRefl).replace(`width:${Math.round(canvasW*0.72)}px`, `width:${Math.round(canvasW*0.68)}px`);
+  const phoneDuoBack = phoneSvg(canvasW, screenshotUrl, p.accent, false).replace(`width:${Math.round(canvasW*0.72)}px`, `width:${Math.round(canvasW*0.60)}px`);
+  const ghosts = ghostFrameHtml(canvasW, canvasH, recipe);
+
+  let innerHtml = "";
+  if (layout === "hero") {
+    innerHtml = `
+      <div style="position:absolute;top:${Math.round(canvasH*0.08)}px;left:0;right:0;text-align:center;z-index:10;padding:0 ${Math.round(canvasW*0.08)}px;">
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.022)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+      </div>
+      <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%) translateY(10%);z-index:5;">${phoneHtml}</div>`;
+  } else if (layout === "right") {
+    innerHtml = `
+      <div style="position:absolute;top:${Math.round(canvasH*0.14)}px;left:${Math.round(canvasW*0.08)}px;z-index:10;max-width:${Math.round(canvasW*0.58)}px;">
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.02)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+      </div>
+      <div style="position:absolute;bottom:0;right:-4%;z-index:5;">${phoneWide}</div>`;
+  } else if (layout === "left") {
+    innerHtml = `
+      <div style="position:absolute;top:${Math.round(canvasH*0.08)}px;right:${Math.round(canvasW*0.08)}px;z-index:10;max-width:${Math.round(canvasW*0.58)}px;text-align:right;">
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.02)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+      </div>
+      <div style="position:absolute;bottom:0;left:-4%;z-index:5;">${phoneWide}</div>`;
+  } else if (layout === "duo") {
+    innerHtml = `
+      <div style="position:absolute;top:${Math.round(canvasH*0.08)}px;left:0;right:0;text-align:center;z-index:10;padding:0 ${Math.round(canvasW*0.06)}px;">
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.018)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+      </div>
+      <div style="position:absolute;bottom:0;left:-8%;z-index:4;opacity:0.55;transform:rotate(-3deg);">${phoneDuoBack}</div>
+      <div style="position:absolute;bottom:0;right:-3%;z-index:5;">${phoneHtml}</div>`;
+  } else if (layout === "trust") {
+    const phoneTrust = phoneSvg_REMOVED(canvasW, screenshotUrl, p.accent, true).replace(`width:${Math.round(canvasW*0.72)}px`, `width:${Math.round(canvasW*0.703)}px`);
+    innerHtml = `
+      <div style="position:absolute;top:${Math.round(canvasH*0.07)}px;left:0;right:0;text-align:center;z-index:10;padding:0 ${Math.round(canvasW*0.1)}px;">
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.018)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+      </div>
+      <div style="position:absolute;bottom:${Math.round(canvasH*0.04) + 32}px;left:50%;transform:translateX(-50%);z-index:5;">${phoneTrust}</div>`;
+  } else if (layout === "bottom-right") {
+    innerHtml = `
+      <div style="position:absolute;bottom:${Math.round(canvasH*0.08)}px;left:${Math.round(canvasW*0.08)}px;z-index:10;max-width:${Math.round(canvasW*0.58)}px;">
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.02)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+      </div>
+      <div style="position:absolute;top:0;right:-4%;z-index:5;">${phoneWide}</div>`;
+  } else if (layout === "bottom-left") {
+    innerHtml = `
+      <div style="position:absolute;bottom:${Math.round(canvasH*0.08)}px;right:${Math.round(canvasW*0.08)}px;z-index:10;max-width:${Math.round(canvasW*0.58)}px;text-align:right;">
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.02)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+      </div>
+      <div style="position:absolute;top:0;left:-4%;z-index:5;">${phoneWide}</div>`;
+  } else {
+    innerHtml = `
+      <div style="position:absolute;bottom:${Math.round(canvasH*0.06)}px;left:0;right:0;text-align:center;z-index:10;padding:0 ${Math.round(canvasW*0.08)}px;">
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.015)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+      </div>
+      <div style="position:absolute;top:${Math.round(canvasH*0.04)}px;left:50%;transform:translateX(-50%);z-index:5;">${phoneMid}</div>`;
+  }
+  return `<div data-export-root style="width:${canvasW}px;height:${canvasH}px;background:linear-gradient(160deg,${p.bg} 0%,${p.bgEnd} 100%);font-family:${t.font};position:relative;overflow:hidden;flex-shrink:0;">${decorHtml}${ghosts}${innerHtml}</div>`;
+}
+
+// ── Test data ─────────────────────────────────────────────────────────────────
+
+const BASE_TYPO = {
+  font: '"SF Pro Display", -apple-system, sans-serif',
+  headlineWeight: 800, headlineTracking: '-0.03em', headlineSize: 0.098,
+  subtitleWeight: 400, subtitleSize: 0.041,
+  kickerSize: 0.028, kickerTracking: '0.08em', kickerWeight: 600,
+};
+const SAMPLE_COPY = { headline: "轻松上手\n事半功倍", subtitle: "专注真正重要的事" };
+
+const COLOR_MODES = [
+  { name: 'light',         label: '明亮专业',   palette: { bg:'#f4f4f8',bgEnd:'#ebebf4',accent:'#6c63ff',accent2:'#a78bfa',text:'#1a1a2e',muted:'rgba(50,50,80,0.65)',card:'rgba(108,99,255,0.12)',chip:'rgba(108,99,255,0.15)',glow:'rgba(167,139,250,0.20)',shadow:'rgba(0,0,0,0.12)' }, effect: 'glassReflection 55%' },
+  { name: 'dark',          label: '深色优雅',   palette: { bg:'#100f1e',bgEnd:'#1a1a30',accent:'#7c3aed',accent2:'#a78bfa',text:'#f0f0ff',muted:'rgba(200,200,230,0.65)',card:'rgba(124,58,237,0.18)',chip:'rgba(124,58,237,0.22)',glow:'rgba(167,139,250,0.25)',shadow:'rgba(0,0,0,0.4)' }, effect: '无' },
+  { name: 'warm-light',    label: '温暖亲切',   palette: { bg:'#fdf6f0',bgEnd:'#f8ede4',accent:'#e86c3a',accent2:'#f4a261',text:'#2d1810',muted:'rgba(80,40,20,0.65)',card:'rgba(232,108,58,0.12)',chip:'rgba(232,108,58,0.15)',glow:'rgba(244,162,97,0.20)',shadow:'rgba(0,0,0,0.12)' }, effect: 'glassReflection 55%' },
+  { name: 'cool-dark',     label: '冷酷科技',   palette: { bg:'#07101a',bgEnd:'#0c1828',accent:'#38bdf8',accent2:'#7dd3fc',text:'#e0f2fe',muted:'rgba(180,220,250,0.65)',card:'rgba(56,189,248,0.15)',chip:'rgba(56,189,248,0.18)',glow:'rgba(125,211,252,0.22)',shadow:'rgba(0,0,0,0.5)' }, effect: 'ghostFrames 55%', ghostFrames: true },
+  { name: 'earthy',        label: '自然素雅',   palette: { bg:'#f5f0e8',bgEnd:'#ede4d6',accent:'#8b5e3c',accent2:'#c49a6c',text:'#2a1f14',muted:'rgba(80,55,35,0.65)',card:'rgba(139,94,60,0.12)',chip:'rgba(139,94,60,0.15)',glow:'rgba(196,154,108,0.20)',shadow:'rgba(0,0,0,0.12)' }, effect: '无' },
+  { name: 'neon-dark',     label: '霓虹绚丽',   palette: { bg:'#04040f',bgEnd:'#09091e',accent:'#d946ef',accent2:'#f0abfc',text:'#fdf4ff',muted:'rgba(230,200,240,0.65)',card:'rgba(217,70,239,0.18)',chip:'rgba(217,70,239,0.22)',glow:'rgba(240,171,252,0.28)',shadow:'rgba(0,0,0,0.6)' }, effect: 'ghostFrames 55%', ghostFrames: true },
+  { name: 'pastel',        label: '柔和梦幻',   palette: { bg:'#fef9ff',bgEnd:'#f4eeff',accent:'#c084fc',accent2:'#e879f9',text:'#2d1b40',muted:'rgba(80,50,100,0.60)',card:'rgba(192,132,252,0.14)',chip:'rgba(192,132,252,0.18)',glow:'rgba(232,121,249,0.20)',shadow:'rgba(0,0,0,0.10)' }, effect: 'glassReflection 55%' },
+];
+
+const FONT_PAIRINGS = [
+  { label:'SF Pro Display',        font:'"SF Pro Display","Inter",-apple-system,sans-serif',   weight:800,tracking:'-0.03em' },
+  { label:'Playfair Display',      font:'"Playfair Display","Georgia",serif',                  weight:700,tracking:'-0.02em' },
+  { label:'Space Grotesk',         font:'"Space Grotesk","Trebuchet MS",sans-serif',            weight:700,tracking:'-0.025em' },
+  { label:'Iowan Old Style',       font:'"Iowan Old Style","Palatino Linotype",serif',          weight:700,tracking:'-0.01em' },
+  { label:'Avenir Next Condensed', font:'"Avenir Next Condensed","Gill Sans",sans-serif',       weight:800,tracking:'-0.02em' },
+  { label:'DM Serif Display',      font:'"DM Serif Display","Times New Roman",serif',           weight:400,tracking:'0em' },
+  { label:'Sora',                  font:'"Sora","Segoe UI",sans-serif',                        weight:800,tracking:'-0.035em' },
+  { label:'Didot',                 font:'"Didot","Bodoni MT","Times New Roman",serif',          weight:700,tracking:'0.01em' },
+  { label:'Raleway',               font:'"Raleway","Century Gothic",sans-serif',                weight:800,tracking:'-0.02em' },
+  { label:'Cormorant Garamond',    font:'"Cormorant Garamond","Garamond","Georgia",serif',      weight:600,tracking:'0.01em' },
+  { label:'Outfit',                font:'"Outfit","Nunito",sans-serif',                        weight:800,tracking:'-0.025em' },
+  { label:'Fraunces',              font:'"Fraunces","Georgia",serif',                          weight:700,tracking:'-0.01em' },
+  { label:'Cabinet Grotesk',       font:'"Cabinet Grotesk","Helvetica Neue",sans-serif',        weight:800,tracking:'-0.04em' },
+  { label:'Libre Baskerville',     font:'"Libre Baskerville","Baskerville",serif',              weight:700,tracking:'-0.01em' },
+  { label:'Plus Jakarta Sans',     font:'"Plus Jakarta Sans","system-ui",sans-serif',           weight:800,tracking:'-0.03em' },
+];
+
+const DECORATION_TYPES = [
+  { type:'blob-organic',    label:'Blob Organic',    color:'rgba(108,99,255,0.28)', isNormal:true },
+  { type:'blob-soft',       label:'Blob Soft',       color:'rgba(167,139,250,0.28)', isNormal:true },
+  { type:'blob-spiky',      label:'Blob Spiky',      color:'rgba(124,58,237,0.28)', isNormal:true },
+  { type:'circle-solid',    label:'Circle Solid',    color:'rgba(99,199,255,0.25)', isNormal:true },
+  { type:'hexagon',         label:'Hexagon',         color:'rgba(52,211,153,0.25)', isNormal:true },
+  { type:'triangle-soft',   label:'Triangle Soft',   color:'rgba(251,146,60,0.25)', isNormal:true },
+  { type:'diamond',         label:'Diamond',         color:'rgba(244,63,94,0.25)', isNormal:true },
+  { type:'ring',            label:'Ring',            color:'rgba(108,99,255,0.5)', isRing:true },
+  { type:'dots-grid',       label:'Dots Grid',       color:'rgba(108,99,255,0.5)', isDots:true },
+  { type:'cross-lines',     label:'Cross Lines',     color:'rgba(108,99,255,0.5)', isCrossLines:true },
+  { type:'diagonal-lines',  label:'Diagonal Lines',  color:'rgba(108,99,255,0.5)', isDiagonalLines:true },
+  { type:'street-lines',    label:'Street Lines',    color:'rgba(108,99,255,0.5)', isStreetLines:true },
+];
+
+const AXES = [
+  { name:'center', label:'居中轴 (Center Axis)', desc:'标题始终水平居中 — hero / trust / duo / center 系列', color:'#7c3aed',
+    slides: ['hero','trust','duo','center','trust','hero'] },
+  { name:'top-corner', label:'上角轴 (Top-Corner Axis)', desc:'标题始终在上方角落，样机在底部另一侧',  color:'#0ea5e9',
+    slides: ['right','left','right','left','right','left'] },
+  { name:'bottom-corner', label:'下角轴 (Bottom-Corner Axis)', desc:'标题始终在下方角落，样机在顶部另一侧', color:'#10b981',
+    slides: ['bottom-right','bottom-left','bottom-right','bottom-left','bottom-right','bottom-left'] },
+  { name:'flip', label:'翻转轴 (Flip Axis)', desc:'上角与下角交替律动，形成翻转节奏', color:'#f59e0b',
+    slides: ['right','bottom-right','left','bottom-left','right','bottom-left'] },
+];
+
+// ── Gallery rendering ─────────────────────────────────────────────────────────
+
+function makeThumb(recipe, layout) {
+  const copy = { ...SAMPLE_COPY, layout };
+  const html = buildSlideHtml(recipe, copy, PLACEHOLDER_URL, CANVAS_W, CANVAS_H);
+  const srcdoc = `<html><head><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box;}body{overflow:hidden;}</style></head><body>${html}</body></html>`;
+  const wrap = document.createElement('div');
+  wrap.className = 'thumb-wrap';
+  wrap.style.width  = THUMB_W + 'px';
+  wrap.style.height = THUMB_H + 'px';
+  const iframe = document.createElement('iframe');
+  iframe.scrolling = 'no';
+  iframe.style.cssText = `width:${CANVAS_W}px;height:${CANVAS_H}px;transform:scale(${SCALE});transform-origin:top left;`;
+  iframe.srcdoc = srcdoc;
+  wrap.appendChild(iframe);
+  return wrap;
+}
+
+function makeDecoThumb(dec) {
+  const CW = 900, CH = 700;
+  const decObj = { ...dec, position:'top-right', scale:1.2, rotation:0, size:'lg' };
+  const decHtml = decorationSvg(decObj, CW, CH);
+  const html = `<div style="width:${CW}px;height:${CH}px;background:linear-gradient(135deg,#f0eeff,#ddd5ff);position:relative;overflow:hidden;">${decHtml}</div>`;
+  const S = 0.20;
+  const wrap = document.createElement('div');
+  wrap.className = 'deco-wrap';
+  wrap.style.cssText = `width:${Math.round(CW*S)}px;height:${Math.round(CH*S)}px;`;
+  const iframe = document.createElement('iframe');
+  iframe.scrolling = 'no';
+  iframe.style.cssText = `width:${CW}px;height:${CH}px;transform:scale(${S});transform-origin:top left;border:none;`;
+  iframe.srcdoc = `<html><head><meta charset="UTF-8"><style>*{margin:0;padding:0;}body{overflow:hidden;}</style></head><body>${html}</body></html>`;
+  wrap.appendChild(iframe);
+  return wrap;
+}
+
+function addSection(id, title, desc, buildFn) {
+  const sec = document.createElement('section');
+  sec.className = 'section';
+  sec.id = id;
+  sec.innerHTML = `<div class="section-header"><h2>${title}</h2><p>${desc}</p></div>`;
+  const content = document.createElement('div');
+  buildFn(content);
+  sec.appendChild(content);
+  document.getElementById('gallery').appendChild(sec);
+}
+
+// ── Build gallery ─────────────────────────────────────────────────────────────
+
+// Section 1: Layouts
+addSection('layouts', '布局 (8种)', '所有布局使用相同的配色和文案，方便直接对比位置逻辑', (el) => {
+  const grid = document.createElement('div');
+  grid.className = 'thumb-grid';
+  const BASE = { palette: COLOR_MODES[0].palette, typography: BASE_TYPO, decorations:[], ghostFrames:false, glassReflection:false };
+  const layouts = ['hero','right','left','duo','trust','center','bottom-right','bottom-left'];
+  const descs = ['标题上中/样机下中','标题上左/样机下右','标题上右/样机下左','双样机/标题上中','标题+卡片/样机居中','标题下中/样机上中','标题下左/样机上右','标题下右/样机上左'];
+  layouts.forEach((layout, i) => {
+    const item = document.createElement('div');
+    item.className = 'thumb-item';
+    item.appendChild(makeThumb(BASE, layout));
+    item.innerHTML += `<div class="thumb-label"><strong>${layout}</strong>${descs[i]}</div>`;
+    grid.appendChild(item);
+  });
+  el.appendChild(grid);
+});
+
+// Section 2: Color Modes
+addSection('colors', '色彩模式 (7种)', '所有色彩模式使用 hero 布局，体现各自的色调和特效触发条件', (el) => {
+  const grid = document.createElement('div');
+  grid.className = 'thumb-grid';
+  COLOR_MODES.forEach(cm => {
+    const recipe = { palette: cm.palette, typography: BASE_TYPO, decorations:[], ghostFrames: !!cm.ghostFrames, glassReflection: !cm.ghostFrames && cm.name !== 'dark' && cm.name !== 'earthy' };
+    const item = document.createElement('div');
+    item.className = 'thumb-item';
+    item.appendChild(makeThumb(recipe, 'hero'));
+    item.innerHTML += `<div class="thumb-label"><strong>${cm.name}</strong>${cm.label}<br><span style="color:#6b7280;font-size:10px;">${cm.effect}</span></div>`;
+    grid.appendChild(item);
+  });
+  el.appendChild(grid);
+});
+
+// Section 3: Axis Families
+addSection('axes', '轴线家族 (4轴)', '每条轴线显示前4张幻灯片，体现内部视觉节奏的一致性', (el) => {
+  const container = document.createElement('div');
+  container.className = 'axis-group';
+  AXES.forEach(axis => {
+    const row = document.createElement('div');
+    row.className = 'axis-row';
+    row.innerHTML = `<h3 style="color:${axis.color}">${axis.label}</h3><p class="subsection-desc">${axis.desc}</p>`;
+    const slides = document.createElement('div');
+    slides.className = 'axis-slides';
+    const recipe = { palette: COLOR_MODES[0].palette, typography: BASE_TYPO, decorations:[], ghostFrames:false, glassReflection:false };
+    axis.slides.slice(0, 4).forEach((layout, i) => {
+      const item = document.createElement('div');
+      item.className = 'thumb-item';
+      item.appendChild(makeThumb(recipe, layout));
+      item.innerHTML += `<div class="thumb-label">${i+1}. ${layout}</div>`;
+      slides.appendChild(item);
+    });
+    row.appendChild(slides);
+    container.appendChild(row);
+  });
+  el.appendChild(container);
+});
+
+// Section 4: Decorations
+addSection('decorations', '装饰元素 (12种)', '均置于右上角 top-right 位置、lg 尺寸展示。Blob/Geometric 系列以径向渐变光晕呈现', (el) => {
+  const grid = document.createElement('div');
+  grid.className = 'deco-grid';
+  DECORATION_TYPES.forEach(dec => {
+    const item = document.createElement('div');
+    item.className = 'deco-item';
+    item.appendChild(makeDecoThumb(dec));
+    item.innerHTML += `<div class="thumb-label" style="max-width:180px;text-align:center;">${dec.label}</div>`;
+    grid.appendChild(item);
+  });
+  el.appendChild(grid);
+});
+
+// Section 5: Fonts
+addSection('fonts', '字体组合 (15种)', '以同一标题文案展示各字体在粗体标题下的实际效果', (el) => {
+  const grid = document.createElement('div');
+  grid.className = 'font-grid';
+  FONT_PAIRINGS.forEach(fp => {
+    const card = document.createElement('div');
+    card.className = 'font-card';
+    card.innerHTML = `
+      <div class="sample" style="font-family:${fp.font};font-weight:${fp.weight};letter-spacing:${fp.tracking};">轻松上手<br>事半功倍</div>
+      <div class="meta">${fp.label}<br><span style="opacity:0.6;">weight ${fp.weight} · tracking ${fp.tracking}</span></div>`;
+    grid.appendChild(card);
+  });
+  el.appendChild(grid);
+});
+
+</script>
+</body>
+</html>

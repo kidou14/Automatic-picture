@@ -1,0 +1,339 @@
+// ─── Render Engine ───────────────────────────────────────────────────────────
+// Shared rendering functions used by both preview.html and design-gallery.html.
+// Edit here once → both pages update on next browser refresh.
+
+const SERVER = "http://127.0.0.1:4318";
+
+const MK_W = 1022, MK_H = 2082;
+const SC_L = (52 / MK_W) * 100;
+const SC_T = (46 / MK_H) * 100;
+const SC_W = (918 / MK_W) * 100;
+const SC_H = (1990 / MK_H) * 100;
+const SC_RX = (126 / 918) * 100;
+const SC_RY = (126 / 1990) * 100;
+
+// ─── Slide rendering ──────────────────────────────────────────────────────────
+
+function decorationSvg(dec, canvasW, canvasH) {
+  const sizeMap = { sm: 1.30, md: 1.80, lg: 2.30, xl: 2.80 };
+  const svgSize = canvasW * (sizeMap[dec.size] || 0.6);
+  let posStyle = "";
+  switch (dec.position) {
+    case "top-right":    posStyle = `top:-${svgSize*0.3}px;right:-${svgSize*0.3}px;`; break;
+    case "bottom-left":  posStyle = `bottom:-${svgSize*0.3}px;left:-${svgSize*0.3}px;`; break;
+    case "top-left":     posStyle = `top:-${svgSize*0.25}px;left:-${svgSize*0.25}px;`; break;
+    case "bottom-right": posStyle = `bottom:-${svgSize*0.25}px;right:-${svgSize*0.25}px;`; break;
+    case "center-left":  posStyle = `top:${(canvasH-svgSize)/2}px;left:-${svgSize*0.2}px;`; break;
+    case "center-right": posStyle = `top:${(canvasH-svgSize)/2}px;right:-${svgSize*0.2}px;`; break;
+    default:             posStyle = `top:0;right:0;`;
+  }
+  const transform = `rotate(${dec.rotation}deg) scale(${dec.scale})`;
+
+  if (dec.isRing) {
+    // Mono-luxe concentric rings — all values canvas-relative to match old project's visual scale
+    // Old project used absolute px (gap=24, sw=2.5) in a ~390px CSS space; here we scale by canvasW/390
+    const sizeToMaxR = { sm: 0.9, md: 1.3, lg: 1.7, xl: 2.1 };
+    const maxR  = Math.round(canvasW * (sizeToMaxR[dec.size] || 1.3));
+    const gap   = Math.max(20, Math.round(canvasW * 0.062));   // 24px@390 → ~82px@1320
+    const swMax = Math.max(2.5, canvasW * 0.0062);             // 2.5px@390 → ~8.2px@1320
+    const swMin = Math.max(0.8, canvasW * 0.002);              // 0.8px@390 → ~2.6px@1320
+    const originMap = {
+      'top-right':    [canvasW, 0],
+      'bottom-left':  [0,       canvasH],
+      'top-left':     [0,       0],
+      'bottom-right': [canvasW, canvasH],
+      'center-left':  [0,       canvasH * 0.5],
+      'center-right': [canvasW, canvasH * 0.5],
+    };
+    const [ocx, ocy] = originMap[dec.position] || [canvasW * 0.5, canvasH * 0.62];
+    const ringColor = dec.color.replace(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)/, 'rgba($1,$2,$3,1)');
+    let rings = "";
+    for (let r = gap; r <= maxR; r += gap) {
+      const sw = Math.max(swMin, swMax - (swMax - swMin) * (r / maxR)).toFixed(2);
+      const op = (0.82 * Math.pow(0.88, (r / gap) - 1)).toFixed(3);
+      rings += `<circle cx="${ocx}" cy="${ocy}" r="${r}" fill="none" stroke="${ringColor}" stroke-width="${sw}" opacity="${op}"/>`;
+    }
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${canvasW}" height="${canvasH}" viewBox="0 0 ${canvasW} ${canvasH}"
+      style="position:absolute;top:0;left:0;overflow:visible;pointer-events:none;z-index:0;">${rings}</svg>`;
+  }
+  if (dec.isDots) {
+    // Electric-neon style: subtle dot tile across full canvas with radial ellipse mask
+    // Exact replication of CSS: background-image radial-gradient 1.5px dot / 20px grid
+    // + mask-image radial-gradient ellipse (black 0%, 0.30 at 55%, transparent 100%)
+    // spacing and dotR canvas-relative: old project used 20px/1.5px in ~390px CSS space
+    // at 1320px physical canvas that's 3.4× larger → scale accordingly
+    const spacing = Math.max(20, Math.round(canvasW * 0.052));  // 20px@390 → ~69px@1320
+    const dotR    = Math.max(3, Math.round(canvasW * 0.006)); // 1.5px@390 → ~4px@1320
+    const uid = Math.floor(Math.random() * 0xfffff).toString(16);
+    // 0.20 base opacity per dot — matches electric-neon rgba(..., 0.20) exactly
+    const dotColor = dec.color.replace(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)/, 'rgba($1,$2,$3,1.0)');
+    // Shift mask focus with dec.position — mirrors how --pattern-x/y varies per slide in old project
+    const focusMap = {
+      'top-right':    ['68%', '32%'], 'bottom-left':  ['32%', '68%'],
+      'top-left':     ['32%', '32%'], 'bottom-right': ['68%', '68%'],
+      'center-left':  ['30%', '50%'], 'center-right': ['70%', '50%'],
+    };
+    const [fx, fy] = focusMap[dec.position] || ['50%', '50%'];
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${canvasW}" height="${canvasH}" viewBox="0 0 ${canvasW} ${canvasH}"
+      style="position:absolute;top:0;left:0;pointer-events:none;z-index:0;">
+      <defs>
+        <pattern id="dp${uid}" x="0" y="0" width="${spacing}" height="${spacing}" patternUnits="userSpaceOnUse">
+          <circle cx="${spacing/2}" cy="${spacing/2}" r="${dotR}" fill="${dotColor}"/>
+        </pattern>
+        <radialGradient id="dg${uid}" cx="${fx}" cy="${fy}" r="50%" gradientUnits="objectBoundingBox">
+          <stop offset="0%"   stop-color="white" stop-opacity="1"/>
+          <stop offset="55%"  stop-color="white" stop-opacity="0.30"/>
+          <stop offset="100%" stop-color="white" stop-opacity="0"/>
+        </radialGradient>
+        <mask id="dm${uid}">
+          <rect width="${canvasW}" height="${canvasH}" fill="url(#dg${uid})"/>
+        </mask>
+      </defs>
+      <rect width="${canvasW}" height="${canvasH}" fill="url(#dp${uid})" mask="url(#dm${uid})"/>
+    </svg>`;
+  }
+  if (dec.isCrossLines) {
+    // Refined subtle grid: same pattern+mask system as dots — full canvas, radial ellipse fade
+    // 0.4px hairline stroke, 24px spacing, 0.18 base opacity, centered radial fade to transparent
+    // spacing and strokeW canvas-relative: old project used 10px/1px in ~390px CSS space
+    const spacing = Math.max(40, Math.round(canvasW * 0.052));           // 10px@390 → ~34px@1320
+    const strokeW = Math.max(0.8, (canvasW * 0.0052)).toFixed(2);        // 1px@390  → ~3.4px@1320
+    const uid = Math.floor(Math.random() * 0xfffff).toString(16);
+    // 0.18 base opacity — slightly lower than dots (0.20) for even more delicate feel
+    const lineColor = dec.color.replace(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)/, 'rgba($1,$2,$3,1.0)');
+    // Same focus-shift logic as dots
+    const focusMap = {
+      'top-right':    ['68%', '32%'], 'bottom-left':  ['32%', '68%'],
+      'top-left':     ['32%', '32%'], 'bottom-right': ['68%', '68%'],
+      'center-left':  ['30%', '50%'], 'center-right': ['70%', '50%'],
+    };
+    const [fx, fy] = focusMap[dec.position] || ['50%', '50%'];
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${canvasW}" height="${canvasH}" viewBox="0 0 ${canvasW} ${canvasH}"
+      style="position:absolute;top:0;left:0;pointer-events:none;z-index:0;">
+      <defs>
+        <pattern id="gp${uid}" x="0" y="0" width="${spacing}" height="${spacing}" patternUnits="userSpaceOnUse">
+          <line x1="${spacing}" y1="0" x2="${spacing}" y2="${spacing}" stroke="${lineColor}" stroke-width="${strokeW}"/>
+          <line x1="0" y1="${spacing}" x2="${spacing}" y2="${spacing}" stroke="${lineColor}" stroke-width="${strokeW}"/>
+        </pattern>
+        <radialGradient id="gg${uid}" cx="${fx}" cy="${fy}" r="50%" gradientUnits="objectBoundingBox">
+          <stop offset="0%"   stop-color="white" stop-opacity="1"/>
+          <stop offset="55%"  stop-color="white" stop-opacity="0.30"/>
+          <stop offset="100%" stop-color="white" stop-opacity="0"/>
+        </radialGradient>
+        <mask id="gm${uid}">
+          <rect width="${canvasW}" height="${canvasH}" fill="url(#gg${uid})"/>
+        </mask>
+      </defs>
+      <rect width="${canvasW}" height="${canvasH}" fill="url(#gp${uid})" mask="url(#gm${uid})"/>
+    </svg>`;
+  }
+  if (dec.isDiagonalLines) {
+    // Dark-bold style: 45-degree diagonal stripes with radial ellipse mask
+    const spacing = Math.max(40, Math.round(canvasW * 0.052));
+    const strokeW = Math.max(0.8, canvasW * 0.0052).toFixed(2);
+    const uid = Math.floor(Math.random() * 0xfffff).toString(16);
+    const lineColor = dec.color.replace(/rgba\((\d+),\s*(\d+),\s*(\d+),\s*[\d.]+\)/, 'rgba($1,$2,$3,1.0)');
+    const focusMap = {
+      'top-right':    ['68%','32%'], 'bottom-left':  ['32%','68%'],
+      'top-left':     ['32%','32%'], 'bottom-right': ['68%','68%'],
+      'center-left':  ['30%','50%'], 'center-right': ['70%','50%'],
+    };
+    const [fx, fy] = focusMap[dec.position] || ['50%','50%'];
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${canvasW}" height="${canvasH}" viewBox="0 0 ${canvasW} ${canvasH}"
+      style="position:absolute;top:0;left:0;pointer-events:none;z-index:0;">
+      <defs>
+        <pattern id="dlp${uid}" x="0" y="0" width="${spacing}" height="${spacing}" patternUnits="userSpaceOnUse" patternTransform="rotate(45 ${canvasW/2} ${canvasH/2})">
+          <line x1="0" y1="0" x2="0" y2="${spacing * 2}" stroke="${lineColor}" stroke-width="${strokeW}"/>
+        </pattern>
+        <radialGradient id="dlg${uid}" cx="${fx}" cy="${fy}" r="55%" gradientUnits="objectBoundingBox">
+          <stop offset="0%"   stop-color="white" stop-opacity="1"/>
+          <stop offset="52%"  stop-color="white" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="white" stop-opacity="0"/>
+        </radialGradient>
+        <mask id="dlm${uid}">
+          <rect width="${canvasW}" height="${canvasH}" fill="url(#dlg${uid})"/>
+        </mask>
+      </defs>
+      <rect width="${canvasW}" height="${canvasH}" fill="url(#dlp${uid})" mask="url(#dlm${uid})"/>
+    </svg>`;
+  }
+  if (dec.isStreetLines) {
+    // Street-drop style: S-curve lines with accent chevron icons
+    const sx = canvasW / 390, sy = canvasH / 844;
+    const cxMap = {
+      'top-right': 270, 'bottom-left': 120, 'top-left': 130,
+      'bottom-right': 260, 'center-left': 145, 'center-right': 245,
+    };
+    const cxBase = cxMap[dec.position] || 195;
+    const cx = cxBase * sx;
+    const a  = 88 * sx;
+    const getRgb = (c) => { const m = c.match(/rgba\((\d+),\s*(\d+),\s*(\d+)/); return m ? [m[1],m[2],m[3]] : ['255','255','255']; };
+    const [r,g,b] = getRgb(dec.color);
+    const lines = [
+      { dx: 0,       op: 1.0,  w: 1.0 },
+      { dx: 30*sx,   op: 0.64, w: 0.7 },
+      { dx: -30*sx,  op: 0.56, w: 0.7 },
+      { dx: 58*sx,   op: 0.36, w: 0.5 },
+      { dx: -58*sx,  op: 0.30, w: 0.5 },
+    ];
+    const paths = lines.map(({ dx, op, w }) => {
+      const x = cx + dx;
+      const d = [
+        'M', (x - a*0.45).toFixed(1), canvasH.toFixed(1),
+        'C', (x + a*1.1).toFixed(1),  (0.758*canvasH).toFixed(1),
+             (x - a*1.1).toFixed(1),  (0.509*canvasH).toFixed(1),
+             x.toFixed(1),             (0.5*canvasH).toFixed(1),
+        'S', (x + a*1.1).toFixed(1),  (0.225*canvasH).toFixed(1),
+             (x + a*0.45).toFixed(1), '0',
+      ].join(' ');
+      return `<path d="${d}" stroke="rgba(${r},${g},${b},${op})" stroke-width="${(w*sx).toFixed(2)}" fill="none"/>`;
+    }).join('');
+    const chevronPositions = [
+      { icx: 44*sx, icy: 82*sy }, { icx: 350*sx, icy: 410*sy }, { icx: 36*sx, icy: 760*sy },
+    ];
+    const chevrons = chevronPositions.map(({ icx, icy }) => {
+      const s = 22 * sx;
+      const tx = icx.toFixed(1), ty = (icy - s*0.38).toFixed(1);
+      const lx = (icx - s*0.42).toFixed(1), ly = (icy + s*0.28).toFixed(1), rx = (icx + s*0.42).toFixed(1);
+      return `<path d="M ${lx},${ly} L ${tx},${ty} L ${rx},${ly}" stroke="rgba(${r},${g},${b},1.0)" stroke-width="${(2.8*sx).toFixed(2)}" fill="none"/>`;
+    }).join('');
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${canvasW}" height="${canvasH}" viewBox="0 0 ${canvasW} ${canvasH}"
+      style="position:absolute;top:0;left:0;pointer-events:none;z-index:0;">
+      <g fill="none" stroke-linecap="round" stroke-linejoin="round">${paths}${chevrons}</g>
+    </svg>`;
+  }
+  // Glow: pure CSS radial-gradient div — matches old project's natural breathing feel
+  // No SVG filter blur; the gradient fades smoothly to transparent on its own,
+  // identical to the .render-slide::before/::after approach in appstore-auto-screenshots.
+  const glowSize = Math.round(svgSize * 0.90);
+  // Boost alpha to match old project's luminosity (old: rgba(accent, 0.48) * opacity 0.7 ≈ 0.34 center)
+  const glowColor = dec.color.replace(
+    /rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/,
+    (_, r, g, b, a) => `rgba(${r},${g},${b},${Math.min(0.52, parseFloat(a) * 1.6).toFixed(2)})`
+  );
+  return `<div style="position:absolute;${posStyle}width:${glowSize}px;height:${glowSize}px;border-radius:50%;background:radial-gradient(circle,${glowColor} 0%,transparent 70%);transform:${transform};pointer-events:none;z-index:0;"></div>`;
+}
+
+function phoneSvg(canvasW, screenshotUrl, accentHex, showReflection = false) {
+  const phoneW = Math.round(canvasW * 0.72);
+  const mockupSrc = `${SERVER}/assets/iphone-mockup.png`;
+  const ah = (accentHex || '#6c63ff').replace('#', '');
+  const ar = parseInt(ah.slice(0, 2), 16);
+  const ag = parseInt(ah.slice(2, 4), 16);
+  const ab = parseInt(ah.slice(4, 6), 16);
+  // Inner phone content — shared between main render and reflection clone
+  const phoneInner = `
+    <div style="position:absolute;inset:9% 7% 3%;border-radius:26%;background:radial-gradient(circle at 50% 18%,rgba(${ar},${ag},${ab},0.16) 0%,transparent 40%),radial-gradient(circle at 52% 68%,rgba(6,10,18,0.24) 0%,transparent 72%);filter:blur(28px);opacity:0.9;transform:scale(1.02);pointer-events:none;z-index:0;"></div>
+    <div style="position:absolute;inset:11% 12% 1%;border-radius:30%;background:radial-gradient(circle at 50% 30%,rgba(255,255,255,0.08) 0%,transparent 45%),radial-gradient(circle at 50% 76%,rgba(6,10,18,0.38) 0%,transparent 68%);filter:blur(32px);opacity:0.78;transform:translateY(4%);pointer-events:none;z-index:0;"></div>
+    <div style="position:absolute;inset:1.1% 2.8% 0.9%;border-radius:11.5%/5.8%;background:linear-gradient(180deg,rgba(255,255,255,0.32),rgba(255,255,255,0.06) 7%,rgba(8,10,14,0.10) 100%),linear-gradient(120deg,rgba(245,216,160,0.55),rgba(255,255,255,0.12) 18%,rgba(24,28,36,0.30) 52%,rgba(242,222,187,0.42) 82%,rgba(255,255,255,0.18));box-shadow:0 28px 60px rgba(2,4,10,0.42),0 10px 24px rgba(2,4,10,0.28),0 0 0 1px rgba(255,255,255,0.10);opacity:0.82;pointer-events:none;"></div>
+    <img src="${mockupSrc}" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;z-index:2;pointer-events:none;user-select:none;" loading="eager" decoding="sync" />
+    <div style="position:absolute;left:${SC_L.toFixed(3)}%;top:${SC_T.toFixed(3)}%;width:${SC_W.toFixed(3)}%;height:${SC_H.toFixed(3)}%;border-radius:${SC_RX.toFixed(3)}%/${SC_RY.toFixed(3)}%;overflow:hidden;background:#04060b;z-index:3;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.08),inset 0 -24px 40px rgba(0,0,0,0.22),inset 0 24px 32px rgba(255,255,255,0.04);">
+      <img src="${screenshotUrl}" style="display:block;width:100%;height:100%;object-fit:cover;object-position:top;" loading="eager" decoding="sync" />
+      <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(255,255,255,0.11),transparent 18%,transparent 78%,rgba(0,0,0,0.12)),linear-gradient(90deg,rgba(255,255,255,0.04),transparent 20%,transparent 80%,rgba(0,0,0,0.06));z-index:2;pointer-events:none;"></div>
+    </div>`;
+  // Glass reflection platform (clean-light style) — mirrored clone fading downward
+  const reflectionHtml = showReflection ? `
+    <div style="position:absolute;top:100%;left:-6%;width:112%;height:${Math.round(canvasW * 0.56)}px;overflow:hidden;pointer-events:none;z-index:0;">
+      <div style="position:absolute;top:0;left:8%;width:84%;height:1px;background:linear-gradient(90deg,transparent,rgba(200,220,255,0.5) 20%,rgba(220,235,255,0.85) 50%,rgba(200,220,255,0.5) 80%,transparent);z-index:2;"></div>
+      <div style="position:absolute;top:0;left:6%;width:88%;aspect-ratio:${MK_W}/${MK_H};transform:scaleY(-1);transform-origin:center center;opacity:0.24;filter:blur(0.6px) saturate(0.5) brightness(1.0);-webkit-mask-image:linear-gradient(to top,rgba(0,0,0,0.9) 0%,rgba(0,0,0,0.55) 28%,rgba(0,0,0,0.15) 55%,transparent 78%);mask-image:linear-gradient(to top,rgba(0,0,0,0.9) 0%,rgba(0,0,0,0.55) 28%,rgba(0,0,0,0.15) 55%,transparent 78%);pointer-events:none;">${phoneInner}</div>
+    </div>` : '';
+  return `<div style="width:${phoneW}px;aspect-ratio:${MK_W}/${MK_H};position:relative;flex-shrink:0;">${phoneInner}${reflectionHtml}</div>`;
+}
+
+function ghostFrameHtml(canvasW, canvasH, recipe) {
+  if (!recipe.ghostFrames) return '';
+  const p = recipe.palette;
+  const phoneW = Math.round(canvasW * 0.58);
+  const getRgb = (hex) => {
+    const h = (hex||'#6c63ff').replace('#','');
+    return [parseInt(h.slice(0,2),16), parseInt(h.slice(2,4),16), parseInt(h.slice(4,6),16)];
+  };
+  const [r1,g1,b1] = getRgb(p.accent);
+  const [r2,g2,b2] = getRgb(p.accent2);
+  const bw = Math.max(1, Math.round(canvasW * 0.002));
+  const glowPx = Math.round(canvasW * 0.04);
+  const left  = `<div style="position:absolute;left:-14%;bottom:4%;width:${phoneW}px;aspect-ratio:${MK_W}/${MK_H};border-radius:11.5%/5.8%;border:${bw}px solid rgba(${r1},${g1},${b1},0.32);background:linear-gradient(160deg,rgba(${r1},${g1},${b1},0.05),transparent);box-shadow:0 0 ${glowPx}px rgba(${r1},${g1},${b1},0.15);transform:rotate(-9deg);opacity:0.75;pointer-events:none;z-index:1;"></div>`;
+  const right = `<div style="position:absolute;right:-14%;bottom:4%;width:${phoneW}px;aspect-ratio:${MK_W}/${MK_H};border-radius:11.5%/5.8%;border:${bw}px solid rgba(${r2},${g2},${b2},0.28);background:linear-gradient(160deg,rgba(${r2},${g2},${b2},0.05),transparent);box-shadow:0 0 ${glowPx}px rgba(${r2},${g2},${b2},0.14);transform:rotate(8deg);opacity:0.65;pointer-events:none;z-index:1;"></div>`;
+  return left + right;
+}
+
+function buildSlideHtml(recipe, copySlide, screenshotUrl, canvasW, canvasH) {
+  const p = recipe.palette;
+  const t = recipe.typography;
+  const layout = copySlide.layout || "hero";
+  const headlineSize = Math.round(canvasW * t.headlineSize);
+  const subtitleSize = Math.round(canvasW * t.subtitleSize);
+  const headline  = (copySlide.headline || "").replace(/\n/g, "<br/>");
+  const subtitle  = copySlide.subtitle || "";
+  const decorHtml = (recipe.decorations || []).map((d) => decorationSvg(d, canvasW, canvasH)).join("");
+  const showRefl  = recipe.glassReflection || false;
+  const phoneHtml    = phoneSvg(canvasW, screenshotUrl, p.accent, showRefl);
+  const phoneWide    = phoneSvg(canvasW, screenshotUrl, p.accent, showRefl).replace(`width:${Math.round(canvasW*0.72)}px`, `width:${Math.round(canvasW*0.78)}px`);
+  const phoneSmall   = phoneSvg(canvasW, screenshotUrl, p.accent, showRefl).replace(`width:${Math.round(canvasW*0.72)}px`, `width:${Math.round(canvasW*0.65)}px`);
+  const phoneMid     = phoneSvg(canvasW, screenshotUrl, p.accent, showRefl).replace(`width:${Math.round(canvasW*0.72)}px`, `width:${Math.round(canvasW*0.68)}px`);
+  const phoneDuoBack = phoneSvg(canvasW, screenshotUrl, p.accent, false).replace(`width:${Math.round(canvasW*0.72)}px`, `width:${Math.round(canvasW*0.60)}px`);
+  const ghosts = ghostFrameHtml(canvasW, canvasH, recipe);
+
+  let innerHtml = "";
+  if (layout === "hero") {
+    innerHtml = `
+      <div style="position:absolute;top:${Math.round(canvasH*0.08)}px;left:0;right:0;text-align:center;z-index:10;padding:0 ${Math.round(canvasW*0.08)}px;">
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.022)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+      </div>
+      <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%) translateY(10%);z-index:5;">${phoneHtml}</div>`;
+  } else if (layout === "right") {
+    innerHtml = `
+      <div style="position:absolute;top:${Math.round(canvasH*0.08)}px;left:${Math.round(canvasW*0.08)}px;z-index:10;max-width:${Math.round(canvasW*0.58)}px;">
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.02)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+      </div>
+      <div style="position:absolute;bottom:0;right:-4%;z-index:5;">${phoneWide}</div>`;
+  } else if (layout === "left") {
+    innerHtml = `
+      <div style="position:absolute;top:${Math.round(canvasH*0.08)}px;right:${Math.round(canvasW*0.08)}px;z-index:10;max-width:${Math.round(canvasW*0.58)}px;text-align:right;">
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.02)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+      </div>
+      <div style="position:absolute;bottom:0;left:-4%;z-index:5;">${phoneWide}</div>`;
+  } else if (layout === "duo") {
+    innerHtml = `
+      <div style="position:absolute;top:${Math.round(canvasH*0.08)}px;left:0;right:0;text-align:center;z-index:10;padding:0 ${Math.round(canvasW*0.06)}px;">
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.018)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+      </div>
+      <div style="position:absolute;bottom:0;left:-8%;z-index:4;opacity:0.55;transform:rotate(-3deg);">${phoneDuoBack}</div>
+      <div style="position:absolute;bottom:0;right:-3%;z-index:5;">${phoneHtml}</div>`;
+  } else if (layout === "trust") {
+    const phoneTrust = phoneSvg(canvasW, screenshotUrl, p.accent, true).replace(`width:${Math.round(canvasW*0.72)}px`, `width:${Math.round(canvasW*0.703)}px`);
+    innerHtml = `
+      <div style="position:absolute;top:${Math.round(canvasH*0.07)}px;left:0;right:0;text-align:center;z-index:10;padding:0 ${Math.round(canvasW*0.1)}px;">
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.018)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+      </div>
+      <div style="position:absolute;bottom:${Math.round(canvasH*0.04) + 32}px;left:50%;transform:translateX(-50%);z-index:5;">${phoneTrust}</div>`;
+  } else if (layout === "bottom-right") {
+    innerHtml = `
+      <div style="position:absolute;bottom:${Math.round(canvasH*0.08)}px;left:${Math.round(canvasW*0.08)}px;z-index:10;max-width:${Math.round(canvasW*0.58)}px;">
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.02)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+      </div>
+      <div style="position:absolute;top:0;right:-4%;z-index:5;">${phoneWide}</div>`;
+  } else if (layout === "bottom-left") {
+    innerHtml = `
+      <div style="position:absolute;bottom:${Math.round(canvasH*0.08)}px;right:${Math.round(canvasW*0.08)}px;z-index:10;max-width:${Math.round(canvasW*0.58)}px;text-align:right;">
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.02)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+      </div>
+      <div style="position:absolute;top:0;left:-4%;z-index:5;">${phoneWide}</div>`;
+  } else {
+    innerHtml = `
+      <div style="position:absolute;bottom:${Math.round(canvasH*0.06)}px;left:0;right:0;text-align:center;z-index:10;padding:0 ${Math.round(canvasW*0.08)}px;">
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.015)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+      </div>
+      <div style="position:absolute;top:${Math.round(canvasH*0.04)}px;left:50%;transform:translateX(-50%);z-index:5;">${phoneMid}</div>`;
+  }
+
+  return `<div data-export-root style="width:${canvasW}px;height:${canvasH}px;background:linear-gradient(160deg,${p.bg} 0%,${p.bgEnd} 100%);font-family:${t.font};position:relative;overflow:hidden;flex-shrink:0;">${decorHtml}${ghosts}${innerHtml}</div>`;
+}
