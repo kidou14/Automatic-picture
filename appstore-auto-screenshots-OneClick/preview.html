@@ -110,6 +110,34 @@
     .form-input:focus { border-color: var(--accent); }
     .form-input::placeholder { color: var(--muted); font-size: 12px; }
 
+    /* ── LOGO PREVIEW ── */
+    .logo-preview-wrap {
+      display: flex; align-items: center; gap: 12px;
+    }
+    .logo-preview-box {
+      flex: 0 0 72px; width: 72px; height: 72px;
+      border-radius: 16px;
+      border: 1px dashed rgba(108,99,255,0.35);
+      background: var(--surface2);
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      transition: border-color 0.3s;
+      position: relative;
+    }
+    .logo-preview-box.has-logo { border-style: solid; border-color: rgba(108,99,255,0.5); }
+    .logo-preview-box svg { width: 72px; height: 72px; display: block; }
+    .logo-preview-hint {
+      font-size: 11px; color: var(--muted); line-height: 1.5;
+    }
+    .logo-loading-spinner {
+      width: 18px; height: 18px;
+      border: 2px solid rgba(108,99,255,0.25);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
     .btn-generate {
       width: 100%;
       padding: 11px;
@@ -395,9 +423,18 @@
           placeholder="输入 URL 后 AI 自动生成" autocomplete="off" />
       </div>
       <div class="form-group">
-        <label class="form-label">What it does</label>
-        <textarea class="form-input" id="app-desc" rows="2"
-          placeholder="A finance tracker for freelancers."></textarea>
+        <label class="form-label">App Logo <span id="app-logo-ai-badge" style="font-size:10px;color:var(--accent2);font-weight:600;opacity:0;transition:opacity 0.3s;">✦ AI 生成</span></label>
+        <div class="logo-preview-wrap">
+          <div class="logo-preview-box" id="app-logo-box">
+            <div class="logo-loading-spinner" id="app-logo-spinner" style="display:none"></div>
+            <svg id="app-logo-empty-icon" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity:0.18">
+              <rect x="16" y="16" width="40" height="40" rx="10" stroke="#6c63ff" stroke-width="2.5"/>
+              <circle cx="36" cy="30" r="5" stroke="#6c63ff" stroke-width="2.5"/>
+              <path d="M22 50c0-7.732 6.268-14 14-14s14 6.268 14 14" stroke="#6c63ff" stroke-width="2.5" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="logo-preview-hint" id="app-logo-hint">输入 URL 后<br>AI 自动生成</div>
+        </div>
       </div>
       <button class="btn-generate" id="btn-generate" onclick="startGenerate()">
         ✦ &nbsp;Generate Screenshots
@@ -1084,7 +1121,7 @@ function getSelectedLanguages() {
 function startGenerate() {
   const url     = document.getElementById("app-url").value.trim();
   const appName = document.getElementById("app-name").value.trim();
-  const desc    = document.getElementById("app-desc").value.trim();
+  const desc    = "";
   if (!url) { document.getElementById("app-url").focus(); return; }
   const languages = getSelectedLanguages();
   lastInputs = { url, appName, desc, languages };
@@ -1208,11 +1245,65 @@ document.getElementById("app-name").addEventListener("input", () => {
   document.getElementById("app-name-ai-badge").style.opacity = "0";
 });
 
+// ─── AI App Logo Auto-generate ────────────────────────────────────────────────
+
+let _lastLogoUrl = "";
+let _logoFetchController = null;
+
+async function suggestAppLogoFromUrl(url) {
+  const box    = document.getElementById("app-logo-box");
+  const spinner = document.getElementById("app-logo-spinner");
+  const emptyIcon = document.getElementById("app-logo-empty-icon");
+  const hint   = document.getElementById("app-logo-hint");
+  const badge  = document.getElementById("app-logo-ai-badge");
+
+  if (_logoFetchController) _logoFetchController.abort();
+  _logoFetchController = new AbortController();
+
+  // Show loading state
+  emptyIcon.style.display = "none";
+  spinner.style.display = "block";
+  hint.textContent = "AI 生成中…";
+  badge.style.opacity = "0";
+  box.classList.remove("has-logo");
+
+  try {
+    const res = await fetch(`${SERVER}/api/suggest-app-logo?url=${encodeURIComponent(url)}`, {
+      signal: _logoFetchController.signal,
+    });
+    if (!res.ok) throw new Error("logo suggest failed");
+    const data = await res.json();
+    if (data.svg) {
+      box.innerHTML = data.svg;
+      box.classList.add("has-logo");
+      hint.textContent = data.concept || "";
+      badge.style.opacity = "1";
+    } else {
+      emptyIcon.style.display = "block";
+      hint.textContent = "生成失败，可跳过";
+    }
+  } catch (e) {
+    if (e.name !== "AbortError") {
+      emptyIcon.style.display = "block";
+      hint.textContent = "生成失败，可跳过";
+    }
+  }
+}
+
 // Auto-suggest on page load if URL is pre-filled
 (function () {
   const url = document.getElementById("app-url").value.trim();
   if (url) { _lastSuggestedUrl = url; suggestAppNameFromUrl(url); }
+  if (url) { _lastLogoUrl = url; suggestAppLogoFromUrl(url); }
 })();
+
+// Trigger logo on URL blur too (alongside name)
+document.getElementById("app-url").addEventListener("blur", () => {
+  const url = document.getElementById("app-url").value.trim();
+  if (!url || url === _lastLogoUrl) return;
+  _lastLogoUrl = url;
+  suggestAppLogoFromUrl(url);
+});
 </script>
 </body>
 </html>

@@ -1277,6 +1277,84 @@ App URL: ${targetUrl}
   }
 }
 
+// ─── AI logo SVG generation ───────────────────────────────────────────────────
+
+async function suggestAppLogo(targetUrl) {
+  if (!ANTHROPIC_API_KEY) return null;
+  const browser = await getBrowser();
+  const context = await browser.newContext({
+    viewport: MOBILE_VIEWPORT,
+    deviceScaleFactor: 1,
+    userAgent: USER_AGENT,
+  });
+  const page = await context.newPage();
+  let title = "";
+  let bodyText = "";
+  try {
+    await navigateWithFallback(page, targetUrl);
+    await page.waitForTimeout(Math.min(CAPTURE_WAIT_MS, 1200));
+    [title, bodyText] = await Promise.all([
+      page.title().catch(() => ""),
+      page.evaluate(() => {
+        const el = document.body;
+        return el ? el.innerText.replace(/\s+/g, " ").slice(0, 800) : "";
+      }).catch(() => ""),
+    ]);
+  } finally {
+    await page.close().catch(() => {});
+    await context.close().catch(() => {});
+  }
+
+  const prompt = `You are an expert SVG app icon designer. Analyze this app and generate a beautiful, minimal flat icon as SVG.
+
+App URL: ${targetUrl}
+Page title: ${title || "(none)"}
+Page content: ${bodyText || "(none)"}
+
+STEP 1 — Identify the single best icon concept for this app (e.g. "lightning bolt", "leaf", "calculator"). Write it as: CONCEPT: <word>
+
+STEP 2 — Generate the SVG following these strict rules:
+- viewBox="0 0 100 100", no width/height attributes on <svg>
+- First element: <rect width="100" height="100" rx="22" fill="<background color>"/>
+- Choose bold, vivid, modern colors suited to the app's category (avoid generic grey/white)
+- Center icon uses 2 colors max (icon color + optional accent), flat design only
+- NO gradients (no <linearGradient>, no <radialGradient>)
+- NO shadows (no filter, no drop-shadow)
+- NO stroke on the background rect
+- Simple geometric shapes: circles, rects, paths — all centered in the 100×100 space
+- Icon shapes should feel confident and take up ~50–60% of the icon area
+
+Output format (exactly):
+CONCEPT: <icon concept in English>
+SVG: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">...</svg>`;
+
+  const response = await fetch(ANTHROPIC_API_URL, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "x-api-key": ANTHROPIC_API_KEY,
+      "anthropic-version": "2023-06-01",
+    },
+    body: JSON.stringify({
+      model: ANTHROPIC_MODEL,
+      max_tokens: 1500,
+      messages: [{ role: "user", content: prompt }],
+    }),
+  });
+
+  if (!response.ok) return null;
+  const data = await response.json();
+  const raw = (data?.content?.[0]?.text || "").trim();
+
+  const conceptMatch = raw.match(/CONCEPT:\s*(.+)/i);
+  const svgMatch = raw.match(/SVG:\s*(<svg[\s\S]*<\/svg>)/i);
+
+  return {
+    concept: conceptMatch ? conceptMatch[1].trim() : "",
+    svg: svgMatch ? svgMatch[1].trim() : null,
+  };
+}
+
 // ─── HTTP Server ──────────────────────────────────────────────────────────────
 
 const server = http.createServer(async (req, res) => {
@@ -1326,6 +1404,17 @@ const server = http.createServer(async (req, res) => {
       const targetUrl = normalizeUrl(requestUrl.searchParams.get("url"));
       const name = await suggestAppName(targetUrl);
       sendJson(res, 200, { name });
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+    }
+    return;
+  }
+
+  if (req.method === "GET" && requestUrl.pathname === "/api/suggest-app-logo") {
+    try {
+      const targetUrl = normalizeUrl(requestUrl.searchParams.get("url"));
+      const result = await suggestAppLogo(targetUrl);
+      sendJson(res, 200, result || { svg: null, concept: "" });
     } catch (err) {
       sendJson(res, 500, { error: err.message });
     }
