@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>新装饰元素候选 — 4种精选预览</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg: #080810;
+      --surface: #10101a;
+      --border: rgba(255,255,255,0.07);
+      --text: #e8e8f4;
+      --muted: #5a5a72;
+      --accent: #7c6fff;
+    }
+    html, body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: -apple-system, "SF Pro Display", "Inter", system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      padding: 40px 48px 28px;
+      border-bottom: 1px solid var(--border);
+    }
+    .header-eyebrow {
+      font-size: 10px; font-weight: 700; letter-spacing: 1.2px;
+      text-transform: uppercase; color: var(--accent);
+      margin-bottom: 10px;
+    }
+    .header h1 {
+      font-size: 26px; font-weight: 800; letter-spacing: -0.04em;
+      color: var(--text); margin-bottom: 8px;
+    }
+    .header p {
+      font-size: 13px; color: var(--muted); line-height: 1.6; max-width: 640px;
+    }
+    .header p strong { color: rgba(220,220,235,0.8); font-weight: 600; }
+
+    /* ── LAYOUT ── */
+    .gallery {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2px;
+      background: var(--border);
+    }
+    .card {
+      background: var(--bg);
+      padding: 36px 40px 40px;
+      position: relative;
+    }
+
+    /* ── CARD HEADER ── */
+    .card-meta {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 24px; gap: 16px;
+    }
+    .card-left {}
+    .card-number {
+      font-size: 10px; font-weight: 700; letter-spacing: 1px;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 6px;
+    }
+    .card-name {
+      font-size: 18px; font-weight: 800; letter-spacing: -0.03em;
+      color: var(--text); margin-bottom: 4px;
+    }
+    .card-source {
+      font-size: 11px; color: var(--muted);
+    }
+    .card-source span {
+      display: inline-block;
+      padding: 2px 8px; border-radius: 4px;
+      background: rgba(124,111,255,0.12); border: 1px solid rgba(124,111,255,0.2);
+      color: #a89dff; font-weight: 600; font-size: 10px; letter-spacing: 0.3px;
+    }
+    .card-tags {
+      display: flex; flex-direction: column; align-items: flex-end; gap: 4px;
+    }
+    .tag {
+      font-size: 9px; font-weight: 700; letter-spacing: 0.7px;
+      text-transform: uppercase; padding: 3px 9px; border-radius: 4px;
+      white-space: nowrap;
+    }
+    .tag-easy  { background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.25); color: #34d399; }
+    .tag-mode  { background: rgba(251,191,36,0.1);  border: 1px solid rgba(251,191,36,0.25);  color: #fbbf24; }
+
+    /* ── PREVIEW CANVAS ── */
+    .preview-row {
+      display: flex; gap: 10px; margin-bottom: 20px;
+    }
+    .preview-canvas {
+      flex: 1;
+      position: relative;
+      border-radius: 10px;
+      overflow: hidden;
+      aspect-ratio: 1320/1560;  /* top half of slide proportion */
+    }
+    .canvas-label {
+      position: absolute; bottom: 8px; left: 10px; z-index: 20;
+      font-size: 9px; font-weight: 700; letter-spacing: 0.5px;
+      text-transform: uppercase;
+      background: rgba(0,0,0,0.55); color: rgba(255,255,255,0.65);
+      padding: 2px 7px; border-radius: 4px;
+    }
+
+    /* ── IMPLEMENTATION NOTE ── */
+    .impl-block {
+      background: rgba(255,255,255,0.028);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .impl-title {
+      font-size: 10px; font-weight: 700; letter-spacing: 0.7px;
+      text-transform: uppercase; color: var(--muted); margin-bottom: 8px;
+    }
+    .impl-item {
+      display: flex; align-items: flex-start; gap: 8px;
+      font-size: 12px; line-height: 1.55; color: rgba(200,200,220,0.75);
+      margin-bottom: 5px;
+    }
+    .impl-item:last-child { margin-bottom: 0; }
+    .impl-dot {
+      width: 4px; height: 4px; border-radius: 50%;
+      background: var(--accent); flex-shrink: 0; margin-top: 6px;
+    }
+    .impl-item strong { color: rgba(220,220,235,0.9); font-weight: 600; }
+    .impl-item code {
+      font-family: "SF Mono", "Fira Code", monospace;
+      font-size: 10.5px;
+      background: rgba(124,111,255,0.12);
+      padding: 1px 5px; border-radius: 3px; color: #a89dff;
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      padding: 32px 48px;
+      border-top: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .footer-text { font-size: 12px; color: var(--muted); }
+    .footer-text strong { color: rgba(200,200,220,0.6); }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-eyebrow">OneClick · 新装饰元素候选</div>
+  <h1>精选 4 种新装饰类型</h1>
+  <p>基于设计师建议的20个方向，筛选出<strong>改动最小、效果最显著</strong>的 4 种装饰元素。
+  每种均以最适合它的配色模式渲染，展示在现有 SVG decoration 框架内的实际效果。</p>
+</div>
+
+<!-- GALLERY GRID -->
+<div class="gallery">
+
+  <!-- ─── 01 NOISE-GRAIN ─────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-meta">
+      <div class="card-left">
+        <div class="card-number">Type 01</div>
+        <div class="card-name">Noise Grain</div>
+        <div class="card-source"><span>方案05 暗夜极光</span></div>
+      </div>
+      <div class="card-tags">
+        <span class="tag tag-easy">10行代码</span>
+        <span class="tag tag-mode">neon-dark · cool-dark</span>
+      </div>
+    </div>
+
+    <div class="preview-row">
+      <!-- 暗夜霓虹背景 + noise grain -->
+      <div class="preview-canvas" style="background: linear-gradient(145deg, #0d0620 0%, #1a0836 50%, #0a1628 100%);">
+        <!-- noise layer via feTurbulence -->
+        <svg style="position:absolute;inset:0;width:100%;height:100%;opacity:0.55;mix-blend-mode:overlay;" xmlns="http://www.w3.org/2000/svg">
+          <filter id="ng1" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+            <feTurbulence type="fractalNoise" baseFrequency="0.72" numOctaves="4" seed="8" stitchTiles="stitch" result="noise"/>
+            <feColorMatrix type="saturate" values="0" in="noise" result="gray"/>
+            <feBlend in="SourceGraphic" in2="gray" mode="overlay"/>
+          </filter>
+          <rect width="100%" height="100%" filter="url(#ng1)" opacity="1"/>
+        </svg>
+        <!-- accent glow blobs -->
+        <svg style="position:absolute;inset:0;width:100%;height:100%;" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="g1a" cx="70%" cy="20%" r="55%">
+              <stop offset="0%" stop-color="#7c3aff" stop-opacity="0.45"/>
+              <stop offset="100%" stop-color="#7c3aff" stop-opacity="0"/>
+            </radialGradient>
+            <radialGradient id="g1b" cx="20%" cy="85%" r="50%">
+              <stop offset="0%" stop-color="#00d4ff" stop-opacity="0.25"/>
+              <stop offset="100%" stop-color="#00d4ff" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#g1a)"/>
+          <rect width="100%" height="100%" fill="url(#g1b)"/>
+        </svg>
+        <!-- placeholder phone outline -->
+        <svg style="position:absolute;inset:0;width:100%;height:100%;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 780">
+          <rect x="230" y="60" width="200" height="420" rx="28" ry="28"
+            fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.18)" stroke-width="1.5"/>
+          <rect x="248" y="80" width="164" height="360" rx="18" ry="18"
+            fill="rgba(100,120,200,0.12)"/>
+          <text x="330" y="490" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="13" font-weight="700" fill="rgba(255,255,255,0.9)" letter-spacing="-0.5">掌控每一次</text>
+          <text x="330" y="508" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="13" font-weight="700" fill="rgba(255,255,255,0.9)" letter-spacing="-0.5">交易机会</text>
+          <text x="330" y="530" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="9" fill="rgba(255,255,255,0.45)" letter-spacing="1">TRADE · SMART</text>
+        </svg>
+        <div class="canvas-label">neon-dark + noise</div>
+      </div>
+
+      <!-- cool-dark 背景 + noise grain，更细腻 -->
+      <div class="preview-canvas" style="background: linear-gradient(155deg, #0e1525 0%, #1b2540 50%, #0f1018 100%);">
+        <svg style="position:absolute;inset:0;width:100%;height:100%;opacity:0.4;mix-blend-mode:overlay;" xmlns="http://www.w3.org/2000/svg">
+          <filter id="ng2" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+            <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="4" seed="22" stitchTiles="stitch" result="noise"/>
+            <feColorMatrix type="saturate" values="0" in="noise" result="gray"/>
+            <feBlend in="SourceGraphic" in2="gray" mode="overlay"/>
+          </filter>
+          <rect width="100%" height="100%" filter="url(#ng2)" opacity="1"/>
+        </svg>
+        <svg style="position:absolute;inset:0;width:100%;height:100%;" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="g2a" cx="30%" cy="30%" r="60%">
+              <stop offset="0%" stop-color="#3b82f6" stop-opacity="0.3"/>
+              <stop offset="100%" stop-color="#3b82f6" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#g2a)"/>
+          <!-- thin border -->
+          <rect x="1%" y="1%" width="98%" height="98%" rx="6" ry="6"
+            fill="none" stroke="rgba(59,130,246,0.22)" stroke-width="0.8"/>
+        </svg>
+        <svg style="position:absolute;inset:0;width:100%;height:100%;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 780">
+          <rect x="230" y="60" width="200" height="420" rx="28" ry="28"
+            fill="rgba(255,255,255,0.04)" stroke="rgba(255,255,255,0.14)" stroke-width="1.5"/>
+          <rect x="248" y="80" width="164" height="360" rx="18" ry="18"
+            fill="rgba(50,80,160,0.15)"/>
+          <text x="330" y="490" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="13" font-weight="700" fill="rgba(255,255,255,0.88)" letter-spacing="-0.5">实时数据</text>
+          <text x="330" y="508" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="13" font-weight="700" fill="rgba(255,255,255,0.88)" letter-spacing="-0.5">精准决策</text>
+          <text x="330" y="530" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="9" fill="rgba(255,255,255,0.4)" letter-spacing="1">SIGNAL · PRO</text>
+        </svg>
+        <div class="canvas-label">cool-dark + thin border</div>
+      </div>
+    </div>
+
+    <div class="impl-block">
+      <div class="impl-title">实现方式</div>
+      <div class="impl-item"><div class="impl-dot"></div><span>新增 <code>isNoiseGrain: true</code> decoration type，在 <code>decorationSvg()</code> 里加一个分支</span></div>
+      <div class="impl-item"><div class="impl-dot"></div><span>SVG <code>&lt;feTurbulence&gt;</code> filter + <code>feBlend mode="overlay"</code>，全画布覆盖，<strong>不影响渲染速度</strong></span></div>
+      <div class="impl-item"><div class="impl-dot"></div><span><code>neon-dark</code> / <code>cool-dark</code> 模式下自动附加，opacity 0.3–0.55 随机</span></div>
+      <div class="impl-item"><div class="impl-dot"></div><span>同时在 dark 系模式下，<strong>以 30% 概率</strong>为 slide 加 1px 细边框（rgba accent, 0.2）</span></div>
+    </div>
+  </div>
+
+  <!-- ─── 02 CENTER PULSE ────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-meta">
+      <div class="card-left">
+        <div class="card-number">Type 02</div>
+        <div class="card-name">Center Pulse</div>
+        <div class="card-source"><span>方案03 数字脉冲</span></div>
+      </div>
+      <div class="card-tags">
+        <span class="tag tag-easy">15行代码</span>
+        <span class="tag tag-mode">neon-dark · dark</span>
+      </div>
+    </div>
+
+    <div class="preview-row">
+      <!-- 黑背景 + 绿色同心波纹 -->
+      <div class="preview-canvas" style="background: linear-gradient(180deg, #050e08 0%, #071510 100%);">
+        <svg style="position:absolute;inset:0;width:100%;height:100%;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 780" overflow="visible">
+          <!-- center pulse rings from bottom center (phone base area) -->
+          <g opacity="1">
+            <circle cx="330" cy="520" r="70"  fill="none" stroke="#00ff88" stroke-width="1.8" opacity="0.75"/>
+            <circle cx="330" cy="520" r="120" fill="none" stroke="#00ff88" stroke-width="1.4" opacity="0.52"/>
+            <circle cx="330" cy="520" r="175" fill="none" stroke="#00ff88" stroke-width="1.1" opacity="0.34"/>
+            <circle cx="330" cy="520" r="240" fill="none" stroke="#00ff88" stroke-width="0.9" opacity="0.21"/>
+            <circle cx="330" cy="520" r="320" fill="none" stroke="#00ff88" stroke-width="0.7" opacity="0.12"/>
+            <circle cx="330" cy="520" r="420" fill="none" stroke="#00ff88" stroke-width="0.5" opacity="0.07"/>
+          </g>
+          <!-- phone -->
+          <rect x="230" y="55" width="200" height="425" rx="28" ry="28"
+            fill="rgba(0,255,136,0.03)" stroke="rgba(0,255,136,0.22)" stroke-width="1.5"/>
+          <rect x="248" y="75" width="164" height="365" rx="18" ry="18"
+            fill="rgba(0,20,10,0.6)"/>
+          <!-- screen content placeholder lines -->
+          <rect x="260" y="90"  width="140" height="8"  rx="4" fill="rgba(0,255,136,0.3)"/>
+          <rect x="260" y="108" width="100" height="6"  rx="3" fill="rgba(0,255,136,0.15)"/>
+          <rect x="260" y="130" width="140" height="40" rx="6" fill="rgba(0,255,136,0.06)" stroke="rgba(0,255,136,0.12)" stroke-width="0.8"/>
+          <rect x="260" y="180" width="66"  height="60" rx="6" fill="rgba(0,255,136,0.06)" stroke="rgba(0,255,136,0.1)" stroke-width="0.8"/>
+          <rect x="334" y="180" width="66"  height="60" rx="6" fill="rgba(0,255,136,0.06)" stroke="rgba(0,255,136,0.1)" stroke-width="0.8"/>
+          <!-- green glow dot center -->
+          <circle cx="330" cy="520" r="5" fill="#00ff88" opacity="0.6"/>
+          <circle cx="330" cy="520" r="10" fill="none" stroke="#00ff88" stroke-width="1" opacity="0.4"/>
+          <!-- copy -->
+          <text x="330" y="500" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="11" font-weight="800" fill="#00ff88" letter-spacing="-0.3" opacity="0.9">数字脉冲</text>
+          <text x="330" y="516" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="8" fill="rgba(0,255,136,0.5)" letter-spacing="1.5">REALTIME · SIGNAL</text>
+        </svg>
+        <div class="canvas-label">neon-green-dark</div>
+      </div>
+
+      <!-- 深蓝背景 + 蓝紫波纹 -->
+      <div class="preview-canvas" style="background: linear-gradient(145deg, #08091e 0%, #12143a 100%);">
+        <svg style="position:absolute;inset:0;width:100%;height:100%;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 780" overflow="visible">
+          <g>
+            <circle cx="330" cy="530" r="80"  fill="none" stroke="#818cf8" stroke-width="2"   opacity="0.7"/>
+            <circle cx="330" cy="530" r="140" fill="none" stroke="#818cf8" stroke-width="1.5" opacity="0.48"/>
+            <circle cx="330" cy="530" r="210" fill="none" stroke="#818cf8" stroke-width="1.1" opacity="0.3"/>
+            <circle cx="330" cy="530" r="295" fill="none" stroke="#818cf8" stroke-width="0.8" opacity="0.18"/>
+            <circle cx="330" cy="530" r="395" fill="none" stroke="#818cf8" stroke-width="0.6" opacity="0.1"/>
+          </g>
+          <defs>
+            <radialGradient id="gp2" cx="50%" cy="68%" r="45%">
+              <stop offset="0%" stop-color="#4f46e5" stop-opacity="0.35"/>
+              <stop offset="100%" stop-color="#4f46e5" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#gp2)"/>
+          <rect x="230" y="55" width="200" height="425" rx="28" ry="28"
+            fill="rgba(255,255,255,0.04)" stroke="rgba(129,140,248,0.25)" stroke-width="1.5"/>
+          <rect x="248" y="75" width="164" height="365" rx="18" ry="18"
+            fill="rgba(15,18,50,0.7)"/>
+          <rect x="260" y="90"  width="140" height="8"  rx="4" fill="rgba(129,140,248,0.35)"/>
+          <rect x="260" y="108" width="100" height="6"  rx="3" fill="rgba(129,140,248,0.18)"/>
+          <rect x="260" y="130" width="140" height="90" rx="6" fill="rgba(79,70,229,0.1)" stroke="rgba(129,140,248,0.15)" stroke-width="0.8"/>
+          <circle cx="330" cy="530" r="5" fill="#818cf8" opacity="0.8"/>
+          <text x="330" y="510" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="12" font-weight="800" fill="rgba(255,255,255,0.92)" letter-spacing="-0.5">一键执行</text>
+          <text x="330" y="526" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="8"  fill="rgba(129,140,248,0.6)" letter-spacing="1.5">INSTANT · TRADE</text>
+        </svg>
+        <div class="canvas-label">cool-dark + indigo pulse</div>
+      </div>
+    </div>
+
+    <div class="impl-block">
+      <div class="impl-title">实现方式</div>
+      <div class="impl-item"><div class="impl-dot"></div><span>新增 <code>isCenterPulse: true</code> decoration type，origin 固定在 <strong>画布底部 2/3 处</strong>（手机底座位置）</span></div>
+      <div class="impl-item"><div class="impl-dot"></div><span>与现有 <code>isRing</code> 的区别：ring 从四角扩散，center-pulse 从<strong>中心向外</strong>，呈雷达感</span></div>
+      <div class="impl-item"><div class="impl-dot"></div><span>同时新增 <code>neon-green-dark</code> colorMode（bg #040e07，accent #00ff88），专属配色</span></div>
+      <div class="impl-item"><div class="impl-dot"></div><span>ring 间距和 opacity 按 <strong>指数衰减</strong>，最外圈 opacity 约 0.06，视觉上非常干净</span></div>
+    </div>
+  </div>
+
+  <!-- ─── 03 SCANLINES ──────────────────────────────────────── -->
+  <div class="card">
+    <div class="card-meta">
+      <div class="card-left">
+        <div class="card-number">Type 03</div>
+        <div class="card-name">Scanlines</div>
+        <div class="card-source"><span>方案15 复古未来</span></div>
+      </div>
+      <div class="card-tags">
+        <span class="tag tag-easy">3行代码</span>
+        <span class="tag tag-mode">所有模式通用</span>
+      </div>
+    </div>
+
+    <div class="preview-row">
+      <!-- 80s 霓虹格 背景 + scanlines -->
+      <div class="preview-canvas" style="background: linear-gradient(180deg, #1a0038 0%, #000820 60%, #001020 100%);">
+        <!-- 80s perspective grid -->
+        <svg style="position:absolute;inset:0;width:100%;height:100%;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 780">
+          <defs>
+            <linearGradient id="hg1" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#ff00ff" stop-opacity="0"/>
+              <stop offset="60%" stop-color="#ff00ff" stop-opacity="0.18"/>
+              <stop offset="100%" stop-color="#ff00ff" stop-opacity="0.28"/>
+            </linearGradient>
+            <linearGradient id="vg1" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%" stop-color="#00ffff" stop-opacity="0"/>
+              <stop offset="50%" stop-color="#00ffff" stop-opacity="0.1"/>
+              <stop offset="100%" stop-color="#00ffff" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <!-- horizon glow -->
+          <ellipse cx="330" cy="490" rx="320" ry="40" fill="#ff00aa" opacity="0.18"/>
+          <!-- grid lines converging to horizon -->
+          <line x1="330" y1="490" x2="0"   y2="780" stroke="#ff00ff" stroke-width="0.7" opacity="0.4"/>
+          <line x1="330" y1="490" x2="110" y2="780" stroke="#ff00ff" stroke-width="0.7" opacity="0.4"/>
+          <line x1="330" y1="490" x2="220" y2="780" stroke="#ff00ff" stroke-width="0.7" opacity="0.4"/>
+          <line x1="330" y1="490" x2="330" y2="780" stroke="#ff00ff" stroke-width="0.7" opacity="0.4"/>
+          <line x1="330" y1="490" x2="440" y2="780" stroke="#ff00ff" stroke-width="0.7" opacity="0.4"/>
+          <line x1="330" y1="490" x2="550" y2="780" stroke="#ff00ff" stroke-width="0.7" opacity="0.4"/>
+          <line x1="330" y1="490" x2="660" y2="780" stroke="#ff00ff" stroke-width="0.7" opacity="0.4"/>
+          <!-- horizontal grid lines at perspective intervals -->
+          <line x1="0" y1="520" x2="660" y2="520" stroke="#ff00ff" stroke-width="0.6" opacity="0.3"/>
+          <line x1="0" y1="560" x2="660" y2="560" stroke="#ff00ff" stroke-width="0.7" opacity="0.35"/>
+          <line x1="0" y1="615" x2="660" y2="615" stroke="#ff00ff" stroke-width="0.8" opacity="0.38"/>
+          <line x1="0" y1="690" x2="660" y2="690" stroke="#ff00ff" stroke-width="0.9" opacity="0.4"/>
+          <line x1="0" y1="780" x2="660" y2="780" stroke="#ff00ff" stroke-width="1"   opacity="0.4"/>
+        </svg>
+        <!-- SCANLINES overlay — the key effect: subtle horizontal stripes -->
+        <div style="position:absolute;inset:0;
+          background: repeating-linear-gradient(
+            to bottom,
+            transparent 0px,
+            transparent 3px,
+            rgba(0,0,0,0.18) 3px,
+            rgba(0,0,0,0.18) 4px
+          );
+          pointer-events:none;z-index:10;"></div>
+        <svg style="position:absolute;inset:0;width:100%;height:100%;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 780">
+          <!-- neon glow text style phone -->
+          <rect x="230" y="55" width="200" height="425" rx="28" ry="28"
+            fill="rgba(255,0,255,0.03)" stroke="#ff00ff" stroke-width="1.2" opacity="0.6"/>
+          <rect x="248" y="75" width="164" height="365" rx="18" ry="18"
+            fill="rgba(0,0,30,0.7)"/>
+          <text x="330" y="90" text-anchor="middle" font-family="-apple-system,monospace" font-size="7" fill="#00ffff" letter-spacing="2" opacity="0.8">██ SYSTEM READY ██</text>
+          <rect x="260" y="100" width="140" height="6"  rx="0" fill="#00ffff" opacity="0.25"/>
+          <rect x="260" y="114" width="90"  height="6"  rx="0" fill="#00ffff" opacity="0.15"/>
+          <rect x="260" y="130" width="140" height="55" rx="2" fill="rgba(0,255,255,0.05)" stroke="rgba(0,255,255,0.2)" stroke-width="0.8"/>
+          <rect x="260" y="196" width="66"  height="50" rx="2" fill="rgba(255,0,255,0.05)" stroke="rgba(255,0,255,0.2)" stroke-width="0.8"/>
+          <rect x="334" y="196" width="66"  height="50" rx="2" fill="rgba(255,0,255,0.05)" stroke="rgba(255,0,255,0.2)" stroke-width="0.8"/>
+          <text x="330" y="500" text-anchor="middle" font-family="monospace" font-size="14" font-weight="900" fill="#ff00ff" letter-spacing="-0.5" opacity="0.95">光速执行</text>
+          <text x="330" y="516" text-anchor="middle" font-family="monospace" font-size="8"  fill="#00ffff" letter-spacing="2" opacity="0.7">FUTURE · 2049</text>
+        </svg>
+        <div class="canvas-label">retro-future + scanlines</div>
+      </div>
+
+      <!-- 深色现代背景 + 非常细腻的 scanlines（几乎感知不到但有质感） -->
+      <div class="preview-canvas" style="background: linear-gradient(150deg, #0c0c1e 0%, #1a1030 100%);">
+        <!-- ultra-subtle scanlines — just 2% dark every 4px -->
+        <div style="position:absolute;inset:0;
+          background: repeating-linear-gradient(
+            to bottom,
+            transparent 0px,
+            transparent 3px,
+            rgba(0,0,0,0.08) 3px,
+            rgba(0,0,0,0.08) 4px
+          );
+          pointer-events:none;z-index:10;"></div>
+        <svg style="position:absolute;inset:0;width:100%;height:100%;" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="gsl2" cx="60%" cy="25%" r="55%">
+              <stop offset="0%" stop-color="#a855f7" stop-opacity="0.3"/>
+              <stop offset="100%" stop-color="#a855f7" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#gsl2)"/>
+        </svg>
+        <svg style="position:absolute;inset:0;width:100%;height:100%;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 780">
+          <rect x="230" y="55" width="200" height="425" rx="28" ry="28"
+            fill="rgba(255,255,255,0.04)" stroke="rgba(168,85,247,0.3)" stroke-width="1.5"/>
+          <rect x="248" y="75" width="164" height="365" rx="18" ry="18"
+            fill="rgba(10,5,25,0.65)"/>
+          <rect x="260" y="90"  width="140" height="8"  rx="4" fill="rgba(168,85,247,0.4)"/>
+          <rect x="260" y="106" width="100" height="6"  rx="3" fill="rgba(168,85,247,0.2)"/>
+          <rect x="260" y="124" width="140" height="80" rx="6" fill="rgba(168,85,247,0.06)" stroke="rgba(168,85,247,0.15)" stroke-width="0.8"/>
+          <text x="330" y="498" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="12" font-weight="800" fill="rgba(255,255,255,0.92)" letter-spacing="-0.5">掌控全局</text>
+          <text x="330" y="516" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="9" fill="rgba(168,85,247,0.65)" letter-spacing="1.2">FULL · CONTROL</text>
+        </svg>
+        <div class="canvas-label">dark + ultra-subtle scanlines</div>
+      </div>
+    </div>
+
+    <div class="impl-block">
+      <div class="impl-title">实现方式</div>
+      <div class="impl-item"><div class="impl-dot"></div><span>在 <code>buildSlideHtml()</code> 里，dark 系模式下以 <strong>40% 概率</strong>在 slide 最外层添加一个 scanline div</span></div>
+      <div class="impl-item"><div class="impl-dot"></div><span>只有一行 CSS：<code>repeating-linear-gradient(transparent 0 3px, rgba(0,0,0,0.12) 3px 4px)</code>，<strong>零性能损耗</strong></span></div>
+      <div class="impl-item"><div class="impl-dot"></div><span>强度随 colorMode 变化：retro 模式用 0.18 opacity，其他 dark 模式用 0.06–0.10，subtle 但有质感</span></div>
+      <div class="impl-item"><div class="impl-dot"></div><span>同时新增 <code>retro-dark</code> colorMode（紫红 + 青 neon，用于左侧极致效果），80s 风格专属</span></div>
+    </div>
+  </div>
+
+  <!-- ─── 04 HAIRLINE GRID ───────────────────────────────────── -->
+  <div class="card">
+    <div class="card-meta">
+      <div class="card-left">
+        <div class="card-number">Type 04</div>
+        <div class="card-name">Hairline Grid</div>
+        <div class="card-source"><span>方案06/16 精密网格</span></div>
+      </div>
+      <div class="card-tags">
+        <span class="tag tag-easy">20行代码</span>
+        <span class="tag tag-mode">light · pastel · dark</span>
+      </div>
+    </div>
+
+    <div class="preview-row">
+      <!-- 浅色 + 坐标轴感网格 -->
+      <div class="preview-canvas" style="background: linear-gradient(150deg, #f8f7ff 0%, #eef2ff 100%);">
+        <svg style="position:absolute;inset:0;width:100%;height:100%;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 780">
+          <defs>
+            <!-- hairline grid pattern: 24px spacing, 0.35px stroke -->
+            <pattern id="hg" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+              <path d="M 24 0 L 0 0 0 24" fill="none" stroke="rgba(99,102,241,0.12)" stroke-width="0.35"/>
+            </pattern>
+            <!-- radial fade mask -->
+            <radialGradient id="hgm" cx="50%" cy="50%" r="60%">
+              <stop offset="0%"   stop-color="white" stop-opacity="1"/>
+              <stop offset="65%"  stop-color="white" stop-opacity="0.6"/>
+              <stop offset="100%" stop-color="white" stop-opacity="0"/>
+            </radialGradient>
+            <mask id="hgmask">
+              <rect width="660" height="780" fill="url(#hgm)"/>
+            </mask>
+          </defs>
+          <rect width="660" height="780" fill="url(#hg)" mask="url(#hgmask)"/>
+          <!-- axis emphasis: slightly brighter lines every 5th -->
+          <line x1="330" y1="0" x2="330" y2="780" stroke="rgba(99,102,241,0.18)" stroke-width="0.5"/>
+          <line x1="0" y1="390" x2="660" y2="390" stroke="rgba(99,102,241,0.18)" stroke-width="0.5"/>
+          <!-- small cross markers -->
+          <g stroke="rgba(99,102,241,0.3)" stroke-width="0.6">
+            <line x1="210" y1="195" x2="222" y2="195"/><line x1="216" y1="189" x2="216" y2="201"/>
+            <line x1="450" y1="195" x2="462" y2="195"/><line x1="456" y1="189" x2="456" y2="201"/>
+            <line x1="210" y1="585" x2="222" y2="585"/><line x1="216" y1="579" x2="216" y2="591"/>
+            <line x1="450" y1="585" x2="462" y2="585"/><line x1="456" y1="579" x2="456" y2="591"/>
+          </g>
+        </svg>
+        <svg style="position:absolute;inset:0;width:100%;height:100%;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 780">
+          <rect x="230" y="55" width="200" height="425" rx="28" ry="28"
+            fill="rgba(255,255,255,0.75)" stroke="rgba(99,102,241,0.2)" stroke-width="1.5"
+            filter="drop-shadow(0 8px 24px rgba(99,102,241,0.12))"/>
+          <rect x="248" y="75" width="164" height="365" rx="18" ry="18"
+            fill="rgba(238,242,255,0.8)"/>
+          <rect x="260" y="90"  width="140" height="8"  rx="4" fill="rgba(99,102,241,0.3)"/>
+          <rect x="260" y="106" width="100" height="6"  rx="3" fill="rgba(99,102,241,0.15)"/>
+          <rect x="260" y="124" width="140" height="70" rx="6" fill="rgba(99,102,241,0.06)" stroke="rgba(99,102,241,0.15)" stroke-width="0.8"/>
+          <rect x="260" y="204" width="66"  height="50" rx="6" fill="rgba(99,102,241,0.06)" stroke="rgba(99,102,241,0.12)" stroke-width="0.8"/>
+          <rect x="334" y="204" width="66"  height="50" rx="6" fill="rgba(99,102,241,0.06)" stroke="rgba(99,102,241,0.12)" stroke-width="0.8"/>
+          <text x="330" y="500" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="13" font-weight="800" fill="rgba(30,25,70,0.88)" letter-spacing="-0.5">精准分析</text>
+          <text x="330" y="518" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="13" font-weight="800" fill="rgba(30,25,70,0.88)" letter-spacing="-0.5">每笔交易</text>
+          <text x="330" y="538" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="9" fill="rgba(99,102,241,0.55)" letter-spacing="1.2">DATA · PRECISION</text>
+        </svg>
+        <div class="canvas-label">light + hairline grid</div>
+      </div>
+
+      <!-- 深色 + 极细网格（只有在有 accent 光时才能看到） -->
+      <div class="preview-canvas" style="background: linear-gradient(145deg, #09090f 0%, #111128 100%);">
+        <svg style="position:absolute;inset:0;width:100%;height:100%;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 780">
+          <defs>
+            <pattern id="hgd" x="0" y="0" width="28" height="28" patternUnits="userSpaceOnUse">
+              <path d="M 28 0 L 0 0 0 28" fill="none" stroke="rgba(120,120,255,0.1)" stroke-width="0.4"/>
+            </pattern>
+            <radialGradient id="hgdm" cx="50%" cy="45%" r="55%">
+              <stop offset="0%"   stop-color="white" stop-opacity="1"/>
+              <stop offset="55%"  stop-color="white" stop-opacity="0.5"/>
+              <stop offset="100%" stop-color="white" stop-opacity="0"/>
+            </radialGradient>
+            <mask id="hgdmask">
+              <rect width="660" height="780" fill="url(#hgdm)"/>
+            </mask>
+            <radialGradient id="gaccent" cx="50%" cy="35%" r="50%">
+              <stop offset="0%" stop-color="#6366f1" stop-opacity="0.28"/>
+              <stop offset="100%" stop-color="#6366f1" stop-opacity="0"/>
+            </radialGradient>
+          </defs>
+          <rect width="660" height="780" fill="url(#hgd)" mask="url(#hgdmask)"/>
+          <rect width="660" height="780" fill="url(#gaccent)"/>
+          <!-- axis lines -->
+          <line x1="330" y1="0" x2="330" y2="780" stroke="rgba(99,102,241,0.12)" stroke-width="0.5"/>
+          <line x1="0"   y1="390" x2="660" y2="390" stroke="rgba(99,102,241,0.12)" stroke-width="0.5"/>
+          <g stroke="rgba(99,102,241,0.22)" stroke-width="0.7">
+            <line x1="210" y1="195" x2="222" y2="195"/><line x1="216" y1="189" x2="216" y2="201"/>
+            <line x1="450" y1="195" x2="462" y2="195"/><line x1="456" y1="189" x2="456" y2="201"/>
+            <line x1="210" y1="585" x2="222" y2="585"/><line x1="216" y1="579" x2="216" y2="591"/>
+            <line x1="450" y1="585" x2="462" y2="585"/><line x1="456" y1="579" x2="456" y2="591"/>
+          </g>
+        </svg>
+        <svg style="position:absolute;inset:0;width:100%;height:100%;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 660 780">
+          <rect x="230" y="55" width="200" height="425" rx="28" ry="28"
+            fill="rgba(255,255,255,0.04)" stroke="rgba(99,102,241,0.28)" stroke-width="1.5"/>
+          <rect x="248" y="75" width="164" height="365" rx="18" ry="18"
+            fill="rgba(6,6,20,0.6)"/>
+          <rect x="260" y="90"  width="140" height="8"  rx="4" fill="rgba(99,102,241,0.4)"/>
+          <rect x="260" y="106" width="100" height="6"  rx="3" fill="rgba(99,102,241,0.2)"/>
+          <rect x="260" y="124" width="140" height="70" rx="6" fill="rgba(99,102,241,0.07)" stroke="rgba(99,102,241,0.18)" stroke-width="0.8"/>
+          <rect x="260" y="204" width="66"  height="50" rx="6" fill="rgba(99,102,241,0.07)" stroke="rgba(99,102,241,0.15)" stroke-width="0.8"/>
+          <rect x="334" y="204" width="66"  height="50" rx="6" fill="rgba(99,102,241,0.07)" stroke="rgba(99,102,241,0.15)" stroke-width="0.8"/>
+          <text x="330" y="500" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="13" font-weight="800" fill="rgba(255,255,255,0.9)" letter-spacing="-0.5">精准分析</text>
+          <text x="330" y="518" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="13" font-weight="800" fill="rgba(255,255,255,0.9)" letter-spacing="-0.5">每笔交易</text>
+          <text x="330" y="538" text-anchor="middle" font-family="-apple-system,sans-serif" font-size="9" fill="rgba(99,102,241,0.6)" letter-spacing="1.2">DATA · PRECISION</text>
+        </svg>
+        <div class="canvas-label">dark + hairline grid + axis</div>
+      </div>
+    </div>
+
+    <div class="impl-block">
+      <div class="impl-title">实现方式</div>
+      <div class="impl-item"><div class="impl-dot"></div><span>新增 <code>isHairlineGrid: true</code>，SVG <code>&lt;pattern&gt;</code> 细网格（0.35px stroke，24px spacing）+ radial mask 淡出边缘</span></div>
+      <div class="impl-item"><div class="impl-dot"></div><span>额外绘制 2 条<strong>轴线</strong>（垂直 + 水平中线，opacity 稍高），+ 4 个<strong>十字定位符号</strong>在四角位置</span></div>
+      <div class="impl-item"><div class="impl-dot"></div><span>light / pastel 模式下，网格颜色用 <code>accent</code> 色（12% opacity）；dark 模式用 accent（10%），视觉上"隐约存在"</span></div>
+      <div class="impl-item"><div class="impl-dot"></div><span>这个装饰<strong>覆盖全画布</strong>而不是角落定位，在 <code>decorationSvg()</code> 里是一个特殊全幅类型</span></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- FOOTER -->
+<div class="footer">
+  <div class="footer-text">
+    4 种新装饰类型 &nbsp;·&nbsp;
+    均可在现有 <strong>SVG decoration 框架</strong>内实现 &nbsp;·&nbsp;
+    不引入外部依赖 &nbsp;·&nbsp;
+    不影响出图速度
+  </div>
+  <div class="footer-text" style="opacity:0.5">OneClick · decoration-gallery.html</div>
+</div>
+
+</body>
+</html>

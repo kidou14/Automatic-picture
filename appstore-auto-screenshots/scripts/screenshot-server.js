@@ -287,6 +287,30 @@ async function renderExportFileBuffer(browser, file) {
       { waitUntil: "load" }
     );
     await waitForRenderAssets(page);
+
+    // Re-fit text with actual rendered fonts (handles preview↔export font differences)
+    await page.evaluate(() => {
+      function refitElement(el) {
+        const parent = el.parentElement;
+        const slideRoot = el.closest("[data-export-root]");
+        if (!parent || !slideRoot) return;
+        const slideW = slideRoot.getBoundingClientRect().width;
+        if (!slideW) return;
+        const parentW = parent.getBoundingClientRect().width;
+        const avail = parentW > 0 && parentW <= slideW ? parentW : slideW;
+        let size = parseFloat(window.getComputedStyle(el).fontSize) || 48;
+        const minSize = Math.max(12, Math.round(avail * 0.036));
+        while (size > minSize && el.scrollWidth > avail + 1) {
+          size -= 0.5;
+          el.style.setProperty("--fit-font-size", `${size}px`);
+        }
+        if (el.scrollWidth > avail + 1) {
+          el.style.whiteSpace = "normal";
+        }
+      }
+      document.querySelectorAll(".render-headline, .render-subheadline").forEach(refitElement);
+    });
+
     await page.waitForTimeout(80);
     return await page.locator("#capture-root").screenshot({ type: "png" });
   } finally {

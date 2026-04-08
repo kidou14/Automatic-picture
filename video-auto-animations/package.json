@@ -1,0 +1,23 @@
+{
+  "name": "video-auto-animations",
+  "version": "1.0.0",
+  "description": "Automated video animations powered by Remotion + FFmpeg",
+  "main": "index.js",
+  "scripts": {
+    "studio": "npx remotion studio src/index.tsx",
+    "render": "npx remotion render src/index.tsx",
+    "render:video": "node scripts/render.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@remotion/cli": "^4.0.443",
+    "@remotion/renderer": "^4.0.443",
+    "@remotion/studio": "^4.0.443",
+    "mediabunny": "^1.40.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "remotion": "^4.0.443"
+  }
+}

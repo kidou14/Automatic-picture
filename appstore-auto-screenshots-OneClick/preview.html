@@ -287,6 +287,16 @@
       grid-column: 1 / -1;
       height: 0;
     }
+    .slides-size-header {
+      grid-column: 1 / -1;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      padding: 4px 0 2px;
+      border-bottom: 1px solid rgba(124,58,237,0.25);
+    }
 
     /* ── SLIDE CARD ── */
     .slide-card {
@@ -469,6 +479,12 @@ const EXPORT_SIZES = {
   "1284x2778": { w: 1284, h: 2778 },
   "1206x2622": { w: 1206, h: 2622 },
   "1125x2436": { w: 1125, h: 2436 },
+};
+const SIZE_LABELS = {
+  "1320x2868": "6.9",
+  "1284x2778": "6.5",
+  "1206x2622": "6.3",
+  "1125x2436": "6.1",
 };
 
 let currentJob = null;
@@ -871,70 +887,89 @@ function renderSlides(job) {
   const recipe = job.recipe;
   const copies = recipe.copies || { en: recipe.copy || [] };
   const shots  = job.screenshots;
-  const CANVAS_W = 1320, CANVAS_H = 2868;
   const langNames = { zh: "中文", en: "EN" };
+  const sizeKeys = getSelectedSizes();
   let globalIdx = 0;
 
-  const langs = Object.keys(copies);
-  for (let langIdx = 0; langIdx < langs.length; langIdx++) {
-    const lang  = langs[langIdx];
-    if (langIdx > 0) {
+  for (let sizeIdx = 0; sizeIdx < sizeKeys.length; sizeIdx++) {
+    const sizeKey = sizeKeys[sizeIdx];
+    const { w: CANVAS_W, h: CANVAS_H } = EXPORT_SIZES[sizeKey];
+
+    if (sizeIdx > 0) {
       const divider = document.createElement("div");
       divider.className = "slides-batch-divider";
       grid.appendChild(divider);
     }
-    const copy  = copies[lang] || [];
-    const count = Math.min(copy.length, shots.length, 6);
 
-    for (let i = 0; i < count; i++) {
-      const copySlide    = copy[i];
-      const screenshotUrl = shots[i]?.imageDataUrl || "";
-      const html          = buildSlideHtml(recipe, copySlide, screenshotUrl, CANVAS_W, CANVAS_H);
-      const slideIdx      = globalIdx;
-      currentSlides.push({ index: slideIdx, html, copySlide, lang });
+    if (sizeKeys.length > 1) {
+      const sizeHeader = document.createElement("div");
+      sizeHeader.className = "slides-size-header";
+      sizeHeader.textContent = `${SIZE_LABELS[sizeKey] ? SIZE_LABELS[sizeKey] + '"' : sizeKey}  ·  ${CANVAS_W}×${CANVAS_H}`;
+      grid.appendChild(sizeHeader);
+    }
 
-      const card = document.createElement("div");
-      card.className = "slide-card";
-      card.style.position = "relative";
+    const langs = Object.keys(copies);
+    for (let langIdx = 0; langIdx < langs.length; langIdx++) {
+      const lang  = langs[langIdx];
+      if (langIdx > 0) {
+        const divider = document.createElement("div");
+        divider.className = "slides-batch-divider";
+        grid.appendChild(divider);
+      }
+      const copy  = copies[lang] || [];
+      const count = Math.min(copy.length, shots.length, 6);
 
-      const frameWrap = document.createElement("div");
-      frameWrap.className = "slide-frame-wrap";
-      frameWrap.setAttribute("data-slide-index", slideIdx);
+      for (let i = 0; i < count; i++) {
+        const copySlide    = copy[i];
+        const screenshotUrl = shots[i]?.imageDataUrl || "";
+        const html          = buildSlideHtml(recipe, copySlide, screenshotUrl, CANVAS_W, CANVAS_H);
+        const slideIdx      = globalIdx;
+        currentSlides.push({ index: slideIdx, html, copySlide, lang, sizeKey, shotIdx: i });
 
-      const iframeId = `slide-iframe-${slideIdx}`;
-      const iframe = document.createElement("iframe");
-      iframe.id = iframeId;
-      iframe.scrolling = "no";
-      iframe.style.cssText = `width:${CANVAS_W}px;height:${CANVAS_H}px;border:none;transform-origin:top left;transform:scale(1);`;
-      iframe.srcdoc = html;
+        const card = document.createElement("div");
+        card.className = "slide-card";
+        card.style.position = "relative";
 
-      const langBadge = document.createElement("div");
-      langBadge.className = "slide-lang-badge";
-      langBadge.textContent = langNames[lang] || lang;
+        const frameWrap = document.createElement("div");
+        frameWrap.className = "slide-frame-wrap";
+        frameWrap.setAttribute("data-slide-index", slideIdx);
+        frameWrap.setAttribute("data-canvas-w", CANVAS_W);
 
-      const hoverOverlay = document.createElement("div");
-      hoverOverlay.className = "slide-hover-overlay";
-      hoverOverlay.textContent = "↓ Export";
+        const iframeId = `slide-iframe-${slideIdx}`;
+        const iframe = document.createElement("iframe");
+        iframe.id = iframeId;
+        iframe.scrolling = "no";
+        iframe.style.cssText = `width:${CANVAS_W}px;height:${CANVAS_H}px;border:none;transform-origin:top left;transform:scale(1);`;
+        iframe.srcdoc = html;
 
-      frameWrap.appendChild(iframe);
-      frameWrap.appendChild(langBadge);
-      frameWrap.appendChild(hoverOverlay);
+        const langBadge = document.createElement("div");
+        langBadge.className = "slide-lang-badge";
+        langBadge.textContent = langNames[lang] || lang;
 
-      frameWrap.addEventListener("click", () => exportSingleSlide(slideIdx));
+        const hoverOverlay = document.createElement("div");
+        hoverOverlay.className = "slide-hover-overlay";
+        hoverOverlay.textContent = "↓ Export";
 
-      const meta = document.createElement("div");
-      meta.className = "slide-meta";
-      meta.innerHTML = `<span class="slide-num">${String(slideIdx + 1).padStart(2,"0")}</span><span class="slide-title">${(copySlide.layout||"").toUpperCase()} · ${copySlide.kicker||""}</span>`;
+        frameWrap.appendChild(iframe);
+        frameWrap.appendChild(langBadge);
+        frameWrap.appendChild(hoverOverlay);
 
-      card.appendChild(frameWrap);
-      card.appendChild(meta);
-      grid.appendChild(card);
-      globalIdx++;
+        frameWrap.addEventListener("click", () => exportSingleSlide(slideIdx));
+
+        const meta = document.createElement("div");
+        meta.className = "slide-meta";
+        meta.innerHTML = `<span class="slide-num">${String(slideIdx + 1).padStart(2,"0")}</span><span class="slide-title">${(copySlide.layout||"").toUpperCase()} · ${copySlide.kicker||""}</span>`;
+
+        card.appendChild(frameWrap);
+        card.appendChild(meta);
+        grid.appendChild(card);
+        globalIdx++;
+      }
     }
   }
 
   // Scale iframes to fit their containers
-  requestAnimationFrame(() => scaleIframes(globalIdx, CANVAS_W));
+  requestAnimationFrame(() => scaleIframes(globalIdx));
 
   document.getElementById("empty-state").style.display = "none";
   grid.style.display = "grid";
@@ -942,14 +977,15 @@ function renderSlides(job) {
   document.getElementById("btn-export-all").disabled = false;
 }
 
-function scaleIframes(count, CANVAS_W) {
+function scaleIframes(count) {
   const grid = document.getElementById("slides-grid");
   for (let i = 0; i < count; i++) {
     const wrap   = grid.querySelector(`[data-slide-index="${i}"]`);
     const iframe = document.getElementById(`slide-iframe-${i}`);
     if (!wrap || !iframe) continue;
+    const canvasW = parseInt(wrap.getAttribute("data-canvas-w") || "1320", 10);
     const wrapW = wrap.getBoundingClientRect().width;
-    if (wrapW > 0) iframe.style.transform = `scale(${wrapW / CANVAS_W})`;
+    if (wrapW > 0) iframe.style.transform = `scale(${wrapW / canvasW})`;
   }
 }
 
@@ -970,22 +1006,12 @@ function showToast(msg, isError = false) {
 }
 
 async function exportSingleSlide(slideIndex) {
-  const sizeKey = getSelectedSizes()[0];
-  const { w, h } = EXPORT_SIZES[sizeKey];
   const slide = currentSlides[slideIndex];
   if (!slide) return;
-  const recipe    = currentJob.recipe;
+  const sizeKey = slide.sizeKey || getSelectedSizes()[0];
+  const { w, h } = EXPORT_SIZES[sizeKey];
   const shots     = currentJob.screenshots;
-  // find original screenshot index for this slide within its language group
-  const copies    = recipe.copies || { en: recipe.copy || [] };
-  let shotIdx     = 0;
-  let counted     = 0;
-  for (const lang of Object.keys(copies)) {
-    const langLen = Math.min((copies[lang] || []).length, shots.length, 6);
-    if (slideIndex < counted + langLen) { shotIdx = slideIndex - counted; break; }
-    counted += langLen;
-  }
-  const shotUrl   = shots[shotIdx]?.imageDataUrl || "";
+  const shotUrl   = shots[slide.shotIdx ?? slideIndex]?.imageDataUrl || "";
   const slideHtml = buildSlideHtml(recipe, slide.copySlide, shotUrl, w, h);
   const appSlug   = (currentJob.appNameHint || "app").replace(/\s+/g,"-").toLowerCase();
   const langTag   = slide.lang ? `-${slide.lang}` : "";
@@ -993,8 +1019,8 @@ async function exportSingleSlide(slideIndex) {
   try {
     const res = await fetch(`${SERVER}/api/render-exports`, {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ folderName: `${appSlug}-${w}x${h}`, files: [{
-        filename: `${String(slideIndex+1).padStart(2,"0")}${langTag}-${slide.copySlide.layout||"slide"}-${w}x${h}.png`,
+      body: JSON.stringify({ folderName: `${appSlug}-${SIZE_LABELS[sizeKey]||sizeKey}in-${w}x${h}`, files: [{
+        filename: `${String(slideIndex+1).padStart(2,"0")}${langTag}-${slide.copySlide.layout||"slide"}-${SIZE_LABELS[sizeKey]||sizeKey}in-${w}x${h}.png`,
         width: w, height: h, markup: slideHtml, styles: "",
       }] }),
     });
@@ -1010,32 +1036,25 @@ async function exportAll() {
   const sizeKeys = getSelectedSizes();
   const recipe  = currentJob.recipe;
   const shots   = currentJob.screenshots;
-  const copies  = recipe.copies || { en: recipe.copy || [] };
   const appSlug = (currentJob.appNameHint || "app").replace(/\s+/g,"-").toLowerCase();
-
-  // Build shot index mapping: each slide knows its original screenshot index
-  const shotIndices = [];
-  for (const lang of Object.keys(copies)) {
-    const langLen = Math.min((copies[lang] || []).length, shots.length, 6);
-    for (let i = 0; i < langLen; i++) shotIndices.push(i);
-  }
 
   let totalSaved = 0;
   let lastDir = "";
   for (const sizeKey of sizeKeys) {
     const { w, h } = EXPORT_SIZES[sizeKey];
-    const files = currentSlides.map((slide, i) => {
-      const shotUrl = shots[shotIndices[i] ?? i]?.imageDataUrl || "";
+    const inchLabel = SIZE_LABELS[sizeKey] || sizeKey;
+    const files = currentSlides.filter(s => s.sizeKey === sizeKey).map((slide, i) => {
+      const shotUrl = shots[slide.shotIdx ?? i]?.imageDataUrl || "";
       const langTag = slide.lang ? `-${slide.lang}` : "";
       return {
-        filename: `${String(i+1).padStart(2,"00")}-${langTag}${slide.copySlide.layout||"slide"}-${w}x${h}.png`,
+        filename: `${String(i+1).padStart(2,"0")}${langTag}-${slide.copySlide.layout||"slide"}-${inchLabel}in-${w}x${h}.png`,
         width: w, height: h, markup: buildSlideHtml(recipe, slide.copySlide, shotUrl, w, h), styles: "",
       };
     });
     try {
       const res = await fetch(`${SERVER}/api/render-exports`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ folderName: `${appSlug}-${w}x${h}`, files }),
+        body: JSON.stringify({ folderName: `${appSlug}-${inchLabel}in-${w}x${h}`, files }),
       });
       if (!res.ok) { const e = await res.json(); showToast("导出失败：" + e.error, true); break; }
       const d = await res.json();

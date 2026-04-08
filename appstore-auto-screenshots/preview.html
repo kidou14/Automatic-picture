@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>App Store Screenshot Auto-Generator</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
 <style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
@@ -1871,9 +1871,16 @@
     let letterSpacing = element.classList.contains('render-headline') ? -1.4 : -0.2;
 
     const getAvailableWidth = () => {
+      const slideRoot = element.closest('[data-export-root]');
+      const slideWidth = slideRoot ? slideRoot.getBoundingClientRect().width : 0;
       const parentWidth = parent ? parent.getBoundingClientRect().width : 0;
-      const ownWidth = element.getBoundingClientRect().width;
-      return Math.max(0, Math.floor(parentWidth || ownWidth || element.clientWidth || 0));
+      // Use the more restrictive bound: parent (if constrained) or slide width.
+      // When parent has no explicit width constraint it expands with content,
+      // so cap with slide width to ensure overflow is detected.
+      const w = parentWidth > 0 && parentWidth <= (slideWidth || parentWidth)
+        ? parentWidth
+        : (slideWidth || parentWidth);
+      return Math.max(0, Math.floor(w || element.clientWidth || 0));
     };
 
     while (size > minSize && element.scrollWidth > getAvailableWidth() + 1) {

@@ -245,21 +245,14 @@ const MOOD_NAMES = [
 ];
 
 const FONT_PAIRINGS = [
-  { font: '"SF Pro Display", "Inter", -apple-system, sans-serif', weight: 800, tracking: "-0.03em" },
-  { font: '"Playfair Display", "Georgia", serif', weight: 700, tracking: "-0.02em" },
-  { font: '"Space Grotesk", "Trebuchet MS", sans-serif', weight: 700, tracking: "-0.025em" },
-  { font: '"Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif', weight: 700, tracking: "-0.01em" },
-  { font: '"Avenir Next Condensed", "Gill Sans", "Trebuchet MS", sans-serif', weight: 800, tracking: "-0.02em" },
-  { font: '"DM Serif Display", "Times New Roman", serif', weight: 400, tracking: "0em" },
-  { font: '"Sora", "Segoe UI", sans-serif', weight: 800, tracking: "-0.035em" },
-  { font: '"Didot", "Bodoni MT", "Times New Roman", serif', weight: 700, tracking: "0.01em" },
-  { font: '"Raleway", "Century Gothic", sans-serif', weight: 800, tracking: "-0.02em" },
-  { font: '"Cormorant Garamond", "Garamond", "Georgia", serif', weight: 600, tracking: "0.01em" },
-  { font: '"Outfit", "Nunito", sans-serif', weight: 800, tracking: "-0.025em" },
-  { font: '"Fraunces", "Georgia", serif', weight: 700, tracking: "-0.01em" },
-  { font: '"Cabinet Grotesk", "Helvetica Neue", sans-serif', weight: 800, tracking: "-0.04em" },
-  { font: '"Libre Baskerville", "Baskerville", serif', weight: 700, tracking: "-0.01em" },
-  { font: '"Plus Jakarta Sans", "system-ui", sans-serif', weight: 800, tracking: "-0.03em" },
+  // 中文经典：思源黑体（Noto Sans SC），现代人文黑体，OFL开源商用
+  { lang: "zh", font: '"Noto Sans SC", "Source Han Sans SC", sans-serif', weight: 700, tracking: "-0.02em", fontsUrl: "https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@700&display=swap" },
+  // 中文个性：思源宋体（Noto Serif SC），衬线重量感，OFL开源商用
+  { lang: "zh", font: '"Noto Serif SC", "Source Han Serif SC", serif', weight: 900, tracking: "0em", fontsUrl: "https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@900&display=swap" },
+  // 英文经典：Inter，现代无衬线，OFL开源商用
+  { lang: "en", font: '"Inter", system-ui, sans-serif', weight: 900, tracking: "-0.03em", fontsUrl: "https://fonts.googleapis.com/css2?family=Inter:wght@900&display=swap" },
+  // 英文个性：Playfair Display，高对比度衬线体，OFL开源商用
+  { lang: "en", font: '"Playfair Display", "Georgia", serif', weight: 700, tracking: "-0.02em", fontsUrl: "https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&display=swap" },
 ];
 
 const SVG_DECORATION_TEMPLATES = [
@@ -326,6 +319,21 @@ const SVG_DECORATION_TEMPLATES = [
     // Will render as S-curve lines with accent chevron icons (street-drop style)
     isStreetLines: true,
   },
+  {
+    type: "noise-grain",
+    // Will render as SVG feTurbulence film grain overlay (mix-blend-mode: overlay)
+    isNoiseGrain: true,
+  },
+  {
+    type: "center-pulse",
+    // Will render as concentric rings expanding from bottom-center (radar/signal feel)
+    isCenterPulse: true,
+  },
+  {
+    type: "scanlines",
+    // Will render as CSS repeating-linear-gradient horizontal scan stripes
+    isScanlines: true,
+  },
 ];
 
 const POSITIONS = ["top-right", "bottom-left", "top-left", "bottom-right", "center-left", "center-right"];
@@ -346,7 +354,7 @@ function generateStyleRecipe(seed) {
   // ─── Color harmony ──────────────────────────────────────────────────────────
   const baseHue = randInt(0, 360);
   const harmony = pick(["complementary", "triadic", "analogous", "split-complementary", "monochromatic"]);
-  const colorMode = pick(["light", "light", "dark", "dark", "warm-light", "cool-dark", "earthy", "neon-dark", "pastel"]);
+  const colorMode = pick(["light", "light", "dark", "dark", "warm-light", "cool-dark", "earthy", "neon-dark"]);
 
   let bgHue = baseHue;
   let accentHue = baseHue;
@@ -378,50 +386,52 @@ function generateStyleRecipe(seed) {
   // Mode-based lightness/saturation rules
   let bgL, bgS, accentS, accentL, textHex, bgGradientShift;
   switch (colorMode) {
-    case "light":
-      bgL = randInt(92, 97); bgS = randInt(10, 30);
-      accentS = randInt(55, 85); accentL = randInt(40, 55);
-      textHex = hslToHex(baseHue, randInt(15, 30), randInt(10, 18));
-      bgGradientShift = randInt(-10, 10);
+    case "light":  // Paper: ultra-minimal near-monochrome, ink-on-paper clarity
+      bgL = randInt(95, 98); bgS = randInt(0, 6);
+      accentS = randInt(0, 15); accentL = randInt(8, 18);
+      textHex = hslToHex(baseHue, randInt(5, 15), randInt(8, 14));
+      bgGradientShift = randInt(-3, 3);
       break;
-    case "dark":
-      bgL = randInt(8, 15); bgS = randInt(15, 35);
-      accentS = randInt(65, 90); accentL = randInt(55, 70);
-      textHex = hslToHex(baseHue, randInt(5, 15), randInt(88, 96));
-      bgGradientShift = randInt(-15, 15);
+    case "dark":  // Midnight: near-pure black with maximum-saturation jewel accents
+      bgL = randInt(4, 10); bgS = randInt(5, 15);
+      accentS = randInt(82, 100); accentL = randInt(60, 72);
+      textHex = hslToHex(baseHue, randInt(5, 12), randInt(90, 97));
+      bgGradientShift = randInt(-8, 8);
       break;
-    case "warm-light":
-      bgHue = randInt(20, 45);
-      bgL = randInt(90, 96); bgS = randInt(20, 45);
-      accentS = randInt(50, 75); accentL = randInt(42, 58);
-      textHex = hslToHex(randInt(15, 35), randInt(20, 35), randInt(10, 20));
-      bgGradientShift = randInt(5, 20);
+    case "warm-light":  // Sunset: warm orange sky bleeding into pink/magenta horizon
+      bgHue = randInt(15, 28);
+      accentHue = (bgHue + randInt(35, 55)) % 360;
+      accent2Hue = (bgHue + randInt(55, 85)) % 360;
+      bgL = randInt(82, 90); bgS = randInt(45, 65);
+      accentS = randInt(65, 88); accentL = randInt(48, 62);
+      textHex = hslToHex(randInt(18, 32), randInt(45, 62), randInt(18, 28));  // rich warm brown
+      bgGradientShift = randInt(-45, -28);  // orange → pink/magenta
       break;
-    case "cool-dark":
-      bgHue = randInt(200, 260);
-      bgL = randInt(7, 14); bgS = randInt(20, 40);
-      accentS = randInt(70, 95); accentL = randInt(55, 72);
-      textHex = hslToHex(bgHue, randInt(5, 15), randInt(88, 96));
-      bgGradientShift = randInt(-20, -5);
+    case "cool-dark":  // Deep Sea: ocean abyss with bioluminescent cyan accents
+      bgHue = randInt(208, 225);
+      accentHue = randInt(170, 195);
+      accent2Hue = randInt(185, 210);
+      bgL = randInt(8, 16); bgS = randInt(35, 55);
+      accentS = randInt(75, 95); accentL = randInt(55, 70);
+      textHex = hslToHex(accentHue, randInt(72, 88), randInt(65, 78));  // tech blue headline
+      bgGradientShift = randInt(-25, -10);
       break;
-    case "earthy":
-      bgHue = randInt(25, 50);
-      bgL = randInt(88, 94); bgS = randInt(15, 35);
-      accentS = randInt(40, 65); accentL = randInt(38, 55);
-      textHex = hslToHex(randInt(20, 40), randInt(20, 35), randInt(10, 18));
-      bgGradientShift = randInt(8, 18);
+    case "earthy":  // Forest: lush green canopy, deep earth accents
+      bgHue = randInt(80, 115);
+      accentHue = randInt(100, 135);
+      accent2Hue = randInt(65, 95);
+      bgL = randInt(91, 96); bgS = randInt(18, 35);
+      accentS = randInt(50, 72); accentL = randInt(28, 45);
+      textHex = hslToHex(randInt(22, 35), randInt(22, 38), randInt(10, 18));
+      bgGradientShift = randInt(10, 22);
       break;
-    case "neon-dark":
-      bgHue = randInt(220, 280);
-      bgL = randInt(5, 12); bgS = randInt(25, 50);
-      accentS = randInt(85, 100); accentL = randInt(55, 70);
-      textHex = "#f0f4ff";
-      bgGradientShift = randInt(-10, 10);
-      break;
-    case "pastel":
-      bgL = randInt(93, 97); bgS = randInt(15, 30);
-      accentS = randInt(35, 55); accentL = randInt(55, 70);
-      textHex = hslToHex(baseHue, randInt(15, 25), randInt(15, 22));
+    case "neon-dark":  // Matrix: near-black with bioluminescent green glow, not harsh
+      bgHue = randInt(138, 162);           // dark background with subtle green-teal undertone
+      accentHue = randInt(118, 148);       // fluorescent green accent (yellow-green to pure green)
+      accent2Hue = randInt(148, 178);      // cyan-green secondary for depth
+      bgL = randInt(3, 8); bgS = randInt(18, 32);   // near-black, low saturation keeps it from looking green-washed
+      accentS = randInt(88, 100); accentL = randInt(62, 72);  // full neon pop
+      textHex = hslToHex(accentHue, randInt(88, 100), randInt(65, 75));  // fluorescent green headline
       bgGradientShift = randInt(-8, 8);
       break;
     default:
@@ -462,15 +472,32 @@ function generateStyleRecipe(seed) {
       : `rgba(${Math.floor(textRgb.r * 0.6)},${Math.floor(textRgb.g * 0.6)},${Math.floor(textRgb.b * 0.6)},${(0.15 + rng() * 0.1).toFixed(2)})`,
   };
 
+  // ─── Per-mode signature overrides ───────────────────────────────────────────
+  if (colorMode === "light") {
+    // Paper: white cards with clear definition, dark-ink chips
+    palette.card = `rgba(255,255,255,${(0.55 + rng() * 0.20).toFixed(2)})`;
+    palette.chip = `rgba(${textRgb.r},${textRgb.g},${textRgb.b},${(0.07 + rng() * 0.06).toFixed(2)})`;
+  } else if (colorMode === "neon-dark") {
+    // Matrix green: strong glow + chip highlight for neon presence
+    palette.glow = `rgba(${accentRgb.r},${accentRgb.g},${accentRgb.b},${(0.32 + rng() * 0.16).toFixed(2)})`;
+    palette.card = `rgba(${accentRgb.r},${accentRgb.g},${accentRgb.b},${(0.08 + rng() * 0.06).toFixed(2)})`;
+    palette.chip = `rgba(${accentRgb.r},${accentRgb.g},${accentRgb.b},${(0.22 + rng() * 0.10).toFixed(2)})`;
+  } else if (colorMode === "earthy") {
+    // Forest: green-tinted frosted cards
+    const bgRgb = hexToRgb(bgHex);
+    palette.card = `rgba(${bgRgb.r},${bgRgb.g},${bgRgb.b},${(0.42 + rng() * 0.18).toFixed(2)})`;
+  }
+
   // ─── Typography ─────────────────────────────────────────────────────────────
   const fontPairing = pick(FONT_PAIRINGS);
   const typography = {
     font: fontPairing.font,
+    fontsUrl: fontPairing.fontsUrl || null,
     headlineWeight: fontPairing.weight,
     headlineTracking: fontPairing.tracking,
-    headlineSize: parseFloat((0.086 + rng() * 0.018).toFixed(3)),
+    headlineSize: parseFloat((0.112 + rng() * 0.024).toFixed(3)),
     subtitleWeight: 400,
-    subtitleSize: parseFloat((0.035 + rng() * 0.008).toFixed(3)),
+    subtitleSize: parseFloat((0.041 + rng() * 0.009).toFixed(3)),
     kickerSize: parseFloat((0.026 + rng() * 0.006).toFixed(3)),
     kickerTracking: parseFloat((0.06 + rng() * 0.08).toFixed(2)) + "em",
     kickerWeight: pick([500, 600, 700]),
@@ -546,9 +573,9 @@ function generateStyleRecipe(seed) {
   // Ghost wireframes: neon phone outlines flanking the main mockup (electric-neon style)
   const ghostFrames = (colorMode === 'neon-dark' || colorMode === 'cool-dark') && rng() < 0.55;
   // Glass reflection: mirror platform below phone (clean-light style)
-  const glassReflection = (colorMode === 'light' || colorMode === 'pastel' || colorMode === 'warm-light') && rng() < 0.55;
+  const glassReflection = (colorMode === 'light' || colorMode === 'warm-light') && rng() < 0.55;
 
-  return { mood, harmony, colorMode, palette, typography, decorations, layouts, seed, ghostFrames, glassReflection };
+  return { mood, harmony, colorMode, palette, typography, decorations, layouts, seed, ghostFrames, glassReflection, heroTiltDir: pick(['left', 'right']) };
 }
 
 // ─── AI copy generation ───────────────────────────────────────────────────────
@@ -573,8 +600,8 @@ async function generateCopyWithClaude(job, recipe, lang = "en") {
     ? "IMPORTANT: You MUST write ALL text (kicker, headline, subtitle) in Simplified Chinese (简体中文). Do NOT use any English words."
     : "Write all copy in English.";
   const exampleSlide = isZh
-    ? `{ "index": 0, "layout": "hero", "kicker": "产品亮点", "headline": "更智能\\n更轻松", "subtitle": "专注真正重要的事" }`
-    : `{ "index": 0, "layout": "hero", "kicker": "Smart & Simple", "headline": "Work Smarter\\nNot Harder", "subtitle": "Built for how you work." }`;
+    ? `{ "index": 0, "layout": "hero", "kicker": "产品亮点", "headline": "交易变简单", "subtitle": "专注真正重要的事" }`
+    : `{ "index": 0, "layout": "hero", "kicker": "Get started", "headline": "Calculate gains\\nBeat the market", "subtitle": "Built for how you work" }`;
 
   const prompt = `${langHeader}
 
@@ -592,12 +619,12 @@ CRITICAL — SINGLE PHRASE RULE: Every text field must be ONE continuous phrase 
 RULES:
 - ${isZh ? "全部使用简体中文，禁止出现英文单词" : "Write in English only"}
 - Each slide sells ONE idea only
-- Use \\n to break headlines across exactly 2 lines
+- Headline line breaks: use \\n only when the total character count exceeds 5. Short headlines (≤5 chars for Chinese, ≤10 chars for English) must be written as a single line with NO \\n. Never use more than one \\n.
 - Never write feature lists or buzzwords
 - Match the mood: "${recipe.mood}"
-${isZh ? `- Headline: each line must be ≤6 Chinese characters (≤6字/行). No punctuation.
-- Subtitle: ≤10 Chinese characters total. No punctuation. ONE phrase expressing a single thought — never "A，B" or "A、B" structure.
-- Kicker: ≤6 Chinese characters. No punctuation.
+${isZh ? `- Headline: 5–10 Chinese characters total. If ≤5 chars write as one line (no \\n). If 6–10 chars split into 2 lines with one \\n, each line 3–6 chars. No punctuation.
+- Subtitle: ≤12 Chinese characters total. No punctuation. ONE phrase expressing a single thought — never "A，B" or "A、B" structure.
+- Kicker: ≤5 Chinese characters. No punctuation.
 - FORBIDDEN subtitle patterns (two clauses = always wrong):
     "专业工具助力决策、开启新时代"  ← two clauses with 、
     "智能分析交易，提升表现"        ← two clauses with ，
@@ -605,11 +632,12 @@ ${isZh ? `- Headline: each line must be ≤6 Chinese characters (≤6字/行). N
 - CORRECT subtitle patterns (single thought = always right):
     "专注真正重要的事"
     "让数据替你说话"
-    "每次交易都算数"` : `- Headline: each line must be ≤20 characters including spaces. No punctuation.
-- Subtitle: ≤25 characters total. No punctuation. ONE direct phrase — never "A, B" structure.
-- Kicker: ≤20 characters. No punctuation.
+    "每次交易都算数"` : `- Headline: each line must be ≤10 characters including spaces. No punctuation.
+- Subtitle: ≤20 characters total. No punctuation. ONE direct phrase — never "A, B" structure.
+- Kicker: ≤10 characters. No punctuation.
 - FORBIDDEN: "Track your trades, boost your gains" ← two clauses with comma
-- CORRECT: "Trade with more confidence"`}
+- FORBIDDEN: "Work Smarter Not Harder" ← too many characters per line
+- CORRECT: "Do more daily" / "Built for focus"`}
 
 Return ONLY valid JSON, no markdown, no explanation:
 {

@@ -4,6 +4,17 @@
 
 const SERVER = "http://127.0.0.1:4318";
 
+// ─── Typography defaults ──────────────────────────────────────────────────────
+// Single source of truth for gallery previews.
+// headlineSize / subtitleSize mirror the midpoint of the ranges in generateStyleRecipe.
+// When you change the ranges in screenshot-server.js, update these values too.
+const TYPO_DEFAULTS = {
+  font: '"SF Pro Display", -apple-system, sans-serif',
+  headlineWeight: 900, headlineTracking: '-0.03em', headlineSize: 0.124,
+  subtitleWeight: 400, subtitleSize: 0.046,
+  kickerSize: 0.028, kickerTracking: '0.08em', kickerWeight: 600,
+};
+
 const MK_W = 1022, MK_H = 2082;
 const SC_L = (52 / MK_W) * 100;
 const SC_T = (46 / MK_H) * 100;
@@ -202,6 +213,107 @@ function decorationSvg(dec, canvasW, canvasH) {
       <g fill="none" stroke-linecap="round" stroke-linejoin="round">${paths}${chevrons}</g>
     </svg>`;
   }
+  if (dec.isNoiseGrain) {
+    // Noise grain: two stacked layers — hard-light + overlay for strong visible grain
+    const uid = Math.floor(Math.random() * 0xfffff).toString(16);
+    const seed = Math.floor(dec.rotation * 0.27) % 100;
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${canvasW}" height="${canvasH}" viewBox="0 0 ${canvasW} ${canvasH}"
+      style="position:absolute;top:0;left:0;pointer-events:none;z-index:1;mix-blend-mode:hard-light;opacity:0.10;">
+      <filter id="ngf${uid}" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.68" numOctaves="3" seed="${seed}" stitchTiles="stitch" result="noise"/>
+        <feColorMatrix type="saturate" values="0" in="noise" result="gray"/>
+        <feComponentTransfer in="gray">
+          <feFuncR type="linear" slope="8" intercept="-3.5"/>
+          <feFuncG type="linear" slope="8" intercept="-3.5"/>
+          <feFuncB type="linear" slope="8" intercept="-3.5"/>
+        </feComponentTransfer>
+      </filter>
+      <rect width="${canvasW}" height="${canvasH}" filter="url(#ngf${uid})"/>
+    </svg>
+    <svg xmlns="http://www.w3.org/2000/svg" width="${canvasW}" height="${canvasH}" viewBox="0 0 ${canvasW} ${canvasH}"
+      style="position:absolute;top:0;left:0;pointer-events:none;z-index:1;mix-blend-mode:overlay;opacity:0.09;">
+      <filter id="ngf2${uid}" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+        <feTurbulence type="fractalNoise" baseFrequency="0.78" numOctaves="4" seed="${seed + 13}" stitchTiles="stitch" result="noise"/>
+        <feColorMatrix type="saturate" values="0" in="noise"/>
+      </filter>
+      <rect width="${canvasW}" height="${canvasH}" filter="url(#ngf2${uid})"/>
+    </svg>`;
+  }
+  if (dec.isCenterPulse) {
+    // Center pulse: concentric diamonds expanding from bottom-center — geometric radar feel
+    const ocx = canvasW * 0.5, ocy = canvasH * 0.67;
+    const maxR = canvasW * 1.1;
+    const gap = canvasW * 0.082;
+    const getRgb = (c) => { const m = c.match(/rgba\((\d+),\s*(\d+),\s*(\d+)/); return m ? [m[1],m[2],m[3]] : ['108','99','255']; };
+    const [r, g, b] = getRgb(dec.color);
+    const swBase = Math.max(0.5, canvasW * 0.00125);
+    let shapes = '';
+    for (let i = 1; i * gap <= maxR + gap; i++) {
+      const rad = i * gap;
+      const op = (0.95 * Math.pow(0.82, i - 1)).toFixed(3);
+      const sw = Math.max(0.15, swBase - i * 0.045).toFixed(2);
+      const cx = ocx, cy = ocy;
+      const d = `M ${cx.toFixed(1)},${(cy - rad).toFixed(1)} L ${(cx + rad).toFixed(1)},${cy.toFixed(1)} L ${cx.toFixed(1)},${(cy + rad).toFixed(1)} L ${(cx - rad).toFixed(1)},${cy.toFixed(1)} Z`;
+      shapes += `<path d="${d}" fill="none" stroke="rgba(${r},${g},${b},1)" stroke-width="${sw}" opacity="${op}"/>`;
+    }
+    const dotR = (canvasW * 0.008).toFixed(1);
+    shapes += `<circle cx="${ocx.toFixed(1)}" cy="${ocy.toFixed(1)}" r="${dotR}" fill="rgba(${r},${g},${b},0.9)"/>`;
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${canvasW}" height="${canvasH}" viewBox="0 0 ${canvasW} ${canvasH}"
+      style="position:absolute;top:0;left:0;pointer-events:none;z-index:0;overflow:visible;">${shapes}</svg>`;
+  }
+  if (dec.isScanlines) {
+    // Scanlines: white semi-transparent stripes — visible on both dark and light backgrounds
+    const lineH = Math.max(3, Math.round(canvasH * 0.0014));
+    return `<div style="position:absolute;inset:0;pointer-events:none;z-index:2;background:repeating-linear-gradient(to bottom,transparent 0px,transparent ${lineH}px,rgba(255,255,255,0.06) ${lineH}px,rgba(255,255,255,0.06) ${lineH + 1}px);"></div>`;
+  }
+  if (dec.isHairlineGrid) {
+    // Hairline grid: ultra-thin SVG pattern grid + radial fade mask + axis lines + crosshair markers
+    const uid = Math.floor(Math.random() * 0xfffff).toString(16);
+    const spacing = Math.max(24, Math.round(canvasW * 0.024));
+    const sw = Math.max(2.5, canvasW * 0.0030).toFixed(2);
+    const getRgb = (c) => { const m = c.match(/rgba\((\d+),\s*(\d+),\s*(\d+)/); return m ? [m[1],m[2],m[3]] : ['99','102','241']; };
+    const [r, g, b] = getRgb(dec.color);
+    const cx = canvasW * 0.5, cy = canvasH * 0.5;
+    const cmSize = Math.round(canvasW * 0.025);
+    // Each crosshair has 4 arms with independently varied lengths (0.4–1.0× cmSize) and opacities
+    // [left, right, up, down, hShift, vShift] — arms in cmSize units, shifts offset the crossing point
+    const armSeeds = [
+      [1.00, 0.28, 0.42, 1.35, 0.18, -0.12],
+      [0.32, 1.20, 1.40, 0.35, -0.20, 0.15],
+      [1.30, 0.22, 0.60, 1.10, 0.10, 0.22],
+      [0.45, 1.35, 0.30, 0.80, -0.15, -0.18],
+    ];
+    const markers = [
+      [canvasW * 0.32, canvasH * 0.25], [canvasW * 0.68, canvasH * 0.25],
+      [canvasW * 0.32, canvasH * 0.75], [canvasW * 0.68, canvasH * 0.75],
+    ].map(([mx, my], idx) => {
+      const [aL, aR, aU, aD, hs, vs] = armSeeds[idx];
+      const ox = mx + Math.round(cmSize * hs), oy = my + Math.round(cmSize * vs);
+      const x1 = (ox - Math.round(cmSize * aL)).toFixed(1), x2 = (ox + Math.round(cmSize * aR)).toFixed(1);
+      const y1 = (oy - Math.round(cmSize * aU)).toFixed(1), y2 = (oy + Math.round(cmSize * aD)).toFixed(1);
+      const sw2 = Math.max(2.0, canvasW * 0.0020).toFixed(2);
+      return `<line x1="${x1}" y1="${oy.toFixed(1)}" x2="${x2}" y2="${oy.toFixed(1)}" stroke="rgba(${r},${g},${b},0.85)" stroke-width="${sw2}"/>
+        <line x1="${ox.toFixed(1)}" y1="${y1}" x2="${ox.toFixed(1)}" y2="${y2}" stroke="rgba(${r},${g},${b},0.85)" stroke-width="${sw2}"/>`;
+    }).join('');
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="${canvasW}" height="${canvasH}" viewBox="0 0 ${canvasW} ${canvasH}"
+      style="position:absolute;top:0;left:0;pointer-events:none;z-index:0;">
+      <defs>
+        <pattern id="hgg${uid}" x="0" y="0" width="${spacing}" height="${spacing}" patternUnits="userSpaceOnUse">
+          <path d="M ${spacing} 0 L 0 0 0 ${spacing}" fill="none" stroke="rgba(${r},${g},${b},0.70)" stroke-width="${sw}"/>
+        </pattern>
+        <radialGradient id="hgm${uid}" cx="50%" cy="48%" r="58%">
+          <stop offset="0%"   stop-color="white" stop-opacity="1"/>
+          <stop offset="60%"  stop-color="white" stop-opacity="0.5"/>
+          <stop offset="100%" stop-color="white" stop-opacity="0"/>
+        </radialGradient>
+        <mask id="hgmk${uid}"><rect width="${canvasW}" height="${canvasH}" fill="url(#hgm${uid})"/></mask>
+      </defs>
+      <rect width="${canvasW}" height="${canvasH}" fill="url(#hgg${uid})" mask="url(#hgmk${uid})"/>
+      <line x1="${cx.toFixed(1)}" y1="0" x2="${cx.toFixed(1)}" y2="${canvasH}" stroke="rgba(${r},${g},${b},0.75)" stroke-width="${Math.max(2.0, canvasW * 0.0020).toFixed(2)}"/>
+      <line x1="0" y1="${cy.toFixed(1)}" x2="${canvasW}" y2="${cy.toFixed(1)}" stroke="rgba(${r},${g},${b},0.75)" stroke-width="${Math.max(2.0, canvasW * 0.0020).toFixed(2)}"/>
+      ${markers}
+    </svg>`;
+  }
   // Glow: pure CSS radial-gradient div — matches old project's natural breathing feel
   // No SVG filter blur; the gradient fades smoothly to transparent on its own,
   // identical to the .render-slide::before/::after approach in appstore-auto-screenshots.
@@ -257,13 +369,36 @@ function ghostFrameHtml(canvasW, canvasH, recipe) {
   return left + right;
 }
 
+// Compute headline font size in px, clamped to fit the available width per layout.
+// Chinese: CJK chars are 1em wide; with -0.03em tracking → 0.97em effective.
+// English: bold SF Pro Display averages ~0.52em per character.
+function calcHeadlineSize(canvasW, t, rawHeadline, layout) {
+  const basePx = Math.round(canvasW * t.headlineSize);
+  const lines = (rawHeadline || '').split('\n');
+  const tightLayouts = ['right', 'left', 'bottom-right', 'bottom-left'];
+  const availW = tightLayouts.includes(layout)
+    ? Math.round(canvasW * 0.58)   // 679px @ 1170
+    : Math.round(canvasW * 0.84);  // 983px @ 1170
+
+  if (/[\u4e00-\u9fff]/.test(rawHeadline)) {
+    const maxCjk = Math.max(...lines.map(l => [...l].filter(c => /[\u4e00-\u9fff]/.test(c)).length));
+    if (maxCjk === 0) return basePx;
+    return Math.min(basePx, Math.floor(availW / (maxCjk * 0.97)));
+  } else {
+    const maxLen = Math.max(...lines.map(l => l.trim().length));
+    if (maxLen === 0) return basePx;
+    return Math.min(basePx, Math.floor(availW / (maxLen * 0.52)));
+  }
+}
+
 function buildSlideHtml(recipe, copySlide, screenshotUrl, canvasW, canvasH) {
   const p = recipe.palette;
   const t = recipe.typography;
   const layout = copySlide.layout || "hero";
-  const headlineSize = Math.round(canvasW * t.headlineSize);
+  const rawHeadline = copySlide.headline || "";
+  const headline  = rawHeadline.replace(/\n/g, "<br/>");
+  const headlineSize = calcHeadlineSize(canvasW, t, rawHeadline, layout);
   const subtitleSize = Math.round(canvasW * t.subtitleSize);
-  const headline  = (copySlide.headline || "").replace(/\n/g, "<br/>");
   const subtitle  = copySlide.subtitle || "";
   const decorHtml = (recipe.decorations || []).map((d) => decorationSvg(d, canvasW, canvasH)).join("");
   const showRefl  = recipe.glassReflection || false;
@@ -276,12 +411,14 @@ function buildSlideHtml(recipe, copySlide, screenshotUrl, canvasW, canvasH) {
 
   let innerHtml = "";
   if (layout === "hero") {
+    const heroTiltY = recipe.heroTiltDir === 'right' ? 14 : -14;
+    const heroTiltTransform = `perspective(900px) translateX(-50%) translateY(10%) rotateY(${heroTiltY}deg) rotateX(-4deg)`;
     innerHtml = `
       <div style="position:absolute;top:${Math.round(canvasH*0.08)}px;left:0;right:0;text-align:center;z-index:10;padding:0 ${Math.round(canvasW*0.08)}px;">
         <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
         <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.022)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
       </div>
-      <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%) translateY(10%);z-index:5;">${phoneHtml}</div>`;
+      <div style="position:absolute;bottom:0;left:50%;transform:${heroTiltTransform};z-index:5;">${phoneHtml}</div>`;
   } else if (layout === "right") {
     innerHtml = `
       <div style="position:absolute;top:${Math.round(canvasH*0.08)}px;left:${Math.round(canvasW*0.08)}px;z-index:10;max-width:${Math.round(canvasW*0.58)}px;">
@@ -335,5 +472,6 @@ function buildSlideHtml(recipe, copySlide, screenshotUrl, canvasW, canvasH) {
       <div style="position:absolute;top:${Math.round(canvasH*0.04)}px;left:50%;transform:translateX(-50%);z-index:5;">${phoneMid}</div>`;
   }
 
-  return `<div data-export-root style="width:${canvasW}px;height:${canvasH}px;background:linear-gradient(160deg,${p.bg} 0%,${p.bgEnd} 100%);font-family:${t.font};position:relative;overflow:hidden;flex-shrink:0;">${decorHtml}${ghosts}${innerHtml}</div>`;
+  const fontImport = t.fontsUrl ? `<style>@import url('${t.fontsUrl}');</style>` : "";
+  return `${fontImport}<div data-export-root style="width:${canvasW}px;height:${canvasH}px;background:linear-gradient(160deg,${p.bg} 0%,${p.bgEnd} 100%);font-family:${t.font};position:relative;overflow:hidden;flex-shrink:0;">${decorHtml}${ghosts}${innerHtml}</div>`;
 }

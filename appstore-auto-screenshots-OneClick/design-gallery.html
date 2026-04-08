@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>OneClick · 设计元素预览</title>
+  <link rel="preconnect" href="https://fonts.loli.net">
+  <link rel="stylesheet" href="https://fonts.loli.net/css2?family=Inter:wght@900&display=swap">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -46,9 +48,9 @@
     .deco-wrap { overflow:hidden; border-radius:10px; border:1px solid var(--border); background:#0a0a16; }
     .deco-wrap iframe { display:block; border:none; transform-origin:top left; }
 
-    .font-grid { display:flex; flex-wrap:wrap; gap:12px; }
-    .font-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:20px 22px; width:280px; }
-    .font-card .sample { font-size:26px; line-height:1.15; color: var(--text); margin-bottom:10px; }
+    .font-grid { display:flex; flex-wrap:wrap; gap:16px; }
+    .font-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); padding:24px 28px; width:360px; }
+    .font-card .sample { font-size:48px; line-height:1.1; color: var(--text); margin-bottom:12px; }
     .font-card .meta { font-size:11px; color:var(--muted); line-height:1.6; }
 
     .subsection-title { font-size:14px; font-weight:600; color:var(--text); margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid var(--border); }
@@ -67,8 +69,8 @@
   <a href="#layouts">布局 (8)</a>
   <a href="#colors">色彩模式 (7)</a>
   <a href="#axes">轴线家族 (4)</a>
-  <a href="#decorations">装饰元素 (12)</a>
-  <a href="#fonts">字体组合 (15)</a>
+  <a href="#decorations">装饰元素 (16)</a>
+  <a href="#fonts">字体精选 (2)</a>
 </nav>
 
 <main class="gallery" id="gallery"></main>
@@ -350,55 +352,40 @@ function buildSlideHtml_REMOVED(recipe, copySlide, screenshotUrl, canvasW, canva
 
 // ── Test data ─────────────────────────────────────────────────────────────────
 
-const BASE_TYPO = {
-  font: '"SF Pro Display", -apple-system, sans-serif',
-  headlineWeight: 800, headlineTracking: '-0.03em', headlineSize: 0.098,
-  subtitleWeight: 400, subtitleSize: 0.041,
-  kickerSize: 0.028, kickerTracking: '0.08em', kickerWeight: 600,
-};
+// BASE_TYPO is now TYPO_DEFAULTS, loaded from render-engine.js
+const BASE_TYPO = TYPO_DEFAULTS;
 const SAMPLE_COPY = { headline: "轻松上手\n事半功倍", subtitle: "专注真正重要的事" };
 
 const COLOR_MODES = [
   { name: 'light',         label: '明亮专业',   palette: { bg:'#f4f4f8',bgEnd:'#ebebf4',accent:'#6c63ff',accent2:'#a78bfa',text:'#1a1a2e',muted:'rgba(50,50,80,0.65)',card:'rgba(108,99,255,0.12)',chip:'rgba(108,99,255,0.15)',glow:'rgba(167,139,250,0.20)',shadow:'rgba(0,0,0,0.12)' }, effect: 'glassReflection 55%' },
   { name: 'dark',          label: '深色优雅',   palette: { bg:'#100f1e',bgEnd:'#1a1a30',accent:'#7c3aed',accent2:'#a78bfa',text:'#f0f0ff',muted:'rgba(200,200,230,0.65)',card:'rgba(124,58,237,0.18)',chip:'rgba(124,58,237,0.22)',glow:'rgba(167,139,250,0.25)',shadow:'rgba(0,0,0,0.4)' }, effect: '无' },
-  { name: 'warm-light',    label: '温暖亲切',   palette: { bg:'#fdf6f0',bgEnd:'#f8ede4',accent:'#e86c3a',accent2:'#f4a261',text:'#2d1810',muted:'rgba(80,40,20,0.65)',card:'rgba(232,108,58,0.12)',chip:'rgba(232,108,58,0.15)',glow:'rgba(244,162,97,0.20)',shadow:'rgba(0,0,0,0.12)' }, effect: 'glassReflection 55%' },
-  { name: 'cool-dark',     label: '冷酷科技',   palette: { bg:'#07101a',bgEnd:'#0c1828',accent:'#38bdf8',accent2:'#7dd3fc',text:'#e0f2fe',muted:'rgba(180,220,250,0.65)',card:'rgba(56,189,248,0.15)',chip:'rgba(56,189,248,0.18)',glow:'rgba(125,211,252,0.22)',shadow:'rgba(0,0,0,0.5)' }, effect: 'ghostFrames 55%', ghostFrames: true },
+  { name: 'warm-light',    label: '温暖亲切',   palette: { bg:'#fdf6f0',bgEnd:'#f8ede4',accent:'#e86c3a',accent2:'#f4a261',text:'#7a3010',muted:'rgba(122,48,16,0.65)',card:'rgba(232,108,58,0.12)',chip:'rgba(232,108,58,0.15)',glow:'rgba(244,162,97,0.20)',shadow:'rgba(0,0,0,0.12)' }, effect: 'glassReflection 55%' },
+  { name: 'cool-dark',     label: '冷酷科技',   palette: { bg:'#07101a',bgEnd:'#0c1828',accent:'#38bdf8',accent2:'#7dd3fc',text:'#38bdf8',muted:'rgba(56,189,248,0.65)',card:'rgba(56,189,248,0.15)',chip:'rgba(56,189,248,0.18)',glow:'rgba(125,211,252,0.22)',shadow:'rgba(0,0,0,0.5)' }, effect: 'ghostFrames 55%', ghostFrames: true },
   { name: 'earthy',        label: '自然素雅',   palette: { bg:'#f5f0e8',bgEnd:'#ede4d6',accent:'#8b5e3c',accent2:'#c49a6c',text:'#2a1f14',muted:'rgba(80,55,35,0.65)',card:'rgba(139,94,60,0.12)',chip:'rgba(139,94,60,0.15)',glow:'rgba(196,154,108,0.20)',shadow:'rgba(0,0,0,0.12)' }, effect: '无' },
-  { name: 'neon-dark',     label: '霓虹绚丽',   palette: { bg:'#04040f',bgEnd:'#09091e',accent:'#d946ef',accent2:'#f0abfc',text:'#fdf4ff',muted:'rgba(230,200,240,0.65)',card:'rgba(217,70,239,0.18)',chip:'rgba(217,70,239,0.22)',glow:'rgba(240,171,252,0.28)',shadow:'rgba(0,0,0,0.6)' }, effect: 'ghostFrames 55%', ghostFrames: true },
-  { name: 'pastel',        label: '柔和梦幻',   palette: { bg:'#fef9ff',bgEnd:'#f4eeff',accent:'#c084fc',accent2:'#e879f9',text:'#2d1b40',muted:'rgba(80,50,100,0.60)',card:'rgba(192,132,252,0.14)',chip:'rgba(192,132,252,0.18)',glow:'rgba(232,121,249,0.20)',shadow:'rgba(0,0,0,0.10)' }, effect: 'glassReflection 55%' },
+  { name: 'neon-dark',     label: '荧光暗影',   palette: { bg:'#030f07',bgEnd:'#071509',accent:'#39ff7a',accent2:'#7fffb0',text:'#39ff7a',muted:'rgba(57,255,122,0.65)',card:'rgba(57,255,122,0.10)',chip:'rgba(57,255,122,0.26)',glow:'rgba(57,255,122,0.38)',shadow:'rgba(0,0,0,0.6)' }, effect: 'ghostFrames 55%', ghostFrames: true },
 ];
 
 const FONT_PAIRINGS = [
-  { label:'SF Pro Display',        font:'"SF Pro Display","Inter",-apple-system,sans-serif',   weight:800,tracking:'-0.03em' },
-  { label:'Playfair Display',      font:'"Playfair Display","Georgia",serif',                  weight:700,tracking:'-0.02em' },
-  { label:'Space Grotesk',         font:'"Space Grotesk","Trebuchet MS",sans-serif',            weight:700,tracking:'-0.025em' },
-  { label:'Iowan Old Style',       font:'"Iowan Old Style","Palatino Linotype",serif',          weight:700,tracking:'-0.01em' },
-  { label:'Avenir Next Condensed', font:'"Avenir Next Condensed","Gill Sans",sans-serif',       weight:800,tracking:'-0.02em' },
-  { label:'DM Serif Display',      font:'"DM Serif Display","Times New Roman",serif',           weight:400,tracking:'0em' },
-  { label:'Sora',                  font:'"Sora","Segoe UI",sans-serif',                        weight:800,tracking:'-0.035em' },
-  { label:'Didot',                 font:'"Didot","Bodoni MT","Times New Roman",serif',          weight:700,tracking:'0.01em' },
-  { label:'Raleway',               font:'"Raleway","Century Gothic",sans-serif',                weight:800,tracking:'-0.02em' },
-  { label:'Cormorant Garamond',    font:'"Cormorant Garamond","Garamond","Georgia",serif',      weight:600,tracking:'0.01em' },
-  { label:'Outfit',                font:'"Outfit","Nunito",sans-serif',                        weight:800,tracking:'-0.025em' },
-  { label:'Fraunces',              font:'"Fraunces","Georgia",serif',                          weight:700,tracking:'-0.01em' },
-  { label:'Cabinet Grotesk',       font:'"Cabinet Grotesk","Helvetica Neue",sans-serif',        weight:800,tracking:'-0.04em' },
-  { label:'Libre Baskerville',     font:'"Libre Baskerville","Baskerville",serif',              weight:700,tracking:'-0.01em' },
-  { label:'Plus Jakarta Sans',     font:'"Plus Jakarta Sans","system-ui",sans-serif',           weight:800,tracking:'-0.03em' },
+  { lang:'zh', label:'Source Han Sans SC', font:'"Source Han Sans SC"', weight:700, tracking:'-0.02em' },
+  { lang:'en', label:'Inter',              font:'"Inter"',             weight:900, tracking:'-0.03em' },
 ];
 
 const DECORATION_TYPES = [
-  { type:'blob-organic',    label:'Blob Organic',    color:'rgba(108,99,255,0.28)', isNormal:true },
-  { type:'blob-soft',       label:'Blob Soft',       color:'rgba(167,139,250,0.28)', isNormal:true },
+  { type:'blob-organic',    label:'Blob Organic',    color:'rgba(0,47,167,0.55)', isNormal:true },
+  { type:'blob-soft',       label:'Blob Soft',       color:'rgba(255,200,0,0.42)', isNormal:true },
   { type:'blob-spiky',      label:'Blob Spiky',      color:'rgba(124,58,237,0.28)', isNormal:true },
   { type:'circle-solid',    label:'Circle Solid',    color:'rgba(99,199,255,0.25)', isNormal:true },
-  { type:'hexagon',         label:'Hexagon',         color:'rgba(52,211,153,0.25)', isNormal:true },
+  { type:'hexagon',         label:'Hexagon',         color:'rgba(80,255,30,0.30)', isNormal:true },
   { type:'triangle-soft',   label:'Triangle Soft',   color:'rgba(251,146,60,0.25)', isNormal:true },
   { type:'diamond',         label:'Diamond',         color:'rgba(244,63,94,0.25)', isNormal:true },
   { type:'ring',            label:'Ring',            color:'rgba(108,99,255,0.5)', isRing:true },
   { type:'dots-grid',       label:'Dots Grid',       color:'rgba(108,99,255,0.5)', isDots:true },
-  { type:'cross-lines',     label:'Cross Lines',     color:'rgba(108,99,255,0.5)', isCrossLines:true },
-  { type:'diagonal-lines',  label:'Diagonal Lines',  color:'rgba(108,99,255,0.5)', isDiagonalLines:true },
+  { type:'cross-lines',     label:'Cross Lines',     color:'rgba(30,100,255,0.55)', isCrossLines:true },
+  { type:'diagonal-lines',  label:'Diagonal Lines',  color:'rgba(0,140,255,0.55)', isDiagonalLines:true },
   { type:'street-lines',    label:'Street Lines',    color:'rgba(108,99,255,0.5)', isStreetLines:true },
+  { type:'noise-grain',     label:'Noise Grain',     color:'rgba(200,180,255,0.4)', isNoiseGrain:true,    bgStyle:'linear-gradient(135deg,#0e0a1e,#1a1030)' },
+  { type:'center-pulse',    label:'Center Pulse',    color:'rgba(0,255,136,0.55)', isCenterPulse:true,   bgStyle:'linear-gradient(180deg,#040e08,#071510)' },
+  { type:'scanlines',       label:'Scanlines',       color:'rgba(255,0,220,0.5)',  isScanlines:true,     bgStyle:'linear-gradient(145deg,#150025,#000c18)' },
 ];
 
 const AXES = [
@@ -434,7 +421,8 @@ function makeDecoThumb(dec) {
   const CW = 900, CH = 700;
   const decObj = { ...dec, position:'top-right', scale:1.2, rotation:0, size:'lg' };
   const decHtml = decorationSvg(decObj, CW, CH);
-  const html = `<div style="width:${CW}px;height:${CH}px;background:linear-gradient(135deg,#f0eeff,#ddd5ff);position:relative;overflow:hidden;">${decHtml}</div>`;
+  const bg = dec.bgStyle || 'linear-gradient(135deg,#f0eeff,#ddd5ff)';
+  const html = `<div style="width:${CW}px;height:${CH}px;background:${bg};position:relative;overflow:hidden;">${decHtml}</div>`;
   const S = 0.20;
   const wrap = document.createElement('div');
   wrap.className = 'deco-wrap';
@@ -478,7 +466,7 @@ addSection('layouts', '布局 (8种)', '所有布局使用相同的配色和文�
 });
 
 // Section 2: Color Modes
-addSection('colors', '色彩模式 (7种)', '所有色彩模式使用 hero 布局，体现各自的色调和特效触发条件', (el) => {
+addSection('colors', `色彩模式 (${COLOR_MODES.length}种)`, '所有色彩模式使用 hero 布局，体现各自的色调和特效触发条件', (el) => {
   const grid = document.createElement('div');
   grid.className = 'thumb-grid';
   COLOR_MODES.forEach(cm => {
@@ -517,7 +505,7 @@ addSection('axes', '轴线家族 (4轴)', '每条轴线显示前4张幻灯片，
 });
 
 // Section 4: Decorations
-addSection('decorations', '装饰元素 (12种)', '均置于右上角 top-right 位置、lg 尺寸展示。Blob/Geometric 系列以径向渐变光晕呈现', (el) => {
+addSection('decorations', `装饰元素 (${DECORATION_TYPES.length}种)`, '均置于右上角 top-right 位置、lg 尺寸展示。Blob/Geometric 系列以径向渐变光晕呈现；新增 4 种深色系装饰以深色背景展示', (el) => {
   const grid = document.createElement('div');
   grid.className = 'deco-grid';
   DECORATION_TYPES.forEach(dec => {
@@ -531,18 +519,48 @@ addSection('decorations', '装饰元素 (12种)', '均置于右上角 top-right 
 });
 
 // Section 5: Fonts
-addSection('fonts', '字体组合 (15种)', '以同一标题文案展示各字体在粗体标题下的实际效果', (el) => {
-  const grid = document.createElement('div');
-  grid.className = 'font-grid';
-  FONT_PAIRINGS.forEach(fp => {
-    const card = document.createElement('div');
-    card.className = 'font-card';
-    card.innerHTML = `
-      <div class="sample" style="font-family:${fp.font};font-weight:${fp.weight};letter-spacing:${fp.tracking};">轻松上手<br>事半功倍</div>
-      <div class="meta">${fp.label}<br><span style="opacity:0.6;">weight ${fp.weight} · tracking ${fp.tracking}</span></div>`;
-    grid.appendChild(card);
+addSection('fonts', '字体精选 (2种)', '中文 PingFang SC · 英文 Inter，系统内置无需加载', (el) => {
+  const SAMPLES = {
+    zh: { headline: '一目了然<br>效率倍增', subtitle: '专注真正重要的事' },
+    en: { headline: 'See Everything<br>At a Glance', subtitle: 'Focus on what matters' },
+  };
+
+  const buildCards = () => {
+    el.innerHTML = '';
+    ['zh', 'en'].forEach(lang => {
+      const fonts = FONT_PAIRINGS.filter(fp => fp.lang === lang);
+      const heading = document.createElement('div');
+      heading.className = 'subsection-title';
+      heading.textContent = lang === 'zh' ? '中文字体' : 'English Fonts';
+      el.appendChild(heading);
+
+      const grid = document.createElement('div');
+      grid.className = 'font-grid';
+      fonts.forEach(fp => {
+        const { headline, subtitle } = SAMPLES[lang];
+        const card = document.createElement('div');
+        card.className = 'font-card';
+        card.innerHTML = `
+          <div class="sample" style="font-family:${fp.font};font-weight:${fp.weight};letter-spacing:${fp.tracking};">${headline}</div>
+          <div class="meta">${fp.label}<br><span style="opacity:0.6;">weight ${fp.weight} · tracking ${fp.tracking}</span></div>`;
+        grid.appendChild(card);
+      });
+      el.appendChild(grid);
+    });
+  };
+
+  // 先显示 loading 占位
+  const loading = document.createElement('div');
+  loading.style.cssText = 'padding:20px;color:var(--muted);font-size:13px;';
+  loading.textContent = '字体加载中…';
+  el.appendChild(loading);
+
+  // 等所有字体加载完毕后再渲染，确保字形正确显示
+  const fontLoads = FONT_PAIRINGS.map(fp => {
+    const family = fp.font.split(',')[0].replace(/"/g, '').trim();
+    return document.fonts.load(`${fp.weight} 48px "${family}"`);
   });
-  el.appendChild(grid);
+  Promise.all(fontLoads).then(buildCards).catch(buildCards);
 });
 
 </script>
