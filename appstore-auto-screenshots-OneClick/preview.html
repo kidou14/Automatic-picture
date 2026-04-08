@@ -390,9 +390,9 @@
           placeholder="http://localhost:3000" autocomplete="off" />
       </div>
       <div class="form-group">
-        <label class="form-label">App Name <span class="req">*</span></label>
+        <label class="form-label">App Name <span id="app-name-ai-badge" style="font-size:10px;color:var(--accent2);font-weight:600;opacity:0;transition:opacity 0.3s;">✦ AI 自动取名</span></label>
         <input class="form-input" type="text" id="app-name"
-          placeholder="My App" autocomplete="off" />
+          placeholder="输入 URL 后 AI 自动生成" autocomplete="off" />
       </div>
       <div class="form-group">
         <label class="form-label">What it does</label>
@@ -1152,6 +1152,67 @@ window.addEventListener("resize", () => {
   if (!currentSlides.length) return;
   scaleIframes(currentSlides.length, 1320);
 });
+
+// ─── AI App Name Auto-suggest ─────────────────────────────────────────────────
+
+let _lastSuggestedUrl = "";
+let _nameSuggestController = null;
+
+document.getElementById("app-url").addEventListener("blur", () => {
+  const url = document.getElementById("app-url").value.trim();
+  if (!url || url === _lastSuggestedUrl) return;
+  _lastSuggestedUrl = url;
+  suggestAppNameFromUrl(url);
+});
+
+async function suggestAppNameFromUrl(url) {
+  const nameInput = document.getElementById("app-name");
+  const badge = document.getElementById("app-name-ai-badge");
+
+  // Don't overwrite if user has already typed something manually
+  if (nameInput.value.trim() && !nameInput.dataset.aiGenerated) return;
+
+  // Cancel any in-flight request
+  if (_nameSuggestController) _nameSuggestController.abort();
+  _nameSuggestController = new AbortController();
+
+  nameInput.disabled = true;
+  nameInput.placeholder = "AI 分析中…";
+  badge.style.opacity = "0";
+
+  try {
+    const res = await fetch(`${SERVER}/api/suggest-app-name?url=${encodeURIComponent(url)}`, {
+      signal: _nameSuggestController.signal,
+    });
+    if (!res.ok) throw new Error("suggest failed");
+    const data = await res.json();
+    if (data.name) {
+      nameInput.value = data.name;
+      nameInput.dataset.aiGenerated = "1";
+      badge.style.opacity = "1";
+    } else {
+      nameInput.placeholder = "输入 URL 后 AI 自动生成";
+    }
+  } catch (e) {
+    if (e.name !== "AbortError") {
+      nameInput.placeholder = "输入 URL 后 AI 自动生成";
+    }
+  } finally {
+    nameInput.disabled = false;
+  }
+}
+
+// Clear the AI-generated flag when user manually edits the name
+document.getElementById("app-name").addEventListener("input", () => {
+  delete document.getElementById("app-name").dataset.aiGenerated;
+  document.getElementById("app-name-ai-badge").style.opacity = "0";
+});
+
+// Auto-suggest on page load if URL is pre-filled
+(function () {
+  const url = document.getElementById("app-url").value.trim();
+  if (url) { _lastSuggestedUrl = url; suggestAppNameFromUrl(url); }
+})();
 </script>
 </body>
 </html>

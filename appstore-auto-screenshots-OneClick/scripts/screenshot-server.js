@@ -1216,6 +1216,67 @@ function normalizeUrl(raw) {
   return str;
 }
 
+// ─── AI app name suggestion ───────────────────────────────────────────────────
+
+async function suggestAppName(targetUrl) {
+  if (!ANTHROPIC_API_KEY) return null;
+  const browser = await getBrowser();
+  const context = await browser.newContext({
+    viewport: MOBILE_VIEWPORT,
+    deviceScaleFactor: 1,
+    userAgent: USER_AGENT,
+  });
+  const page = await context.newPage();
+  try {
+    await navigateWithFallback(page, targetUrl);
+    await page.waitForTimeout(Math.min(CAPTURE_WAIT_MS, 1200));
+    const [title, bodyText] = await Promise.all([
+      page.title().catch(() => ""),
+      page.evaluate(() => {
+        const el = document.body;
+        return el ? el.innerText.replace(/\s+/g, " ").slice(0, 800) : "";
+      }).catch(() => ""),
+    ]);
+
+    const prompt = `你是一位擅长为移动应用命名的专家。根据以下应用信息，给这个App取一个4个汉字以内的中文名称。
+
+要求：
+- 最多4个汉字，可以是2~4字
+- 用词年轻、积极向上，紧密关联app的真实功能特性
+- 不使用负面、违规、不合时宜的词汇
+- 只输出名称本身，不要任何解释或标点
+
+App URL: ${targetUrl}
+页面标题: ${title || "(无)"}
+页面内容摘要: ${bodyText || "(无)"}
+
+请直接输出App名称（2-4个汉字）：`;
+
+    const response = await fetch(ANTHROPIC_API_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
+      },
+      body: JSON.stringify({
+        model: ANTHROPIC_MODEL,
+        max_tokens: 20,
+        messages: [{ role: "user", content: prompt }],
+      }),
+    });
+
+    if (!response.ok) return null;
+    const data = await response.json();
+    const raw = (data?.content?.[0]?.text || "").trim();
+    const match = raw.match(/[\u4e00-\u9fa5]{2,4}/);
+    return match ? match[0] : null;
+  } finally {
+    await page.close().catch(() => {});
+    await context.close().catch(() => {});
+  }
+}
+
 // ─── HTTP Server ──────────────────────────────────────────────────────────────
 
 const server = http.createServer(async (req, res) => {
@@ -1254,6 +1315,17 @@ const server = http.createServer(async (req, res) => {
     try {
       const targetUrl = normalizeUrl(requestUrl.searchParams.get("url"));
       sendJson(res, 200, await capturePreview(targetUrl));
+    } catch (err) {
+      sendJson(res, 500, { error: err.message });
+    }
+    return;
+  }
+
+  if (req.method === "GET" && requestUrl.pathname === "/api/suggest-app-name") {
+    try {
+      const targetUrl = normalizeUrl(requestUrl.searchParams.get("url"));
+      const name = await suggestAppName(targetUrl);
+      sendJson(res, 200, { name });
     } catch (err) {
       sendJson(res, 500, { error: err.message });
     }
