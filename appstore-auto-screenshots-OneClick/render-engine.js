@@ -12,7 +12,6 @@ const TYPO_DEFAULTS = {
   font: '"SF Pro Display", -apple-system, sans-serif',
   headlineWeight: 900, headlineTracking: '-0.03em', headlineSize: 0.124,
   subtitleWeight: 400, subtitleSize: 0.046,
-  kickerSize: 0.028, kickerTracking: '0.08em', kickerWeight: 600,
 };
 
 const MK_W = 1022, MK_H = 2082;
@@ -397,16 +396,25 @@ function buildSlideHtml(recipe, copySlide, screenshotUrl, canvasW, canvasH) {
   const layout = copySlide.layout || "hero";
   const rawHeadline = copySlide.headline || "";
   const headline  = rawHeadline.replace(/\n/g, "<br/>");
-  const headlineSize = calcHeadlineSize(canvasW, t, rawHeadline, layout);
-  const subtitleSize = Math.round(canvasW * t.subtitleSize);
+  // Scale phone & text down proportionally on shorter canvases (e.g. 1080x1920 vs iPhone ~2.17 ratio)
+  const refAspect = 2868 / 1320;
+  const phoneScale = Math.min(1.0, (canvasH / canvasW) / refAspect);
+  const headlineSize = Math.round(calcHeadlineSize(canvasW, t, rawHeadline, layout) * phoneScale);
+  const subtitleSize = Math.round(canvasW * t.subtitleSize * phoneScale);
   const subtitle  = copySlide.subtitle || "";
   const decorHtml = (recipe.decorations || []).map((d) => decorationSvg(d, canvasW, canvasH)).join("");
   const showRefl  = recipe.glassReflection || false;
-  const phoneHtml    = phoneSvg(canvasW, screenshotUrl, p.accent, showRefl);
-  const phoneWide    = phoneSvg(canvasW, screenshotUrl, p.accent, showRefl).replace(`width:${Math.round(canvasW*0.72)}px`, `width:${Math.round(canvasW*0.78)}px`);
-  const phoneSmall   = phoneSvg(canvasW, screenshotUrl, p.accent, showRefl).replace(`width:${Math.round(canvasW*0.72)}px`, `width:${Math.round(canvasW*0.65)}px`);
-  const phoneMid     = phoneSvg(canvasW, screenshotUrl, p.accent, showRefl).replace(`width:${Math.round(canvasW*0.72)}px`, `width:${Math.round(canvasW*0.68)}px`);
-  const phoneDuoBack = phoneSvg(canvasW, screenshotUrl, p.accent, false).replace(`width:${Math.round(canvasW*0.72)}px`, `width:${Math.round(canvasW*0.60)}px`);
+  const basePhoneW = `width:${Math.round(canvasW*0.72)}px`;
+  const phoneHtml    = phoneSvg(canvasW, screenshotUrl, p.accent, showRefl)
+    .replace(basePhoneW, `width:${Math.round(canvasW*0.72*phoneScale)}px`);
+  const phoneWide    = phoneSvg(canvasW, screenshotUrl, p.accent, showRefl)
+    .replace(basePhoneW, `width:${Math.round(canvasW*0.78*phoneScale)}px`);
+  const phoneSmall   = phoneSvg(canvasW, screenshotUrl, p.accent, showRefl)
+    .replace(basePhoneW, `width:${Math.round(canvasW*0.65*phoneScale)}px`);
+  const phoneMid     = phoneSvg(canvasW, screenshotUrl, p.accent, showRefl)
+    .replace(basePhoneW, `width:${Math.round(canvasW*0.68*phoneScale)}px`);
+  const phoneDuoBack = phoneSvg(canvasW, screenshotUrl, p.accent, false)
+    .replace(basePhoneW, `width:${Math.round(canvasW*0.60*phoneScale)}px`);
   const ghosts = ghostFrameHtml(canvasW, canvasH, recipe);
 
   let innerHtml = "";
@@ -414,62 +422,61 @@ function buildSlideHtml(recipe, copySlide, screenshotUrl, canvasW, canvasH) {
     const heroTiltY = recipe.heroTiltDir === 'right' ? 14 : -14;
     const heroTiltTransform = `perspective(900px) translateX(-50%) translateY(10%) rotateY(${heroTiltY}deg) rotateX(-4deg)`;
     innerHtml = `
-      <div style="position:absolute;top:${Math.round(canvasH*0.08)}px;left:0;right:0;text-align:center;z-index:10;padding:0 ${Math.round(canvasW*0.08)}px;">
-        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
-        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.022)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+      <div style="position:absolute;top:${Math.round(canvasH*0.0833)}px;left:0;right:0;text-align:center;z-index:10;padding:0 ${Math.round(canvasW*0.08)}px;">
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:keep-all;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.022)}px;line-height:1.5;overflow-wrap:break-word;word-break:keep-all;">${subtitle}</div>
       </div>
-      <div style="position:absolute;bottom:0;left:50%;transform:${heroTiltTransform};z-index:5;">${phoneHtml}</div>`;
+      <div style="position:absolute;bottom:0;left:50%;transform:${heroTiltTransform} scale(1.21);z-index:5;">${phoneHtml}</div>`;
   } else if (layout === "right") {
     innerHtml = `
-      <div style="position:absolute;top:${Math.round(canvasH*0.08)}px;left:${Math.round(canvasW*0.08)}px;z-index:10;max-width:${Math.round(canvasW*0.58)}px;">
-        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
-        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.02)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+      <div style="position:absolute;top:${Math.round(canvasH*0.0833)}px;left:${Math.round(canvasW*0.08)}px;z-index:10;max-width:${Math.round(canvasW*0.58)}px;">
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:keep-all;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.02)}px;line-height:1.5;overflow-wrap:break-word;word-break:keep-all;">${subtitle}</div>
       </div>
-      <div style="position:absolute;bottom:0;right:-4%;z-index:5;">${phoneWide}</div>`;
+      <div style="position:absolute;bottom:-120px;right:-4%;z-index:5;transform:scale(1.1);transform-origin:bottom right;">${phoneWide}</div>`;
   } else if (layout === "left") {
     innerHtml = `
-      <div style="position:absolute;top:${Math.round(canvasH*0.08)}px;right:${Math.round(canvasW*0.08)}px;z-index:10;max-width:${Math.round(canvasW*0.58)}px;text-align:right;">
-        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
-        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.02)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+      <div style="position:absolute;top:${Math.round(canvasH*0.0833)}px;right:${Math.round(canvasW*0.08)}px;z-index:10;max-width:${Math.round(canvasW*0.58)}px;text-align:right;">
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:keep-all;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.02)}px;line-height:1.5;overflow-wrap:break-word;word-break:keep-all;">${subtitle}</div>
       </div>
-      <div style="position:absolute;bottom:0;left:-4%;z-index:5;">${phoneWide}</div>`;
+      <div style="position:absolute;bottom:-120px;left:-4%;z-index:5;transform:scale(1.1);transform-origin:bottom left;">${phoneWide}</div>`;
   } else if (layout === "duo") {
     innerHtml = `
-      <div style="position:absolute;top:${Math.round(canvasH*0.08)}px;left:0;right:0;text-align:center;z-index:10;padding:0 ${Math.round(canvasW*0.06)}px;">
-        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
-        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.018)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+      <div style="position:absolute;top:${Math.round(canvasH*0.0833)}px;left:0;right:0;text-align:center;z-index:10;padding:0 ${Math.round(canvasW*0.06)}px;">
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:keep-all;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.018)}px;line-height:1.5;overflow-wrap:break-word;word-break:keep-all;">${subtitle}</div>
       </div>
-      <div style="position:absolute;bottom:0;left:-8%;z-index:4;opacity:0.55;transform:rotate(-3deg);">${phoneDuoBack}</div>
-      <div style="position:absolute;bottom:0;right:-3%;z-index:5;">${phoneHtml}</div>`;
+      <div style="position:absolute;bottom:-40px;left:calc(-8% + 140px);z-index:4;opacity:0.55;transform:rotate(-6deg) scale(1.1);transform-origin:bottom left;">${phoneDuoBack}</div>
+      <div style="position:absolute;bottom:-230px;right:calc(-3% + 125px);z-index:5;transform:rotate(6deg) scale(1.21);transform-origin:bottom right;">${phoneHtml}</div>`;
   } else if (layout === "trust") {
-    const phoneTrust = phoneSvg(canvasW, screenshotUrl, p.accent, true).replace(`width:${Math.round(canvasW*0.72)}px`, `width:${Math.round(canvasW*0.703)}px`);
+    const phoneTrust = phoneSvg(canvasW, screenshotUrl, p.accent, true).replace(basePhoneW, `width:${Math.round(canvasW*0.703*phoneScale)}px`);
     innerHtml = `
       <div style="position:absolute;top:${Math.round(canvasH*0.07)}px;left:0;right:0;text-align:center;z-index:10;padding:0 ${Math.round(canvasW*0.1)}px;">
-        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
-        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.018)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:keep-all;">${headline}</div>
       </div>
-      <div style="position:absolute;bottom:${Math.round(canvasH*0.04) + 32}px;left:50%;transform:translateX(-50%);z-index:5;">${phoneTrust}</div>`;
+      <div style="position:absolute;bottom:${Math.round(canvasH*0.04) + 32}px;left:50%;transform:translateX(-50%) scale(1.1);transform-origin:bottom center;z-index:5;">${phoneTrust}</div>`;
   } else if (layout === "bottom-right") {
     innerHtml = `
-      <div style="position:absolute;bottom:${Math.round(canvasH*0.08)}px;left:${Math.round(canvasW*0.08)}px;z-index:10;max-width:${Math.round(canvasW*0.58)}px;">
-        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
-        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.02)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+      <div style="position:absolute;bottom:${Math.round(canvasH*0.0833)}px;left:${Math.round(canvasW*0.08)}px;z-index:10;max-width:${Math.round(canvasW*0.58)}px;">
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:keep-all;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.02)}px;line-height:1.5;overflow-wrap:break-word;word-break:keep-all;">${subtitle}</div>
       </div>
-      <div style="position:absolute;top:0;right:-4%;z-index:5;">${phoneWide}</div>`;
+      <div style="position:absolute;top:-120px;right:-4%;z-index:5;transform:scale(1.1);transform-origin:top right;">${phoneWide}</div>`;
   } else if (layout === "bottom-left") {
     innerHtml = `
-      <div style="position:absolute;bottom:${Math.round(canvasH*0.08)}px;right:${Math.round(canvasW*0.08)}px;z-index:10;max-width:${Math.round(canvasW*0.58)}px;text-align:right;">
-        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
-        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.02)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+      <div style="position:absolute;bottom:${Math.round(canvasH*0.0833)}px;right:${Math.round(canvasW*0.08)}px;z-index:10;max-width:${Math.round(canvasW*0.58)}px;text-align:right;">
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:keep-all;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.02)}px;line-height:1.5;overflow-wrap:break-word;word-break:keep-all;">${subtitle}</div>
       </div>
-      <div style="position:absolute;top:0;left:-4%;z-index:5;">${phoneWide}</div>`;
+      <div style="position:absolute;top:-120px;left:-4%;z-index:5;transform:scale(1.1);transform-origin:top left;">${phoneWide}</div>`;
   } else {
     innerHtml = `
       <div style="position:absolute;bottom:${Math.round(canvasH*0.06)}px;left:0;right:0;text-align:center;z-index:10;padding:0 ${Math.round(canvasW*0.08)}px;">
-        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
-        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.015)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:keep-all;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.015)}px;line-height:1.5;overflow-wrap:break-word;word-break:keep-all;">${subtitle}</div>
       </div>
-      <div style="position:absolute;top:${Math.round(canvasH*0.04)}px;left:50%;transform:translateX(-50%);z-index:5;">${phoneMid}</div>`;
+      <div style="position:absolute;top:${Math.round(canvasH*0.04)}px;left:50%;transform:translateX(-50%) scale(1.1);transform-origin:top center;z-index:5;">${phoneMid}</div>`;
   }
 
   const fontImport = t.fontsUrl ? `<style>@import url('${t.fontsUrl}');</style>` : "";

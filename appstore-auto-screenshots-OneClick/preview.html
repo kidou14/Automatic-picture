@@ -111,21 +111,59 @@
     .form-input::placeholder { color: var(--muted); font-size: 12px; }
 
     /* ── LOGO PREVIEW ── */
-    .logo-preview-wrap {
-      display: flex; align-items: center; gap: 12px;
+    .logo-preview-grid {
+      display: flex; flex-direction: row; gap: 8px; align-items: flex-start;
     }
-    .logo-preview-box {
-      flex: 0 0 72px; width: 72px; height: 72px;
-      border-radius: 16px;
+    .logo-slot {
+      display: flex; flex-direction: column; align-items: center; gap: 5px;
+      cursor: pointer;
+    }
+    .logo-slot-box {
+      width: 80px; height: 80px;
+      border-radius: 12px;
       border: 1px dashed rgba(108,99,255,0.35);
       background: var(--surface2);
       display: flex; align-items: center; justify-content: center;
       overflow: hidden;
-      transition: border-color 0.3s;
+      transition: border-color 0.2s, box-shadow 0.2s;
       position: relative;
     }
-    .logo-preview-box.has-logo { border-style: solid; border-color: rgba(108,99,255,0.5); }
-    .logo-preview-box svg { width: 72px; height: 72px; display: block; }
+    .logo-slot-box.has-logo { border-style: solid; border-color: rgba(108,99,255,0.4); }
+    .logo-slot.selected .logo-slot-box {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(108,99,255,0.45);
+    }
+    .logo-slot-box svg { width: 80px; height: 80px; display: block; }
+    .logo-slot-art {
+      width: 80px; height: 80px;
+      display: none; align-items: center; justify-content: center;
+    }
+    .logo-slot-art.has-logo { display: flex; }
+    .logo-slot-art img { width: 80px; height: 80px; display: block; object-fit: cover; }
+    .logo-slot-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--border); transition: background 0.2s;
+    }
+    .logo-slot.selected .logo-slot-dot { background: var(--accent); }
+    .logo-mode-selector {
+      display: flex; gap: 6px; align-items: center;
+    }
+    .logo-mode-option {
+      display: flex; align-items: center; gap: 4px;
+      font-size: 11px; color: var(--text); cursor: pointer;
+      padding: 3px 8px; border-radius: 5px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      transition: border-color 0.15s, background 0.15s;
+      user-select: none;
+    }
+    .logo-mode-option input[type="radio"] { display: none; }
+    .logo-mode-option.selected {
+      border-color: var(--accent);
+      background: rgba(108,99,255,0.12);
+      color: var(--accent2);
+      font-weight: 600;
+    }
     .logo-preview-hint {
       font-size: 11px; color: var(--muted); line-height: 1.5;
     }
@@ -307,7 +345,7 @@
     /* ── SLIDE GRID ── */
     .slides-grid {
       display: grid;
-      grid-template-columns: repeat(6, minmax(0, 1fr));
+      grid-template-columns: repeat(5, minmax(0, 1fr));
       gap: 14px;
       padding: 16px;
     }
@@ -336,7 +374,6 @@
       border-radius: 10px;
       overflow: hidden;
       border: 1px solid var(--border);
-      aspect-ratio: 1320/2868;
       background: #111;
       transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
     }
@@ -405,11 +442,6 @@
 
   <!-- LEFT PANEL -->
   <div class="panel-left">
-    <div class="panel-header">
-      <div class="panel-header-dot"></div>
-      Generate Screenshots
-    </div>
-
     <div class="form">
       <div class="form-group">
         <label class="form-label">App URL <span class="req">*</span></label>
@@ -420,21 +452,66 @@
       <div class="form-group">
         <label class="form-label">App Name <span id="app-name-ai-badge" style="font-size:10px;color:var(--accent2);font-weight:600;opacity:0;transition:opacity 0.3s;">✦ AI 自动取名</span></label>
         <input class="form-input" type="text" id="app-name"
-          placeholder="输入 URL 后 AI 自动生成" autocomplete="off" />
+          placeholder="点击 Generate 自动生成" autocomplete="off" />
       </div>
       <div class="form-group">
         <label class="form-label">App Logo <span id="app-logo-ai-badge" style="font-size:10px;color:var(--accent2);font-weight:600;opacity:0;transition:opacity 0.3s;">✦ AI 生成</span></label>
-        <div class="logo-preview-wrap">
-          <div class="logo-preview-box" id="app-logo-box">
-            <div class="logo-loading-spinner" id="app-logo-spinner" style="display:none"></div>
-            <svg id="app-logo-empty-icon" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity:0.18">
-              <rect x="16" y="16" width="40" height="40" rx="10" stroke="#6c63ff" stroke-width="2.5"/>
-              <circle cx="36" cy="30" r="5" stroke="#6c63ff" stroke-width="2.5"/>
-              <path d="M22 50c0-7.732 6.268-14 14-14s14 6.268 14 14" stroke="#6c63ff" stroke-width="2.5" stroke-linecap="round"/>
-            </svg>
-          </div>
-          <div class="logo-preview-hint" id="app-logo-hint">输入 URL 后<br>AI 自动生成</div>
+        <div class="logo-mode-selector">
+          <label class="logo-mode-option" id="logo-mode-dalle-label">
+            <input type="radio" name="logo-mode" value="dalle" onchange="onLogoModeChange(this)">
+            DALL·E
+          </label>
+          <label class="logo-mode-option selected" id="logo-mode-qwen-label">
+            <input type="radio" name="logo-mode" value="qwen" checked onchange="onLogoModeChange(this)">
+            Qwen
+          </label>
+          <label class="logo-mode-option" id="logo-mode-svg-label">
+            <input type="radio" name="logo-mode" value="svg" onchange="onLogoModeChange(this)">
+            Claude SVG
+          </label>
         </div>
+        <div class="logo-preview-grid">
+          <!-- Slot 0 -->
+          <div class="logo-slot selected" id="logo-slot-0" onclick="selectLogoSlot(0)">
+            <div class="logo-slot-box" id="app-logo-box-0">
+              <div class="logo-loading-spinner" id="app-logo-spinner-0" style="display:none"></div>
+              <svg id="app-logo-empty-0" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity:0.18;width:80px;height:80px">
+                <rect x="16" y="16" width="40" height="40" rx="10" stroke="#6c63ff" stroke-width="2.5"/>
+                <circle cx="36" cy="30" r="5" stroke="#6c63ff" stroke-width="2.5"/>
+                <path d="M22 50c0-7.732 6.268-14 14-14s14 6.268 14 14" stroke="#6c63ff" stroke-width="2.5" stroke-linecap="round"/>
+              </svg>
+              <div class="logo-slot-art" id="app-logo-art-0"></div>
+            </div>
+            <div class="logo-slot-dot"></div>
+          </div>
+          <!-- Slot 1 -->
+          <div class="logo-slot" id="logo-slot-1" onclick="selectLogoSlot(1)">
+            <div class="logo-slot-box" id="app-logo-box-1">
+              <div class="logo-loading-spinner" id="app-logo-spinner-1" style="display:none"></div>
+              <svg id="app-logo-empty-1" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity:0.18;width:80px;height:80px">
+                <rect x="16" y="16" width="40" height="40" rx="10" stroke="#6c63ff" stroke-width="2.5"/>
+                <circle cx="36" cy="30" r="5" stroke="#6c63ff" stroke-width="2.5"/>
+                <path d="M22 50c0-7.732 6.268-14 14-14s14 6.268 14 14" stroke="#6c63ff" stroke-width="2.5" stroke-linecap="round"/>
+              </svg>
+              <div class="logo-slot-art" id="app-logo-art-1"></div>
+            </div>
+            <div class="logo-slot-dot"></div>
+          </div>
+          <!-- Slot 2 -->
+          <div class="logo-slot" id="logo-slot-2" onclick="selectLogoSlot(2)">
+            <div class="logo-slot-box" id="app-logo-box-2">
+              <div class="logo-loading-spinner" id="app-logo-spinner-2" style="display:none"></div>
+              <svg id="app-logo-empty-2" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity:0.18;width:80px;height:80px">
+                <rect x="16" y="16" width="40" height="40" rx="10" stroke="#6c63ff" stroke-width="2.5"/>
+                <circle cx="36" cy="30" r="5" stroke="#6c63ff" stroke-width="2.5"/>
+                <path d="M22 50c0-7.732 6.268-14 14-14s14 6.268 14 14" stroke="#6c63ff" stroke-width="2.5" stroke-linecap="round"/>
+              </svg>
+              <div class="logo-slot-art" id="app-logo-art-2"></div>
+            </div>
+            <div class="logo-slot-dot"></div>
+          </div>
+        </div>
+        <div class="logo-preview-hint" id="app-logo-hint">点击 Generate 自动生成</div>
       </div>
       <button class="btn-generate" id="btn-generate" onclick="startGenerate()">
         ✦ &nbsp;Generate Screenshots
@@ -467,7 +544,8 @@
     <div class="toolbar">
       <span class="toolbar-label">Size</span>
       <div class="lang-checkboxes">
-        <label class="lang-check"><input type="checkbox" name="size" value="1320x2868" checked> 6.9"</label>
+        <label class="lang-check"><input type="checkbox" name="size" value="1080x1920" checked> 1080*1920</label>
+        <label class="lang-check"><input type="checkbox" name="size" value="1320x2868"> 6.9"</label>
         <label class="lang-check"><input type="checkbox" name="size" value="1284x2778"> 6.5"</label>
         <label class="lang-check"><input type="checkbox" name="size" value="1206x2622"> 6.3"</label>
         <label class="lang-check"><input type="checkbox" name="size" value="1125x2436"> 6.1"</label>
@@ -516,12 +594,14 @@ const EXPORT_SIZES = {
   "1284x2778": { w: 1284, h: 2778 },
   "1206x2622": { w: 1206, h: 2622 },
   "1125x2436": { w: 1125, h: 2436 },
+  "1080x1920": { w: 1080, h: 1920 },
 };
 const SIZE_LABELS = {
   "1320x2868": "6.9",
   "1284x2778": "6.5",
   "1206x2622": "6.3",
   "1125x2436": "6.1",
+  "1080x1920": "1080*1920",
 };
 
 let currentJob = null;
@@ -853,60 +933,60 @@ function buildSlideHtml_REMOVED_SEE_RENDER_ENGINE(recipe, copySlide, screenshotU
   if (layout === "hero") {
     innerHtml = `
       <div style="position:absolute;top:${Math.round(canvasH*0.08)}px;left:0;right:0;text-align:center;z-index:10;padding:0 ${Math.round(canvasW*0.08)}px;">
-        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
-        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.022)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:keep-all;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.022)}px;line-height:1.5;overflow-wrap:break-word;word-break:keep-all;">${subtitle}</div>
       </div>
       <div style="position:absolute;bottom:0;left:50%;transform:translateX(-50%) translateY(10%);z-index:5;">${phoneHtml}</div>`;
   } else if (layout === "right") {
     innerHtml = `
       <div style="position:absolute;top:${Math.round(canvasH*0.14)}px;left:${Math.round(canvasW*0.08)}px;z-index:10;max-width:${Math.round(canvasW*0.58)}px;">
-        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
-        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.02)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:keep-all;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.02)}px;line-height:1.5;overflow-wrap:break-word;word-break:keep-all;">${subtitle}</div>
       </div>
       <div style="position:absolute;bottom:0;right:-4%;z-index:5;">${phoneWide}</div>`;
   } else if (layout === "left") {
     innerHtml = `
       <div style="position:absolute;top:${Math.round(canvasH*0.14)}px;right:${Math.round(canvasW*0.08)}px;z-index:10;max-width:${Math.round(canvasW*0.58)}px;text-align:right;">
-        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
-        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.02)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:keep-all;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.02)}px;line-height:1.5;overflow-wrap:break-word;word-break:keep-all;">${subtitle}</div>
       </div>
       <div style="position:absolute;bottom:0;left:-4%;z-index:5;">${phoneWide}</div>`;
   } else if (layout === "duo") {
     innerHtml = `
       <div style="position:absolute;top:${Math.round(canvasH*0.08)}px;left:0;right:0;text-align:center;z-index:10;padding:0 ${Math.round(canvasW*0.06)}px;">
-        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
-        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.018)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:keep-all;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.018)}px;line-height:1.5;overflow-wrap:break-word;word-break:keep-all;">${subtitle}</div>
       </div>
       <div style="position:absolute;bottom:0;left:-8%;z-index:4;opacity:0.55;transform:rotate(-3deg);">${phoneDuoBack}</div>
       <div style="position:absolute;bottom:0;right:-3%;z-index:5;">${phoneHtml}</div>`;
   } else if (layout === "trust") {
     innerHtml = `
       <div style="position:absolute;top:${Math.round(canvasH*0.07)}px;left:0;right:0;text-align:center;z-index:10;padding:0 ${Math.round(canvasW*0.1)}px;">
-        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:keep-all;">${headline}</div>
       </div>
       <div style="position:absolute;bottom:${Math.round(canvasH*0.06)}px;left:50%;transform:translateX(-50%);z-index:10;background:${p.card};border:1px solid rgba(255,255,255,0.12);border-radius:${Math.round(canvasW*0.05)}px;padding:${Math.round(canvasH*0.02)}px ${Math.round(canvasW*0.06)}px;text-align:center;max-width:${Math.round(canvasW*0.8)}px;">
-        <div style="font-size:${subtitleSize}px;color:${p.text};line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.text};line-height:1.5;overflow-wrap:break-word;word-break:keep-all;">${subtitle}</div>
       </div>
       <div style="position:absolute;bottom:${Math.round(canvasH*0.14)}px;left:50%;transform:translateX(-50%);z-index:5;">${phoneSmall}</div>`;
   } else if (layout === "bottom-right") {
     innerHtml = `
       <div style="position:absolute;bottom:${Math.round(canvasH*0.08)}px;left:${Math.round(canvasW*0.08)}px;z-index:10;max-width:${Math.round(canvasW*0.58)}px;">
-        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
-        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.02)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:keep-all;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.02)}px;line-height:1.5;overflow-wrap:break-word;word-break:keep-all;">${subtitle}</div>
       </div>
       <div style="position:absolute;top:0;right:-4%;z-index:5;">${phoneWide}</div>`;
   } else if (layout === "bottom-left") {
     innerHtml = `
       <div style="position:absolute;bottom:${Math.round(canvasH*0.08)}px;right:${Math.round(canvasW*0.08)}px;z-index:10;max-width:${Math.round(canvasW*0.58)}px;text-align:right;">
-        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
-        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.02)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:keep-all;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.02)}px;line-height:1.5;overflow-wrap:break-word;word-break:keep-all;">${subtitle}</div>
       </div>
       <div style="position:absolute;top:0;left:-4%;z-index:5;">${phoneWide}</div>`;
   } else {
     innerHtml = `
       <div style="position:absolute;bottom:${Math.round(canvasH*0.06)}px;left:0;right:0;text-align:center;z-index:10;padding:0 ${Math.round(canvasW*0.08)}px;">
-        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:break-word;">${headline}</div>
-        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.015)}px;line-height:1.5;overflow-wrap:break-word;word-break:break-word;">${subtitle}</div>
+        <div style="font-size:${headlineSize}px;font-weight:${t.headlineWeight};letter-spacing:${t.headlineTracking};line-height:1.1;color:${p.text};overflow-wrap:break-word;word-break:keep-all;">${headline}</div>
+        <div style="font-size:${subtitleSize}px;color:${p.muted};margin-top:${Math.round(canvasH*0.015)}px;line-height:1.5;overflow-wrap:break-word;word-break:keep-all;">${subtitle}</div>
       </div>
       <div style="position:absolute;top:${Math.round(canvasH*0.04)}px;left:50%;transform:translateX(-50%);z-index:5;">${phoneMid}</div>`;
   }
@@ -954,7 +1034,7 @@ function renderSlides(job) {
         grid.appendChild(divider);
       }
       const copy  = copies[lang] || [];
-      const count = Math.min(copy.length, shots.length, 6);
+      const count = Math.min(copy.length, shots.length, 5);
 
       for (let i = 0; i < count; i++) {
         const copySlide    = copy[i];
@@ -969,6 +1049,7 @@ function renderSlides(job) {
 
         const frameWrap = document.createElement("div");
         frameWrap.className = "slide-frame-wrap";
+        frameWrap.style.aspectRatio = `${CANVAS_W}/${CANVAS_H}`;
         frameWrap.setAttribute("data-slide-index", slideIdx);
         frameWrap.setAttribute("data-canvas-w", CANVAS_W);
 
@@ -995,7 +1076,7 @@ function renderSlides(job) {
 
         const meta = document.createElement("div");
         meta.className = "slide-meta";
-        meta.innerHTML = `<span class="slide-num">${String(slideIdx + 1).padStart(2,"0")}</span><span class="slide-title">${(copySlide.layout||"").toUpperCase()} · ${copySlide.kicker||""}</span>`;
+        meta.innerHTML = `<span class="slide-num">${String(slideIdx + 1).padStart(2,"0")}</span><span class="slide-title">${(copySlide.layout||"").toUpperCase()}</span>`;
 
         card.appendChild(frameWrap);
         card.appendChild(meta);
@@ -1075,6 +1156,17 @@ async function exportAll() {
   const shots   = currentJob.screenshots;
   const appSlug = (currentJob.appNameHint || "app").replace(/\s+/g,"-").toLowerCase();
 
+  // Collect logo from selected slot
+  const selectedSlot = _logoSlots[_selectedLogoIdx];
+  let rawFiles = [];
+  if (selectedSlot) {
+    if (selectedSlot.type === "png") {
+      rawFiles = [{ filename: "app-logo.png", content: selectedSlot.data }];
+    } else if (selectedSlot.type === "svg") {
+      rawFiles = [{ filename: "app-logo.svg", content: selectedSlot.data }];
+    }
+  }
+
   let totalSaved = 0;
   let lastDir = "";
   for (const sizeKey of sizeKeys) {
@@ -1091,7 +1183,7 @@ async function exportAll() {
     try {
       const res = await fetch(`${SERVER}/api/render-exports`, {
         method: "POST", headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ folderName: `${appSlug}-${inchLabel}in-${w}x${h}`, files }),
+        body: JSON.stringify({ folderName: `${appSlug}-${inchLabel}in-${w}x${h}`, files, rawFiles }),
       });
       if (!res.ok) { const e = await res.json(); showToast("导出失败：" + e.error, true); break; }
       const d = await res.json();
@@ -1118,14 +1210,23 @@ function getSelectedLanguages() {
   return langs.length ? langs : ["zh"];
 }
 
-function startGenerate() {
-  const url     = document.getElementById("app-url").value.trim();
-  const appName = document.getElementById("app-name").value.trim();
-  const desc    = "";
+async function startGenerate() {
+  const url = document.getElementById("app-url").value.trim();
   if (!url) { document.getElementById("app-url").focus(); return; }
+
+  document.getElementById("btn-generate").disabled = true;
+
+  // Step 1+2: Generate App Name and Logo in parallel
+  await Promise.all([
+    suggestAppNameFromUrl(url),
+    suggestAppLogoFromUrl(url),
+  ]);
+
+  // Step 3: Run screenshot pipeline
+  const appName = document.getElementById("app-name").value.trim();
   const languages = getSelectedLanguages();
-  lastInputs = { url, appName, desc, languages };
-  runCapture(url, appName, desc, languages);
+  lastInputs = { url, appName, desc: "", languages };
+  runCapture(url, appName, "", languages);
 }
 
 function regenerate() {
@@ -1149,7 +1250,7 @@ async function runCapture(url, appName, desc, languages = ["en"]) {
   try {
     const res = await fetch(`${SERVER}/api/oneclick-capture`, {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url, appName, description: desc, languages }),
+      body: JSON.stringify({ url, appName, description: desc, languages, brandHue: _brandHue }),
     });
     if (!res.ok) { const e = await res.json(); throw new Error(e.error || "Server error"); }
     jobId = (await res.json()).jobId;
@@ -1192,15 +1293,7 @@ window.addEventListener("resize", () => {
 
 // ─── AI App Name Auto-suggest ─────────────────────────────────────────────────
 
-let _lastSuggestedUrl = "";
 let _nameSuggestController = null;
-
-document.getElementById("app-url").addEventListener("blur", () => {
-  const url = document.getElementById("app-url").value.trim();
-  if (!url || url === _lastSuggestedUrl) return;
-  _lastSuggestedUrl = url;
-  suggestAppNameFromUrl(url);
-});
 
 async function suggestAppNameFromUrl(url) {
   const nameInput = document.getElementById("app-name");
@@ -1247,63 +1340,127 @@ document.getElementById("app-name").addEventListener("input", () => {
 
 // ─── AI App Logo Auto-generate ────────────────────────────────────────────────
 
-let _lastLogoUrl = "";
-let _logoFetchController = null;
+let _logoGenId = 0;
+let _logoSlots = [null, null, null]; // { type:'png'|'svg', data:string, brandHue:number|null }
+let _selectedLogoIdx = 0;
+let _brandHue = null;
+let _logoPngDataUrl = null;
+const LOGO_SUGGEST_TIMEOUT_MS = 30000;
+const DALLE_LOGO_TIMEOUT_MS   = 70000;
 
-async function suggestAppLogoFromUrl(url) {
-  const box    = document.getElementById("app-logo-box");
-  const spinner = document.getElementById("app-logo-spinner");
-  const emptyIcon = document.getElementById("app-logo-empty-icon");
-  const hint   = document.getElementById("app-logo-hint");
-  const badge  = document.getElementById("app-logo-ai-badge");
+function getLogoMode() {
+  const checked = document.querySelector('input[name="logo-mode"]:checked');
+  return checked ? checked.value : "qwen";
+}
 
-  if (_logoFetchController) _logoFetchController.abort();
-  _logoFetchController = new AbortController();
+function onLogoModeChange(input) {
+  ["dalle", "qwen", "svg"].forEach(v => {
+    document.getElementById(`logo-mode-${v}-label`).classList.toggle("selected", input.value === v);
+  });
+  const url = document.getElementById("app-url").value.trim();
+  if (url) suggestAppLogoFromUrl(url);
+}
 
-  // Show loading state
-  emptyIcon.style.display = "none";
-  spinner.style.display = "block";
-  hint.textContent = "AI 生成中…";
-  badge.style.opacity = "0";
-  box.classList.remove("has-logo");
-
-  try {
-    const res = await fetch(`${SERVER}/api/suggest-app-logo?url=${encodeURIComponent(url)}`, {
-      signal: _logoFetchController.signal,
-    });
-    if (!res.ok) throw new Error("logo suggest failed");
-    const data = await res.json();
-    if (data.svg) {
-      box.innerHTML = data.svg;
-      box.classList.add("has-logo");
-      hint.textContent = data.concept || "";
-      badge.style.opacity = "1";
-    } else {
-      emptyIcon.style.display = "block";
-      hint.textContent = "生成失败，可跳过";
-    }
-  } catch (e) {
-    if (e.name !== "AbortError") {
-      emptyIcon.style.display = "block";
-      hint.textContent = "生成失败，可跳过";
-    }
+function selectLogoSlot(idx) {
+  _selectedLogoIdx = idx;
+  [0, 1, 2].forEach(i => {
+    document.getElementById(`logo-slot-${i}`).classList.toggle("selected", i === idx);
+  });
+  const slot = _logoSlots[idx];
+  if (slot) {
+    _brandHue = slot.brandHue;
+    _logoPngDataUrl = slot.type === "png" ? slot.data : null;
   }
 }
 
-// Auto-suggest on page load if URL is pre-filled
-(function () {
-  const url = document.getElementById("app-url").value.trim();
-  if (url) { _lastSuggestedUrl = url; suggestAppNameFromUrl(url); }
-  if (url) { _lastLogoUrl = url; suggestAppLogoFromUrl(url); }
-})();
+async function suggestAppLogoFromUrl(url) {
+  const genId = ++_logoGenId;
+  const mode = getLogoMode();
 
-// Trigger logo on URL blur too (alongside name)
-document.getElementById("app-url").addEventListener("blur", () => {
-  const url = document.getElementById("app-url").value.trim();
-  if (!url || url === _lastLogoUrl) return;
-  _lastLogoUrl = url;
-  suggestAppLogoFromUrl(url);
-});
+  _logoSlots = [null, null, null];
+  _logoPngDataUrl = null;
+  _brandHue = null;
+
+  const hint  = document.getElementById("app-logo-hint");
+  const badge = document.getElementById("app-logo-ai-badge");
+  hint.textContent = "AI 生成中…";
+  badge.style.opacity = "0";
+
+  // Reset all 3 slots
+  [0, 1, 2].forEach(i => {
+    document.getElementById(`app-logo-spinner-${i}`).style.display = "block";
+    document.getElementById(`app-logo-empty-${i}`).style.display = "none";
+    const art = document.getElementById(`app-logo-art-${i}`);
+    art.innerHTML = "";
+    art.classList.remove("has-logo");
+    document.getElementById(`app-logo-box-${i}`).classList.remove("has-logo");
+  });
+
+  await Promise.all([0, 1, 2].map(i => _fetchLogoSlot(url, mode, i, genId)));
+}
+
+async function _fetchLogoSlot(url, mode, idx, genId) {
+  const endpoint   = mode === "dalle" ? "suggest-app-logo-dalle"
+                   : mode === "qwen"  ? "suggest-app-logo-qwen"
+                   : "suggest-app-logo";
+  const timeoutMs  = mode === "svg" ? LOGO_SUGGEST_TIMEOUT_MS : DALLE_LOGO_TIMEOUT_MS;
+
+  const controller = new AbortController();
+  const timeoutId  = window.setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const res = await fetch(`${SERVER}/api/${endpoint}?url=${encodeURIComponent(url)}`, {
+      signal: controller.signal,
+    });
+    if (_logoGenId !== genId) return;
+
+    const spinner   = document.getElementById(`app-logo-spinner-${idx}`);
+    const emptyIcon = document.getElementById(`app-logo-empty-${idx}`);
+    const art       = document.getElementById(`app-logo-art-${idx}`);
+    const box       = document.getElementById(`app-logo-box-${idx}`);
+    spinner.style.display = "none";
+
+    if (!res.ok) throw new Error("failed");
+    const data = await res.json();
+
+    if (mode === "svg" && data.svg) {
+      art.innerHTML = data.svg;
+      art.classList.add("has-logo");
+      box.classList.add("has-logo");
+      _logoSlots[idx] = { type: "svg", data: data.svg, brandHue: data.brandHue ?? null };
+    } else if (data.imageDataUrl) {
+      const img = document.createElement("img");
+      img.src = data.imageDataUrl;
+      art.innerHTML = "";
+      art.appendChild(img);
+      art.classList.add("has-logo");
+      box.classList.add("has-logo");
+      _logoSlots[idx] = { type: "png", data: data.imageDataUrl, brandHue: data.brandHue ?? null };
+    } else {
+      emptyIcon.style.display = "block";
+      return;
+    }
+
+    // Auto-select first slot that completes
+    if (_logoSlots.filter(Boolean).length === 1) {
+      selectLogoSlot(idx);
+      document.getElementById("app-logo-hint").textContent = data.concept || "";
+      document.getElementById("app-logo-ai-badge").style.opacity = "1";
+    }
+    // Keep selected slot's brandHue in sync if it just loaded
+    if (idx === _selectedLogoIdx) {
+      _brandHue = _logoSlots[idx].brandHue;
+      _logoPngDataUrl = _logoSlots[idx].type === "png" ? _logoSlots[idx].data : null;
+    }
+  } catch (e) {
+    if (_logoGenId !== genId) return;
+    document.getElementById(`app-logo-spinner-${idx}`).style.display = "none";
+    document.getElementById(`app-logo-empty-${idx}`).style.display = "block";
+  } finally {
+    window.clearTimeout(timeoutId);
+  }
+}
+
 </script>
 </body>
 </html>
