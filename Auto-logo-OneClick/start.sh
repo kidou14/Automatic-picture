@@ -10,10 +10,10 @@ RESET='\033[0m'
 cd "$(dirname "$0")"
 
 echo ""
-echo -e "${CYAN}✦ appstore-auto-screenshots-OneClick 启动中...${RESET}"
+echo -e "${CYAN}✦ Auto-logo-OneClick 启动中...${RESET}"
 echo ""
 
-PORT=4318
+PORT=4319
 
 stop_existing_server() {
   local pids
@@ -39,18 +39,11 @@ stop_existing_server() {
   exit 1
 }
 
-# 检查依赖
-if ! node -e "require('playwright')" 2>/dev/null; then
-  echo -e "${RED}❌ 缺少依赖，正在安装...${RESET}"
-  npm install
-  npx playwright install chromium
-fi
-
 stop_existing_server
 
-# 启动 screenshot-server
+# 启动 logo-server
 echo -e "${CYAN}[server] 启动中...${RESET}"
-node scripts/screenshot-server.js &
+node scripts/logo-server.js &
 SERVER_PID=$!
 
 # 等待服务就绪（最多 10 秒）
@@ -73,7 +66,7 @@ done
 
 echo ""
 echo -e "${GREEN}✅ 服务已就绪${RESET}"
-echo -e "   打开浏览器访问 → ${CYAN}http://127.0.0.1:4318${RESET}"
+echo -e "   打开浏览器访问 → ${CYAN}http://127.0.0.1:4319${RESET}"
 echo ""
 echo "按 Ctrl+C 关闭服务"
 echo ""

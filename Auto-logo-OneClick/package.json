@@ -1,0 +1,13 @@
+{
+  "name": "auto-logo-oneclick",
+  "version": "1.0.0",
+  "description": "One-click 512x512 app icon generator powered by Qwen Image",
+  "main": "scripts/logo-server.js",
+  "scripts": {
+    "start": "bash start.sh"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}

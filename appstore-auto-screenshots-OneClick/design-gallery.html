@@ -55,6 +55,27 @@
 
     .subsection-title { font-size:14px; font-weight:600; color:var(--text); margin-bottom:14px; padding-bottom:8px; border-bottom:1px solid var(--border); }
     .subsection-desc { font-size:12px; color:var(--muted); margin-bottom:14px; }
+
+    .qwen-grid { display:flex; flex-wrap:wrap; gap:20px; }
+    .qwen-card { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:20px; width:280px; display:flex; flex-direction:column; gap:14px; }
+    .qwen-logo-wrap { width:100%; aspect-ratio:1; overflow:hidden; background:transparent; display:flex; align-items:center; justify-content:center; }
+    .qwen-logo-wrap img { width:100%; height:100%; object-fit:cover; display:block; }
+    .qwen-logo-placeholder { width:100%; height:100%; background:var(--surface2); border:1px solid var(--border); border-radius:10px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; color:var(--muted); font-size:12px; }
+    .qwen-spinner { width:28px; height:28px; border:2.5px solid var(--border); border-top-color:var(--accent); border-radius:50%; animation:spin 0.8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .qwen-card-meta { display:flex; flex-direction:column; gap:5px; }
+    .qwen-card-label { font-size:14px; font-weight:700; color:var(--text); letter-spacing:-0.01em; }
+    .qwen-card-desc { font-size:11px; color:var(--muted); line-height:1.6; }
+    .qwen-regen-btn { margin-top:auto; padding:8px 0; border-radius:8px; border:1px solid var(--border); background:var(--surface2); color:var(--text); font-size:12px; font-weight:500; cursor:pointer; transition:all 0.15s; text-align:center; }
+    .qwen-regen-btn:hover:not(:disabled) { background:var(--accent); border-color:var(--accent); color:#fff; }
+    .qwen-regen-btn:disabled { opacity:0.4; cursor:not-allowed; }
+    .qwen-error { font-size:11px; color:#f87171; text-align:center; }
+    .qwen-demo-input-row { display:flex; gap:8px; align-items:center; margin-bottom:4px; }
+    .qwen-demo-input { flex:1; background:var(--surface2); border:1px solid var(--border); border-radius:7px; padding:6px 10px; color:var(--text); font-size:12px; outline:none; }
+    .qwen-demo-input:focus { border-color:var(--accent); }
+    .qwen-regen-all-btn { padding:7px 16px; border-radius:7px; border:1px solid var(--accent); background:transparent; color:var(--accent); font-size:12px; font-weight:600; cursor:pointer; transition:all 0.15s; white-space:nowrap; }
+    .qwen-regen-all-btn:hover:not(:disabled) { background:var(--accent); color:#fff; }
+    .qwen-regen-all-btn:disabled { opacity:0.4; cursor:not-allowed; }
   </style>
 </head>
 <body>
@@ -70,6 +91,7 @@
   <a href="#colors">色彩模式 (7)</a>
   <a href="#axes">轴线家族 (4)</a>
   <a href="#decorations">装饰元素 (16)</a>
+  <a href="#qwen-styles">Qwen 风格 (6)</a>
   <a href="#fonts">字体精选 (2)</a>
 </nav>
 
@@ -518,7 +540,141 @@ addSection('decorations', `装饰元素 (${DECORATION_TYPES.length}种)`, '均�
   el.appendChild(grid);
 });
 
-// Section 5: Fonts
+// Section 5: Qwen Logo Styles
+addSection('qwen-styles', 'Qwen 风格对比 (6种)', '对同一个 App 名称，逐一测试6套风格 prompt 的真实出图效果，点击「重新生成」可反复查看', (el) => {
+  const STYLES = [
+    { index: 0, label: '皮革3D', desc: '高档皮革材质3D立体logo，双色对比，极简' },
+    { index: 1, label: '流光渐变', desc: '流光渐变+液态流体，流星动态效果，扁平化极简，设计大师级质感' },
+    { index: 2, label: '毛玻璃', desc: '毛玻璃磨砂质感，正负形设计手法，半透明叠层，现代iOS风格' },
+    { index: 3, label: '复古美式', desc: '精致插画风，复古美式3色搭配，粗体复古质感，怀旧品牌氛围感' },
+    { index: 4, label: '霓虹发光', desc: '霓虹发光效果，深色背景，柔和外发光，赛博朋克与苹果设计结合，最多3色' },
+    { index: 5, label: '极简几何', desc: '现代极简扁平风格，白色线条轮廓主体，深蓝色背景，强对比辨识度，最多3色' },
+  ];
+
+  // URL input + regen all — same logic as production
+  const controlRow = document.createElement('div');
+  controlRow.className = 'qwen-demo-input-row';
+  const input = document.createElement('input');
+  input.className = 'qwen-demo-input';
+  input.placeholder = 'App URL（与正式生成保持相同逻辑）';
+  input.value = 'https://justyn.spailab.com/ev-calc.html';
+  const regenAllBtn = document.createElement('button');
+  regenAllBtn.className = 'qwen-regen-all-btn';
+  regenAllBtn.textContent = '全部重新生成';
+  const clearCacheBtn = document.createElement('button');
+  clearCacheBtn.className = 'qwen-regen-all-btn';
+  clearCacheBtn.style.cssText = 'border-color:rgba(255,255,255,0.15);color:var(--muted);';
+  clearCacheBtn.textContent = '清除缓存';
+  controlRow.appendChild(input);
+  controlRow.appendChild(regenAllBtn);
+  controlRow.appendChild(clearCacheBtn);
+  el.appendChild(controlRow);
+
+  const grid = document.createElement('div');
+  grid.className = 'qwen-grid';
+
+  const CACHE_KEY_PREFIX = 'qwen_style_logo_';
+
+  function cacheKey(styleIndex) {
+    const url = input.value.trim() || 'https://justyn.spailab.com/ev-calc.html';
+    return CACHE_KEY_PREFIX + styleIndex + '_' + url;
+  }
+
+  function showCachedOrEmpty(logoWrap, styleIndex) {
+    const cached = localStorage.getItem(cacheKey(styleIndex));
+    if (cached) {
+      const img = document.createElement('img');
+      img.src = cached;
+      logoWrap.innerHTML = '';
+      logoWrap.appendChild(img);
+    } else {
+      logoWrap.innerHTML = `<div class="qwen-logo-placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.35"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 12h8M12 8v8"/></svg><span>点击生成</span></div>`;
+    }
+  }
+
+  const cards = STYLES.map(style => {
+    const card = document.createElement('div');
+    card.className = 'qwen-card';
+
+    const logoWrap = document.createElement('div');
+    logoWrap.className = 'qwen-logo-wrap';
+    showCachedOrEmpty(logoWrap, style.index);
+
+    const meta = document.createElement('div');
+    meta.className = 'qwen-card-meta';
+    meta.innerHTML = `<div class="qwen-card-label">${style.label}</div><div class="qwen-card-desc">${style.desc}</div>`;
+
+    const btn = document.createElement('button');
+    btn.className = 'qwen-regen-btn';
+    btn.textContent = localStorage.getItem(cacheKey(style.index)) ? '重新生成' : '生成';
+
+    card.appendChild(logoWrap);
+    card.appendChild(meta);
+    card.appendChild(btn);
+    grid.appendChild(card);
+
+    async function generate() {
+      const url = input.value.trim() || 'https://justyn.spailab.com/ev-calc.html';
+      btn.disabled = true;
+      btn.textContent = '生成中…';
+      // 生成前先清掉旧缓存，确保失败时显示空状态而非旧结果
+      localStorage.removeItem(cacheKey(style.index));
+      logoWrap.innerHTML = `<div class="qwen-logo-placeholder"><div class="qwen-spinner"></div><span>生成中</span></div>`;
+      try {
+        const res = await fetch(`/api/suggest-app-logo-qwen?url=${encodeURIComponent(url)}&styleIndex=${style.index}`);
+        const data = await res.json();
+        if (data && data.imageDataUrl) {
+          try { localStorage.setItem(cacheKey(style.index), data.imageDataUrl); } catch (_) {}
+          const img = document.createElement('img');
+          img.src = data.imageDataUrl;
+          logoWrap.innerHTML = '';
+          logoWrap.appendChild(img);
+        } else {
+          logoWrap.innerHTML = `<div class="qwen-logo-placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.35"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 12h8M12 8v8"/></svg><span class="qwen-error">生成失败，请重试</span></div>`;
+        }
+      } catch (e) {
+        console.error('[qwen-logo] generate error:', e);
+        logoWrap.innerHTML = `<div class="qwen-logo-placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.35"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 12h8M12 8v8"/></svg><span class="qwen-error">生成失败，请重试</span></div>`;
+      }
+      btn.disabled = false;
+      btn.textContent = '重新生成';
+    }
+
+    btn.addEventListener('click', generate);
+    return { generate, btn };
+  });
+
+  regenAllBtn.addEventListener('click', async () => {
+    regenAllBtn.disabled = true;
+    regenAllBtn.textContent = '生成中…';
+    // 完全串行，避免触发 Qwen API 的 RPM 限制
+    for (const c of cards) {
+      await c.generate();
+    }
+    regenAllBtn.disabled = false;
+    regenAllBtn.textContent = '全部重新生成';
+  });
+
+  clearCacheBtn.addEventListener('click', () => {
+    STYLES.forEach(s => {
+      // clear all cache keys for this style (any URL)
+      Object.keys(localStorage).filter(k => k.startsWith(CACHE_KEY_PREFIX + s.index + '_')).forEach(k => localStorage.removeItem(k));
+    });
+    cards.forEach(({ btn }, i) => {
+      showCachedOrEmpty(cards[i]?.logoWrap || document.createElement('div'), STYLES[i].index);
+      btn.textContent = '生成';
+    });
+    // re-render all logo wraps to empty state
+    document.querySelectorAll('.qwen-logo-wrap').forEach((wrap, i) => {
+      wrap.innerHTML = `<div class="qwen-logo-placeholder"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" opacity="0.35"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 12h8M12 8v8"/></svg><span>点击生成</span></div>`;
+    });
+    document.querySelectorAll('.qwen-regen-btn').forEach(b => { b.textContent = '生成'; });
+  });
+
+  el.appendChild(grid);
+});
+
+// Section 6: Fonts
 addSection('fonts', '字体精选 (2种)', '中文 PingFang SC · 英文 Inter，系统内置无需加载', (el) => {
   const SAMPLES = {
     zh: { headline: '一目了然<br>效率倍增', subtitle: '专注真正重要的事' },

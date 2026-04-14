@@ -33,7 +33,7 @@ const USER_AGENT =
 const CAPTURE_WAIT_MS = Number.parseInt(process.env.CAPTURE_WAIT_MS || "1200", 10);
 const APP_LOGO_PAGE_TIMEOUT_MS = Number.parseInt(process.env.APP_LOGO_PAGE_TIMEOUT_MS || "8000", 10);
 const APP_LOGO_AI_TIMEOUT_MS = Number.parseInt(process.env.APP_LOGO_AI_TIMEOUT_MS || "15000", 10);
-const DALLE_LOGO_AI_TIMEOUT_MS = Number.parseInt(process.env.DALLE_LOGO_AI_TIMEOUT_MS || "50000", 10);
+const DALLE_LOGO_AI_TIMEOUT_MS = Number.parseInt(process.env.DALLE_LOGO_AI_TIMEOUT_MS || "90000", 10);
 const CACHE_TTL_MS = 1000 * 60 * 5;
 const JOB_TTL_MS = 1000 * 60 * 30;
 const EXPORT_OUTPUT_DIR = String(
@@ -42,6 +42,9 @@ const EXPORT_OUTPUT_DIR = String(
 ).trim();
 const PHONE_MOCKUP_PATH = path.resolve(
   __dirname, "..", "..", "app-store-screenshots-main", "skills", "app-store-screenshots", "mockup.png"
+);
+const LOGO_RULE_PATH = path.resolve(
+  __dirname, "..", process.env.LOGO_RULE_FILE || "logo-rule-test.md"
 );
 const SYSTEM_BROWSER_CANDIDATES = [
   "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
@@ -821,7 +824,6 @@ async function waitForRenderAssets(page) {
 // values (R,G,B) from a grid of points across the image.  Comparing
 // compressed bytes directly is unreliable because DEFLATE is context-
 // dependent — a single different pixel cascades into many changed bytes.
-const zlib = require("zlib");
 
 function samplePngPixels(buf) {
   // Validate PNG signature
@@ -1357,213 +1359,6 @@ App URL: ${targetUrl}
   }
 }
 
-// ─── AI logo SVG generation ───────────────────────────────────────────────────
-
-async function suggestAppLogo(targetUrl) {
-  if (!ANTHROPIC_API_KEY) return null;
-  const browser = await getBrowser();
-  const context = await browser.newContext({
-    viewport: MOBILE_VIEWPORT,
-    deviceScaleFactor: 1,
-    userAgent: USER_AGENT,
-  });
-  const page = await context.newPage();
-  let title = "";
-  let bodyText = "";
-  let pageColors = [];
-  try {
-    await navigateWithFallback(page, targetUrl, APP_LOGO_PAGE_TIMEOUT_MS);
-    await page.waitForTimeout(Math.min(CAPTURE_WAIT_MS, 1200));
-    [title, bodyText, pageColors] = await Promise.all([
-      page.title().catch(() => ""),
-      page.evaluate(() => {
-        const el = document.body;
-        return el ? el.innerText.replace(/\s+/g, " ").slice(0, 800) : "";
-      }).catch(() => ""),
-      page.evaluate(() => {
-        // Extract dominant brand colors from key page elements
-        const selectors = [
-          "header", "nav", "[class*='header']", "[class*='nav']",
-          "button", "[class*='btn']", "[class*='button']",
-          "a", "[class*='primary']", "[class*='brand']", "[class*='logo']",
-          "h1", "h2", ".hero", "[class*='hero']",
-        ];
-        const colorCounts = {};
-        const parseRgb = (str) => {
-          const m = str.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-          return m ? [+m[1], +m[2], +m[3]] : null;
-        };
-        const toHex = ([r, g, b]) =>
-          "#" + [r, g, b].map(v => v.toString(16).padStart(2, "0")).join("");
-        const isNeutral = ([r, g, b]) => {
-          const max = Math.max(r, g, b), min = Math.min(r, g, b);
-          const brightness = (max + min) / 2;
-          const saturation = max === min ? 0 : (max - min) / (255 - Math.abs(2 * brightness - 255));
-          // Skip near-white, near-black, near-gray, transparent
-          return brightness > 230 || brightness < 15 || saturation < 0.12;
-        };
-        const seen = new Set();
-        for (const sel of selectors) {
-          const els = Array.from(document.querySelectorAll(sel)).slice(0, 5);
-          for (const el of els) {
-            const style = window.getComputedStyle(el);
-            for (const prop of ["backgroundColor", "color", "borderColor"]) {
-              const rgb = parseRgb(style[prop] || "");
-              if (!rgb || isNeutral(rgb)) continue;
-              const hex = toHex(rgb);
-              if (seen.has(hex)) { colorCounts[hex] = (colorCounts[hex] || 0) + 1; }
-              else { seen.add(hex); colorCounts[hex] = 1; }
-            }
-          }
-        }
-        // Return top 5 most-frequent brand colors
-        return Object.entries(colorCounts)
-          .sort((a, b) => b[1] - a[1])
-          .slice(0, 5)
-          .map(([hex]) => hex);
-      }).catch(() => []),
-    ]);
-  } finally {
-    await page.close().catch(() => {});
-    await context.close().catch(() => {});
-  }
-
-  const COLOR_SCHEMES = [
-    // bg: [from, to], icon: [primary, secondary, optional-accent]
-    { bg: ["#0F0C29", "#302B63"], icon: ["#FFD700", "#FFC200"],          accent: "#FFF8DC" }, // midnight navy + gold
-    { bg: ["#134E4A", "#0D3B31"], icon: ["#6EE7B7", "#34D399"],          accent: "#D1FAE5" }, // deep teal + mint
-    { bg: ["#4C1D95", "#6D28D9"], icon: ["#DDD6FE", "#A78BFA"],          accent: "#EDE9FE" }, // deep purple + lavender
-    { bg: ["#164E63", "#155E75"], icon: ["#A5F3FC", "#67E8F9"],          accent: "#ECFEFF" }, // deep cyan + light cyan
-    { bg: ["#1F2937", "#111827"], icon: ["#E5E7EB", "#9CA3AF"],          accent: "#F9FAFB" }, // charcoal + silver
-    { bg: ["#14532D", "#166534"], icon: ["#BBF7D0", "#86EFAC"],          accent: "#F0FDF4" }, // forest green + pale green
-    { bg: ["#78350F", "#92400E"], icon: ["#FDE68A", "#FCD34D"],          accent: "#FFFBEB" }, // dark amber + golden yellow
-    { bg: ["#1E3A5F", "#1e40af"], icon: ["#BAE6FD", "#7DD3FC"],          accent: "#E0F2FE" }, // navy + steel blue
-    { bg: ["#0F172A", "#1E293B"], icon: ["#38BDF8", "#0EA5E9"],          accent: "#7DD3FC" }, // near-black + sky blue
-    { bg: ["#2D1B69", "#4C1D95"], icon: ["#C4B5FD", "#8B5CF6"],          accent: "#EDE9FE" }, // dark violet + soft purple
-    { bg: ["#064E3B", "#065F46"], icon: ["#FCD34D", "#F59E0B"],          accent: "#FEF9C3" }, // deep emerald + yellow
-    { bg: ["#1C1917", "#292524"], icon: ["#D4A76A", "#C8963E"],          accent: "#FEF3C7" }, // near-black + warm bronze
-    { bg: ["#0C4A6E", "#075985"], icon: ["#E0F2FE", "#BAE6FD"],          accent: "#FFFFFF"  }, // ocean blue + pale sky
-    { bg: ["#312E81", "#4338CA"], icon: ["#FDE68A", "#F59E0B"],          accent: "#FFFBEB" }, // indigo + amber
-    { bg: ["#27272A", "#3F3F46"], icon: ["#A3E635", "#84CC16"],          accent: "#ECFCCB" }, // dark zinc + lime
-  ];
-  // Derive a light/bright variant of a brand color for use as icon foreground
-  const deriveLightVariant = (hex) => {
-    const { r, g, b } = hexToRgb(hex);
-    // Lighten by blending toward white
-    const blend = (c) => Math.round(c + (255 - c) * 0.55);
-    return `#${[blend(r), blend(g), blend(b)].map(v => v.toString(16).padStart(2, "0")).join("")}`;
-  };
-
-  // Use page brand colors if available, otherwise fall back to random scheme
-  let scheme;
-  let colorNote = "";
-  if (pageColors.length >= 1) {
-    const primary = pageColors[0];
-    const secondary = pageColors[1] || pageColors[0];
-    // Icon colors: lightened variants of brand colors, keeping the same hue family
-    const iconPrimary = pageColors[2] || deriveLightVariant(primary);
-    const iconSecondary = pageColors[3] || deriveLightVariant(secondary);
-    const accent = pageColors[4] || "#FFFFFF";
-    scheme = { bg: [primary, secondary], icon: [iconPrimary, iconSecondary], accent };
-    colorNote = `\nColor note: The entire palette (background AND icon shapes) is derived from the app's own brand colors. Keep all shapes within this color family — do NOT introduce unrelated colors like yellow, orange, or red.`;
-  } else {
-    scheme = COLOR_SCHEMES[Math.floor(Math.random() * COLOR_SCHEMES.length)];
-    colorNote = "";
-  }
-
-  // Force creative divergence on each generation
-  const INSPIRATION_DIRECTIONS = ["geometric", "organic", "abstract", "typographic", "metaphorical", "symbolic", "illustrative", "minimalist-bold"];
-  const AVOID_CONCEPTS = ["calculator", "grid of squares", "spreadsheet", "pie chart", "bar chart", "generic phone", "gear cog"];
-  const inspirationDirection = INSPIRATION_DIRECTIONS[Math.floor(Math.random() * INSPIRATION_DIRECTIONS.length)];
-
-  const prompt = `You are a world-class brand identity designer creating a premium iOS app icon. Your goal is a unique, memorable icon that captures this app's BRAND ESSENCE — not its tool category.
-
-App URL: ${targetUrl}
-Page title: ${title || "(none)"}
-Page content: ${bodyText || "(none)"}
-
-STEP 1 — Creative brief:
-- Think about what makes this brand DISTINCTIVE, not just what it does functionally
-- Today's creative direction: **${inspirationDirection}** — your concept must lean into this style
-- FORBIDDEN concepts (overused, avoid entirely): ${AVOID_CONCEPTS.join(", ")}
-- Choose a concept that would be surprising yet immediately recognizable for this brand
-- Write your concept as: CONCEPT: <specific concept in English>
-
-STEP 2 — Generate the SVG with these rules:
-- viewBox="0 0 100 100", no width/height attributes on <svg>
-- Put all <defs> (gradients) inside a <defs> block at the top of the SVG
-- Background: <rect width="100" height="100" rx="0" fill="url(#bg)"/> using a linearGradient from ${scheme.bg[0]} to ${scheme.bg[1]} (top-left → bottom-right)
-- Icon symbol: centered in the 100×100 space, occupying 65–75% of the area
-  - Use 2–3 harmonious colors from this palette: primary ${scheme.icon[0]}, secondary ${scheme.icon[1]}, optional accent ${scheme.accent}
-  - You may apply a linearGradient to icon shapes too for a more natural feel
-  - Different parts of the icon can use different colors from the palette
-- Design should feel modern, confident, and polished — not overly simple
-- NO shadows (no filter, no drop-shadow)
-- NO stroke on the background rect
-- NO rounded corners on the background rect (rx="0")${colorNote}
-
-Output format (exactly):
-CONCEPT: <icon concept in English>
-SVG: <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">...</svg>`;
-
-  const timeout = createTimeoutController(APP_LOGO_AI_TIMEOUT_MS);
-  try {
-    const response = await fetch(ANTHROPIC_API_URL, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01",
-      },
-      signal: timeout.signal,
-      body: JSON.stringify({
-        model: ANTHROPIC_MODEL,
-        max_tokens: 2000,
-        messages: [{ role: "user", content: prompt }],
-      }),
-    });
-
-    if (!response.ok) return null;
-    const data = await response.json();
-    const raw = (data?.content?.[0]?.text || "").trim();
-
-    const conceptMatch = raw.match(/CONCEPT:\s*(.+)/i);
-    // Handle plain SVG: <svg...> and markdown-wrapped SVG: ```xml\n<svg...>\n```
-    const svgMatch =
-      raw.match(/SVG:\s*(?:```(?:svg|xml|html)?\s*\n?)?(<svg[\s\S]*?<\/svg>)/i) ||
-      raw.match(/(<svg[\s\S]*?<\/svg>)/i);
-
-    // Force sharp corners on background rect regardless of what Claude generated
-    let svgOutput = svgMatch ? svgMatch[1].trim() : null;
-    if (svgOutput) {
-      svgOutput = svgOutput.replace(
-        /(<rect\b[^>]*\bwidth=["']100["'][^>]*\bheight=["']100["'][^>]*?)\srx=["'][^"']*["']/gi,
-        '$1 rx="0"'
-      ).replace(
-        /(<rect\b[^>]*\bheight=["']100["'][^>]*\bwidth=["']100["'][^>]*?)\srx=["'][^"']*["']/gi,
-        '$1 rx="0"'
-      );
-    }
-
-    // Compute dominant brand hue from extracted page colors
-    const brandHue = pageColors.reduce((found, hex) => {
-      if (found !== null) return found;
-      return hexToHue(hex);
-    }, null);
-
-    return {
-      concept: conceptMatch ? conceptMatch[1].trim() : "",
-      svg: svgOutput,
-      brandHue,
-    };
-  } catch (error) {
-    if (error && error.name === "AbortError") return null;
-    throw error;
-  } finally {
-    timeout.clear();
-  }
-}
-
 // ─── DALL-E logo image generation ────────────────────────────────────────────
 
 async function suggestAppLogoDalle(targetUrl) {
@@ -1650,11 +1445,11 @@ async function suggestAppLogoDalle(targetUrl) {
       },
       signal: timeout.signal,
       body: JSON.stringify({
-        model: "dall-e-3",
+        model: "gpt-image-1",
         prompt: dallePrompt,
         n: 1,
         size: "1024x1024",
-        response_format: "b64_json",
+        quality: "high",
       }),
     });
 
@@ -1686,30 +1481,70 @@ async function suggestAppLogoDalle(targetUrl) {
   }
 }
 
+// ─── Logo rule loader (reads from logo-rule-*.md) ─────────────────────────────
+
+function loadLogoRule(filePath) {
+  const content = fs.readFileSync(filePath, "utf8");
+
+  // Prompt template: ``` code block under section 二
+  const promptMatch = content.match(/##\s*二[^\n]*\n[\s\S]*?```\n([\s\S]*?)\n```/);
+  const promptTemplate = promptMatch ? promptMatch[1] : null;
+
+  // Subjects: numbered list items under section 三, stop before section 四
+  const sec3 = content.match(/##\s*三[\s\S]*?(?=##\s*四)/);
+  const subjects = [];
+  if (sec3) {
+    for (const m of sec3[0].matchAll(/^\d+\.\s+(.+)$/gm)) {
+      subjects.push(m[1].trim());
+    }
+  }
+
+  // Styles: table rows under section 四, stop before section 五
+  const sec4 = content.match(/##\s*四[\s\S]*?(?=##\s*五|$)/);
+  const styles = [];
+  if (sec4) {
+    for (const line of sec4[0].split("\n")) {
+      const m = line.match(/^\|\s*(\d+)\s*\|([^|]*)\|(.*)/);
+      if (!m) continue;
+      const name = m[2].trim();
+      if (!name || name === "风格名") continue;
+      // Strip leading/trailing pipes and whitespace from description
+      const desc = m[3].replace(/[|｜]\s*$/, "").trim();
+      if (!desc) continue;
+      styles.push({ name, desc });
+    }
+  }
+
+  return { promptTemplate, subjects, styles };
+}
+
 // ─── Qwen Image (DashScope) logo generation ───────────────────────────────────
 
-async function suggestAppLogoQwen(targetUrl) {
+async function suggestAppLogoQwen(targetUrl, styleIndex = null, appNameOverride = null, descOverride = null) {
   if (!DASHSCOPE_API_KEY) return null;
-  const browser = await getBrowser();
-  const context = await browser.newContext({
-    viewport: MOBILE_VIEWPORT,
-    deviceScaleFactor: 1,
-    userAgent: USER_AGENT,
-  });
-  const page = await context.newPage();
+
   let title = "";
   let bodyText = "";
   let pageColors = [];
-  try {
-    await navigateWithFallback(page, targetUrl, APP_LOGO_PAGE_TIMEOUT_MS);
-    await page.waitForTimeout(Math.min(CAPTURE_WAIT_MS, 1200));
-    [title, bodyText, pageColors] = await Promise.all([
-      page.title().catch(() => ""),
-      page.evaluate(() => {
-        const el = document.body;
-        return el ? el.innerText.replace(/\s+/g, " ").slice(0, 400) : "";
-      }).catch(() => ""),
-      page.evaluate(() => {
+
+  if (targetUrl) {
+    const browser = await getBrowser();
+    const context = await browser.newContext({
+      viewport: MOBILE_VIEWPORT,
+      deviceScaleFactor: 1,
+      userAgent: USER_AGENT,
+    });
+    const page = await context.newPage();
+    try {
+      await navigateWithFallback(page, targetUrl, APP_LOGO_PAGE_TIMEOUT_MS);
+      await page.waitForTimeout(Math.min(CAPTURE_WAIT_MS, 1200));
+      [title, bodyText, pageColors] = await Promise.all([
+        page.title().catch(() => ""),
+        page.evaluate(() => {
+          const el = document.body;
+          return el ? el.innerText.replace(/\s+/g, " ").slice(0, 400) : "";
+        }).catch(() => ""),
+        page.evaluate(() => {
         const selectors = [
           "header", "nav", "[class*='header']", "[class*='nav']",
           "button", "[class*='btn']", "[class*='button']",
@@ -1749,62 +1584,67 @@ async function suggestAppLogoQwen(targetUrl) {
           .map(([hex]) => hex);
       }).catch(() => []),
     ]);
-  } finally {
-    await page.close().catch(() => {});
-    await context.close().catch(() => {});
+    } finally {
+      await page.close().catch(() => {});
+      await context.close().catch(() => {});
+    }
   }
 
-  const appName = title || new URL(targetUrl).hostname.replace(/^www\./, "");
+  const appName = appNameOverride || title || (targetUrl ? new URL(targetUrl).hostname.replace(/^www\./, "") : "App");
   const colorHint = pageColors.length > 0
     ? `背景色调参考品牌色：${pageColors.join("、")}，`
     : "";
-  const descHint = bodyText ? `应用功能描述：${bodyText.slice(0, 200)}。` : "";
+  const descHint = descOverride
+    ? `应用主题描述：${descOverride}。`
+    : bodyText ? `应用功能描述：${bodyText.slice(0, 200)}。` : "";
 
-  const QWEN_STYLES = [
-    "3D质感渲染，光泽高光，细腻材质感，类似苹果官方应用图标的立体效果",
-    "流光渐变色，丝滑光泽，玻璃质感，色彩从深到浅过渡自然，Dribbble热门风格",
-    "毛玻璃磨砂质感，半透明叠层，柔和光晕，现代iOS设计风格",
-    "精致插画风，细腻线条，柔和色块，Dribbble获赞插画图标风格",
-    "霓虹发光效果，深色背景，图标元素带有柔和外发光，赛博朋克与苹果设计结合",
-    "粘土3D风格，圆润可爱，鲜艳饱和色，Dribbble流行的claymorphism风格",
-  ];
-  const style = QWEN_STYLES[Math.floor(Math.random() * QWEN_STYLES.length)];
+  // ── 从 logo rule 文件动态读取词库、风格、prompt 模板 ─────────────────────────
+  const logoRule = loadLogoRule(LOGO_RULE_PATH);
 
-  const prompt = `请生成一个精致的Apple App Store应用图标，正方形构图，无任何圆角裁切。
+  const TRADING_SUBJECTS = logoRule.subjects.length > 0 ? logoRule.subjects : ["闪电（极速交易）"];
+  const tradingSubject = TRADING_SUBJECTS[Math.floor(Math.random() * TRADING_SUBJECTS.length)];
 
-应用名称：${appName}
-${descHint}
-设计风格：${style}
-${colorHint}
+  const QWEN_STYLES = logoRule.styles.map(s => s.desc);
+  const style = (styleIndex != null && styleIndex >= 0 && styleIndex < QWEN_STYLES.length)
+    ? QWEN_STYLES[styleIndex]
+    : QWEN_STYLES[Math.floor(Math.random() * QWEN_STYLES.length)];
 
-要求：
-- 主体图标元素简洁有力、充满吸引力，精准体现应用的核心功能或品牌感
-- 图标主体元素居中，占画面60%~70%，背景为纯色或正方形渐变色，干净不杂乱
-- 整体质感精致，达到Dribbble高赞作品或苹果官方图标的水准
-- 禁止出现任何文字、字母、数字
-- 禁止出现手机边框、截图、卡片、UI界面等元素
-- 只输出图标本身，不要任何外框或装饰边`;
+  const prompt = logoRule.promptTemplate
+    ? logoRule.promptTemplate
+        .replace("{tradingSubject}", tradingSubject)
+        .replace("{appName}", appName)
+        .replace("{descHint}", descHint)
+        .replace("{style}", style)
+        .replace("{colorHint}", colorHint)
+    : `请生成一个精致的符合dribbble顶尖设计感和成图质量的logo。应用名称：${appName}。设计风格：${style}`;
 
-  // Use DashScope multimodal-generation endpoint (synchronous)
   const timeout = createTimeoutController(DALLE_LOGO_AI_TIMEOUT_MS);
   try {
-    const response = await fetch("https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${DASHSCOPE_API_KEY}`,
-      },
-      signal: timeout.signal,
-      body: JSON.stringify({
-        model: "qwen-image-2.0",
-        input: {
-          messages: [
-            { role: "user", content: [{ text: prompt }] }
-          ],
+    const RATE_LIMIT_DELAYS = [20000, 40000, 60000];
+    let response;
+    for (let attempt = 0; attempt <= RATE_LIMIT_DELAYS.length; attempt++) {
+      response = await fetch("https://dashscope.aliyuncs.com/api/v1/services/aigc/multimodal-generation/generation", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${DASHSCOPE_API_KEY}`,
         },
-        parameters: { size: "512*512" },
-      }),
-    });
+        signal: timeout.signal,
+        body: JSON.stringify({
+          model: "qwen-image-2.0-pro",
+          input: { messages: [{ role: "user", content: [{ text: prompt }] }] },
+          parameters: { size: "512*512" },
+        }),
+      });
+
+      if (response.status === 429 && attempt < RATE_LIMIT_DELAYS.length) {
+        const wait = RATE_LIMIT_DELAYS[attempt];
+        console.warn(`[qwen-logo] 429 rate limit, waiting ${wait / 1000}s before retry ${attempt + 1}...`);
+        await new Promise(r => setTimeout(r, wait));
+        continue;
+      }
+      break;
+    }
 
     if (!response.ok) {
       const errText = await response.text().catch(() => "");
@@ -1813,14 +1653,12 @@ ${colorHint}
     }
 
     const data = await response.json();
-    // Response: output.choices[0].message.content[0].image (URL)
     const imageUrl = data?.output?.choices?.[0]?.message?.content?.[0]?.image;
     if (!imageUrl) {
       console.error("[qwen-logo] no image url in response:", JSON.stringify(data).slice(0, 300));
       return null;
     }
 
-    // Download image and convert to base64 for consistent handling
     const imgRes = await fetch(imageUrl);
     const buffer = Buffer.from(await imgRes.arrayBuffer());
 
@@ -1896,14 +1734,15 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
-  if (req.method === "GET" && requestUrl.pathname === "/api/suggest-app-logo") {
-    try {
-      const targetUrl = normalizeUrl(requestUrl.searchParams.get("url"));
-      const result = await suggestAppLogo(targetUrl);
-      sendJson(res, 200, result || { svg: null, concept: "" });
-    } catch (err) {
-      sendJson(res, 500, { error: err.message });
-    }
+  if (req.method === "GET" && requestUrl.pathname === "/api/qwen-styles") {
+    const { styles: ruleStyles } = loadLogoRule(LOGO_RULE_PATH);
+    sendJson(res, 200, {
+      styles: ruleStyles.map((s, i) => ({
+        index: i,
+        label: s.name,
+        desc: s.desc.slice(0, 60),
+      }))
+    });
     return;
   }
 
@@ -1920,8 +1759,13 @@ const server = http.createServer(async (req, res) => {
 
   if (req.method === "GET" && requestUrl.pathname === "/api/suggest-app-logo-qwen") {
     try {
-      const targetUrl = normalizeUrl(requestUrl.searchParams.get("url"));
-      const result = await suggestAppLogoQwen(targetUrl);
+      const rawUrl = requestUrl.searchParams.get("url");
+      const targetUrl = rawUrl ? normalizeUrl(rawUrl) : null;
+      const styleParam = requestUrl.searchParams.get("styleIndex");
+      const styleIndex = styleParam !== null ? parseInt(styleParam, 10) : null;
+      const appName = requestUrl.searchParams.get("appName") || null;
+      const desc = requestUrl.searchParams.get("desc") || null;
+      const result = await suggestAppLogoQwen(targetUrl, styleIndex, appName, desc);
       sendJson(res, 200, result || { imageDataUrl: null, concept: "" });
     } catch (err) {
       sendJson(res, 500, { error: err.message });
@@ -2011,7 +1855,8 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, "127.0.0.1", () => {
   cleanupExpiredJobs();
   console.log(`✦ OneClick screenshot server running at http://127.0.0.1:${PORT}`);
-  console.log(`  ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY ? "✅ configured" : "⚠️  not set (fallback copy will be used)"}`);
+  console.log(`  ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY ? "✅ configured" : "⚠️  not set"}`);
+  console.log(`  OPENAI_API_KEY:    ${OPENAI_API_KEY ? "✅ configured" : "❌ not set"}`);
   console.log(`  Export directory: ${EXPORT_OUTPUT_DIR}`);
 });
 

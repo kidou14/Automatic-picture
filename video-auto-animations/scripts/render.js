@@ -31,9 +31,22 @@ async function render() {
   }
 
   console.log(`Bundling composition "${compositionId}"...`);
+  const studioRenderEntry = path.resolve(
+    "node_modules/@remotion/studio/dist/esm/renderEntry.mjs"
+  );
   const bundleLocation = await bundle({
     entryPoint: path.resolve("src/index.tsx"),
-    webpackOverride: (config) => config,
+    webpackOverride: (config) => ({
+      ...config,
+      resolve: {
+        ...config.resolve,
+        alias: {
+          ...config.resolve?.alias,
+          // Fix double-esm path resolution bug in some Remotion versions
+          "@remotion/studio/renderEntry": studioRenderEntry,
+        },
+      },
+    }),
   });
 
   console.log("Selecting composition...");
