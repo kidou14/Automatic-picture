@@ -41,7 +41,7 @@ const EXPORT_OUTPUT_DIR = String(
     path.join(os.homedir(), "Downloads", "appstore-auto-screenshots-oneclick")
 ).trim();
 const PHONE_MOCKUP_PATH = path.resolve(
-  __dirname, "..", "..", "app-store-screenshots-main", "skills", "app-store-screenshots", "mockup.png"
+  __dirname, "..", "mockup.png"
 );
 const LOGO_RULE_PATH = path.resolve(
   __dirname, "..", process.env.LOGO_RULE_FILE || "logo-rule-test.md"
