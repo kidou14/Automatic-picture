@@ -110,56 +110,6 @@
     .form-input:focus { border-color: var(--accent); }
     .form-input::placeholder { color: var(--muted); font-size: 12px; }
 
-    /* ── LOGO PREVIEW ── */
-    .logo-slot-box {
-      width: 80px; height: 80px;
-      border-radius: 12px;
-      border: 1px dashed rgba(108,99,255,0.35);
-      background: var(--surface2);
-      display: flex; align-items: center; justify-content: center;
-      overflow: hidden;
-      transition: border-color 0.2s;
-      position: relative;
-    }
-    .logo-slot-box.has-logo { border-style: solid; border-color: rgba(108,99,255,0.5); }
-    .logo-slot-box svg { width: 80px; height: 80px; display: block; }
-    .logo-slot-art {
-      width: 80px; height: 80px;
-      display: none; align-items: center; justify-content: center;
-    }
-    .logo-slot-art.has-logo { display: flex; }
-    .logo-slot-art img { width: 80px; height: 80px; display: block; object-fit: cover; }
-    .logo-mode-selector {
-      display: flex; gap: 6px; align-items: center;
-    }
-    .logo-mode-option {
-      display: flex; align-items: center; gap: 4px;
-      font-size: 11px; color: var(--text); cursor: pointer;
-      padding: 3px 8px; border-radius: 5px;
-      border: 1px solid var(--border);
-      background: var(--surface2);
-      transition: border-color 0.15s, background 0.15s;
-      user-select: none;
-    }
-    .logo-mode-option input[type="radio"] { display: none; }
-    .logo-mode-option.selected {
-      border-color: var(--accent);
-      background: rgba(108,99,255,0.12);
-      color: var(--accent2);
-      font-weight: 600;
-    }
-    .logo-preview-hint {
-      font-size: 11px; color: var(--muted); line-height: 1.5;
-    }
-    .logo-loading-spinner {
-      width: 18px; height: 18px;
-      border: 2px solid rgba(108,99,255,0.25);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
-
     .btn-generate {
       width: 100%;
       padding: 11px;
@@ -438,31 +388,8 @@
         <input class="form-input" type="text" id="app-name"
           placeholder="点击 Generate 自动生成" autocomplete="off" />
       </div>
-      <div class="form-group">
-        <label class="form-label">App Logo <span id="app-logo-ai-badge" style="font-size:10px;color:var(--accent2);font-weight:600;opacity:0;transition:opacity 0.3s;">✦ AI 生成</span></label>
-        <div class="logo-mode-selector">
-          <label class="logo-mode-option selected" id="logo-mode-qwen-label">
-            <input type="radio" name="logo-mode" value="qwen" checked onchange="onLogoModeChange(this)">
-            Qwen
-          </label>
-          <label class="logo-mode-option" id="logo-mode-dalle-label">
-            <input type="radio" name="logo-mode" value="dalle" onchange="onLogoModeChange(this)">
-            gpt-image-1
-          </label>
-        </div>
-        <div class="logo-slot-box" id="app-logo-box-0">
-            <div class="logo-loading-spinner" id="app-logo-spinner-0" style="display:none"></div>
-            <svg id="app-logo-empty-0" viewBox="0 0 72 72" fill="none" xmlns="http://www.w3.org/2000/svg" style="opacity:0.18;width:80px;height:80px">
-              <rect x="16" y="16" width="40" height="40" rx="10" stroke="#6c63ff" stroke-width="2.5"/>
-              <circle cx="36" cy="30" r="5" stroke="#6c63ff" stroke-width="2.5"/>
-              <path d="M22 50c0-7.732 6.268-14 14-14s14 6.268 14 14" stroke="#6c63ff" stroke-width="2.5" stroke-linecap="round"/>
-            </svg>
-            <div class="logo-slot-art" id="app-logo-art-0"></div>
-          </div>
-        <div class="logo-preview-hint" id="app-logo-hint">点击 Generate 自动生成</div>
-      </div>
       <button class="btn-generate" id="btn-generate" onclick="startGenerate()">
-        ✦ &nbsp;Generate Screenshots
+        ✦ &nbsp;Generate
       </button>
     </div>
 
@@ -1104,12 +1031,7 @@ async function exportAll() {
   const shots   = currentJob.screenshots;
   const appSlug = (currentJob.appNameHint || "app").replace(/\s+/g,"-").toLowerCase();
 
-  // Collect logo if available
-  let rawFiles = [];
-  if (_logoSlot && _logoSlot.type === "png") {
-    rawFiles = [{ filename: "app-logo.png", content: _logoSlot.data }];
-  }
-
+  const rawFiles = [];
   let totalSaved = 0;
   let lastDir = "";
   for (const sizeKey of sizeKeys) {
@@ -1159,13 +1081,10 @@ async function startGenerate() {
 
   document.getElementById("btn-generate").disabled = true;
 
-  // Step 1+2: Generate App Name and Logo in parallel
-  await Promise.all([
-    suggestAppNameFromUrl(url),
-    suggestAppLogoFromUrl(url),
-  ]);
+  // Step 1: Generate App Name
+  await suggestAppNameFromUrl(url);
 
-  // Step 3: Run screenshot pipeline
+  // Step 2: Run screenshot pipeline
   const appName = document.getElementById("app-name").value.trim();
   const languages = getSelectedLanguages();
   lastInputs = { url, appName, desc: "", languages };
@@ -1193,7 +1112,7 @@ async function runCapture(url, appName, desc, languages = ["en"]) {
   try {
     const res = await fetch(`${SERVER}/api/oneclick-capture`, {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ url, appName, description: desc, languages, brandHue: _brandHue }),
+      body: JSON.stringify({ url, appName, description: desc, languages }),
     });
     if (!res.ok) { const e = await res.json(); throw new Error(e.error || "Server error"); }
     jobId = (await res.json()).jobId;
@@ -1281,91 +1200,6 @@ document.getElementById("app-name").addEventListener("input", () => {
   document.getElementById("app-name-ai-badge").style.opacity = "0";
 });
 
-// ─── AI App Logo Auto-generate ────────────────────────────────────────────────
-
-let _logoGenId = 0;
-let _logoSlot = null; // { type:'png', data:string, brandHue:number|null }
-let _brandHue = null;
-let _logoPngDataUrl = null;
-const DALLE_LOGO_TIMEOUT_MS = 70000;
-
-function getLogoMode() {
-  const checked = document.querySelector('input[name="logo-mode"]:checked');
-  return checked ? checked.value : "qwen";
-}
-
-function onLogoModeChange(input) {
-  ["dalle", "qwen"].forEach(v => {
-    document.getElementById(`logo-mode-${v}-label`).classList.toggle("selected", input.value === v);
-  });
-  const url = document.getElementById("app-url").value.trim();
-  if (url) suggestAppLogoFromUrl(url);
-}
-
-async function suggestAppLogoFromUrl(url) {
-  const genId = ++_logoGenId;
-  const mode  = getLogoMode();
-
-  _logoSlot      = null;
-  _logoPngDataUrl = null;
-  _brandHue      = null;
-
-  const hint   = document.getElementById("app-logo-hint");
-  const badge  = document.getElementById("app-logo-ai-badge");
-  const spinner   = document.getElementById("app-logo-spinner-0");
-  const emptyIcon = document.getElementById("app-logo-empty-0");
-  const art    = document.getElementById("app-logo-art-0");
-  const box    = document.getElementById("app-logo-box-0");
-
-  hint.textContent = "AI 生成中…";
-  badge.style.opacity = "0";
-  spinner.style.display = "block";
-  emptyIcon.style.display = "none";
-  art.innerHTML = "";
-  art.classList.remove("has-logo");
-  box.classList.remove("has-logo");
-
-  const endpoint  = mode === "dalle" ? "suggest-app-logo-dalle" : "suggest-app-logo-qwen";
-  const timeoutMs = DALLE_LOGO_TIMEOUT_MS;
-  const controller = new AbortController();
-  const timeoutId  = window.setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    const res = await fetch(`${SERVER}/api/${endpoint}?url=${encodeURIComponent(url)}`, {
-      signal: controller.signal,
-    });
-    if (_logoGenId !== genId) return;
-    spinner.style.display = "none";
-
-    if (!res.ok) throw new Error("failed");
-    const data = await res.json();
-
-    if (data.imageDataUrl) {
-      const img = document.createElement("img");
-      img.src = data.imageDataUrl;
-      art.innerHTML = "";
-      art.appendChild(img);
-      art.classList.add("has-logo");
-      box.classList.add("has-logo");
-      _logoSlot = { type: "png", data: data.imageDataUrl, brandHue: data.brandHue ?? null };
-    } else {
-      emptyIcon.style.display = "block";
-      return;
-    }
-
-    hint.textContent = data.concept || "";
-    badge.style.opacity = "1";
-    _brandHue = _logoSlot.brandHue;
-    _logoPngDataUrl = _logoSlot.type === "png" ? _logoSlot.data : null;
-  } catch (e) {
-    if (_logoGenId !== genId) return;
-    spinner.style.display = "none";
-    emptyIcon.style.display = "block";
-    hint.textContent = "";
-  } finally {
-    window.clearTimeout(timeoutId);
-  }
-}
 
 </script>
 </body>

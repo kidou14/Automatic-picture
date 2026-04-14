@@ -10,7 +10,7 @@ RESET='\033[0m'
 cd "$(dirname "$0")"
 
 echo ""
-echo -e "${CYAN}✦ appstore-auto-screenshots-OneClick 启动中...${RESET}"
+echo -e "${CYAN}✦ Auto-banner-OneClick 启动中...${RESET}"
 echo ""
 
 PORT=4318

@@ -1,5 +1,5 @@
 ---
-name: appstore-auto-screenshots-OneClick
+name: Auto-banner-OneClick
 description: Use when you need to auto-generate Apple App Store marketing screenshots with a single command — no style selection required. Each generation produces a completely unique visual identity driven by algorithmic color theory and AI-generated copy. Triggers on: one-click screenshots, random style app store screenshots, 一键生成上架图, auto app store screenshots, unique style marketing screenshots.
 ---
 
@@ -45,7 +45,7 @@ If not 200, guide the user to start their app first.
 ### Step 1.2 — Verify Playwright
 
 ```bash
-cd appstore-auto-screenshots-OneClick
+cd Auto-banner-OneClick
 node -e "require('playwright')" 2>/dev/null && echo "ok" || npm install && npx playwright install chromium
 ```
 
@@ -58,7 +58,7 @@ The entire pipeline — screenshot capture → style recipe generation → AI co
 ### Step 2.1 — Start the server (if not running)
 
 ```bash
-cd appstore-auto-screenshots-OneClick
+cd Auto-banner-OneClick
 bash start.sh &
 # Wait for: "✦ OneClick screenshot server running at http://127.0.0.1:4318"
 ```
