@@ -18,6 +18,7 @@
       --muted: #8b8ba0;
       --radius: 12px;
       --danger: #f87171;
+      --openrouter: #4ade80;
     }
 
     html, body {
@@ -92,10 +93,25 @@
     .generate-btn:active:not(:disabled) { transform: translateY(0); }
     .generate-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
+    .batch-btn {
+      padding: 10px 16px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface2);
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s;
+    }
+    .batch-btn:hover:not(:disabled) { border-color: var(--accent); color: var(--accent); }
+    .batch-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
     .bottom-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 
-    .model-row { display: flex; gap: 8px; }
-    .model-btn, .rule-btn {
+    .model-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .model-btn {
       padding: 6px 14px;
       border-radius: 6px;
       border: 1px solid var(--border);
@@ -106,12 +122,15 @@
       cursor: pointer;
       transition: all 0.15s;
     }
-    .model-btn.active, .rule-btn.active {
+    .model-btn.active {
       border-color: var(--accent-border);
       background: var(--accent-dim);
       color: var(--accent);
     }
-    .model-btn:hover:not(.active), .rule-btn:hover:not(.active) { color: var(--text); border-color: rgba(255,255,255,0.2); }
+    .model-btn:hover:not(.active) { color: var(--text); border-color: rgba(255,255,255,0.2); }
+    /* OpenRouter 模型 — 绿色文字标识 */
+    .model-btn.openrouter:not(.active) { color: var(--openrouter); }
+    .model-btn.openrouter:hover:not(.active) { color: var(--openrouter); border-color: rgba(74,222,128,0.3); }
 
     .prompt-hint {
       font-size: 11px;
@@ -157,6 +176,12 @@
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 20px;
+    }
+    .logo-grid.single {
+      grid-template-columns: 1fr;
+      max-width: 480px;
+      margin: 0 auto;
+      width: 100%;
     }
 
     /* ── Logo card ── */
@@ -256,7 +281,7 @@
 
   <header>
     <h1>Auto Logo</h1>
-    <p>输入 App URL，一键并行生成 6 个方案</p>
+    <p>输入 App URL，一键生成 Logo 方案</p>
   </header>
 
   <div class="input-card">
@@ -270,16 +295,19 @@
         autocomplete="off"
         spellcheck="false"
       />
+      <button id="batchBtn" class="batch-btn">×4</button>
       <button id="generateBtn" class="generate-btn">Generate</button>
     </div>
     <div class="bottom-row">
       <div class="model-row">
-        <button class="model-btn active" data-model="gemini">Gemini 3.1</button>
-        <button class="model-btn" data-model="gemini3pro">Gemini 3 Pro</button>
-        <button class="model-btn" data-model="gpt5">GPT-5</button>
-        <button class="model-btn" data-model="gpt5mini">GPT-5 Mini</button>
+        <button class="model-btn active" data-model="qwen">Qwen</button>
+        <button class="model-btn" data-model="nanobanana">Nanobanana</button>
+        <button class="model-btn openrouter" data-model="gemini">Gemini 3.1</button>
+        <button class="model-btn openrouter" data-model="gemini3pro">Gemini 3 Pro</button>
+        <button class="model-btn openrouter" data-model="gpt5">GPT-5</button>
+        <button class="model-btn openrouter" data-model="gpt5mini">GPT-5 Mini</button>
       </div>
-<div class="prompt-hint">风格：<span id="promptHint">加载中…</span></div>
+      <div class="prompt-hint">风格：<span id="promptHint">加载中…</span></div>
     </div>
   </div>
 
@@ -289,25 +317,23 @@
       <div class="result-label">生成结果</div>
       <button id="regenBtn" class="regen-btn">Regenerate</button>
     </div>
-    <div class="logo-grid" id="logoGrid">
-      <!-- 6 cards injected by JS -->
-    </div>
+    <div class="logo-grid" id="logoGrid"></div>
   </div>
 
 </div>
 
 <script>
   const BASE = "http://127.0.0.1:4319";
-  const COUNT = 4;
 
   const urlInput    = document.getElementById("urlInput");
   const generateBtn = document.getElementById("generateBtn");
+  const batchBtn    = document.getElementById("batchBtn");
   const regenBtn    = document.getElementById("regenBtn");
   const resultArea  = document.getElementById("resultArea");
   const logoGrid    = document.getElementById("logoGrid");
 
   // Model selector
-  let selectedModel = "gemini";
+  let selectedModel = "qwen";
   document.querySelectorAll(".model-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       selectedModel = btn.dataset.model;
@@ -316,7 +342,7 @@
     });
   });
 
-  const selectedRule = "new";
+  const selectedRule = "new4";
   function loadHint() {
     fetch(`${BASE}/api/prompt-hint?rule=${selectedRule}`)
       .then(r => r.json())
@@ -324,12 +350,11 @@
       .catch(() => { document.getElementById("promptHint").textContent = ""; });
   }
 
-  // Build card DOM, return { setLoading, setResult, setError }
-  function createCard(index) {
+  function createCard(index, total) {
     const card = document.createElement("div");
     card.className = "logo-card";
     card.innerHTML = `
-      <div class="card-index">方案 ${index + 1}</div>
+      ${total > 1 ? `<div class="card-index">方案 ${index + 1}</div>` : ""}
       <div class="card-loading">
         <div class="spinner"></div>
         <div class="loading-text">生成中…</div>
@@ -340,15 +365,13 @@
     `;
     logoGrid.appendChild(card);
 
-    const loading  = card.querySelector(".card-loading");
-    const footer   = card.querySelector(".card-footer");
-    const dlBtn    = card.querySelector(".download-btn");
+    const loading = card.querySelector(".card-loading");
+    const dlBtn   = card.querySelector(".download-btn");
 
     return {
       setResult(appName, dataUrl) {
-        loading.outerHTML = `<div class="card-img-wrap"><img src="${dataUrl}" alt="Logo ${index+1}" /></div>`;
-        const filename = `${appName.replace(/[^a-z0-9]/gi, "-").toLowerCase()}-logo-${index+1}.png`;
-        // Resize to 512×512 via canvas before download (API may return 1024×1024)
+        loading.outerHTML = `<div class="card-img-wrap"><img src="${dataUrl}" alt="Logo ${index + 1}" /></div>`;
+        const filename = `${appName.replace(/[^a-z0-9]/gi, "-").toLowerCase()}-logo-${index + 1}.png`;
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement("canvas");
@@ -378,27 +401,34 @@
     }
   }
 
-  async function generate() {
+  let lastCount = 1;
+
+  async function generate(count) {
     const raw = urlInput.value.trim();
     if (!raw) { urlInput.focus(); return; }
     let url = raw;
     if (!/^https?:\/\//i.test(url)) url = "https://" + url;
 
+    lastCount = count;
     generateBtn.disabled = true;
+    batchBtn.disabled = true;
     regenBtn.disabled = true;
     resultArea.classList.remove("hidden");
     logoGrid.innerHTML = "";
+    logoGrid.classList.toggle("single", count === 1);
 
-    const cards = Array.from({ length: COUNT }, (_, i) => createCard(i));
-    await Promise.all(cards.map((card, i) => fetchOne(url, card)));
+    const cards = Array.from({ length: count }, (_, i) => createCard(i, count));
+    await Promise.all(cards.map(card => fetchOne(url, card)));
 
     generateBtn.disabled = false;
+    batchBtn.disabled = false;
     regenBtn.disabled = false;
   }
 
-  generateBtn.addEventListener("click", generate);
-  regenBtn.addEventListener("click", generate);
-  urlInput.addEventListener("keydown", e => { if (e.key === "Enter") generate(); });
+  generateBtn.addEventListener("click", () => generate(1));
+  batchBtn.addEventListener("click",    () => generate(4));
+  regenBtn.addEventListener("click",    () => generate(lastCount));
+  urlInput.addEventListener("keydown",  e => { if (e.key === "Enter") generate(1); });
 
   loadHint();
 </script>
