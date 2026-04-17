@@ -1,0 +1,668 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="icon" href="data:,">
+  <title>poster-motion</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #0d0d0d;
+      color: #e8e8e8;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      padding: 16px 24px;
+      border-bottom: 1px solid #1c1c1c;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    header h1 { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; }
+    header .tag { font-size: 10px; color: #555; background: #181818; padding: 2px 7px; border-radius: 8px; border: 1px solid #222; }
+
+    .layout { display: flex; flex: 1; overflow: hidden; }
+
+    /* ── Left panel ──────────────────────────────── */
+    .panel-left {
+      width: 300px;
+      flex-shrink: 0;
+      padding: 20px 16px;
+      border-right: 1px solid #1c1c1c;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      overflow-y: auto;
+    }
+
+    .section-title {
+      font-size: 10px;
+      font-weight: 600;
+      color: #555;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding-bottom: 8px;
+      border-bottom: 1px solid #1c1c1c;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 5px; }
+    label { font-size: 11px; font-weight: 500; color: #777; }
+
+    input[type="url"], input[type="text"] {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 7px;
+      color: #e8e8e8;
+      font-size: 13px;
+      padding: 8px 10px;
+      outline: none;
+      width: 100%;
+      transition: border-color 0.15s;
+    }
+    input:focus { border-color: #383838; }
+    input::placeholder { color: #3a3a3a; }
+
+    /* ── Dimension toggles ─────────────────────────── */
+    .dims-section { display: flex; flex-direction: column; gap: 10px; }
+
+    .dim-row { display: flex; flex-direction: column; gap: 4px; }
+    .dim-label { font-size: 11px; color: #666; }
+    .dim-options { display: flex; flex-wrap: wrap; gap: 4px; }
+    .dim-btn {
+      flex: 0 0 auto;
+      padding: 5px 9px;
+      border-radius: 6px;
+      border: 1px solid #222;
+      background: #111;
+      color: #555;
+      font-size: 11px;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: center;
+      transition: background 0.12s, border-color 0.12s, color 0.12s;
+      user-select: none;
+    }
+    .dim-btn:hover { background: #181818; color: #888; }
+    .dim-btn.active {
+      background: #1e1e1e;
+      border-color: #3a3a3a;
+      color: #e8e8e8;
+    }
+
+    /* ── Buttons ──────────────────────────────────── */
+    .btn {
+      padding: 10px 14px;
+      border-radius: 8px;
+      border: none;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+    .btn:active { transform: scale(0.97); }
+    .btn-primary { background: #e0e0e0; color: #0d0d0d; }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-primary:disabled { opacity: 0.3; cursor: not-allowed; }
+    .btn-secondary { background: #141414; color: #bbb; border: 1px solid #222; }
+    .btn-secondary:hover { background: #1a1a1a; }
+
+    /* ── Progress ──────────────────────────────────── */
+    .progress-box {
+      background: #111;
+      border: 1px solid #1c1c1c;
+      border-radius: 8px;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: #666;
+    }
+    .phase-label { color: #aaa; font-weight: 500; margin-bottom: 4px; }
+    .progress-bar-wrap { height: 2px; background: #1c1c1c; border-radius: 2px; overflow: hidden; margin-top: 8px; }
+    .progress-bar { height: 100%; background: #444; border-radius: 2px; transition: width 0.4s ease; }
+
+    .hidden { display: none !important; }
+
+    /* ── Right panel ───────────────────────────────── */
+    .panel-right {
+      flex: 1;
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    /* ── Live preview pane ─────────────────────────── */
+    .preview-pane {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+    .preview-pane-header {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .preview-pane-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: #444;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+    .preview-pane-hint {
+      font-size: 10px;
+      color: #2e2e2e;
+    }
+    .preview-wrap {
+      /* 9:16 poster, 270px wide */
+      width: 270px;
+      height: 480px;
+      border-radius: 18px;
+      overflow: hidden;
+      border: 1px solid #1c1c1c;
+      background: #050505;
+      flex-shrink: 0;
+    }
+    #previewFrame {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    .placeholder-area {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #2a2a2a;
+      font-size: 13px;
+      border: 1px dashed #1c1c1c;
+      border-radius: 12px;
+      min-height: 300px;
+    }
+
+    .renders-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+    }
+
+    .render-card {
+      background: #111;
+      border: 1px solid #1c1c1c;
+      border-radius: 11px;
+      overflow: hidden;
+      position: relative;
+    }
+    .render-card-img {
+      width: 100%;
+      aspect-ratio: 1080 / 1920;
+      object-fit: cover;
+      display: block;
+      background: #0a0a0a;
+    }
+    /* Loading overlay shown during re-render */
+    .render-card-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 11px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.15s;
+    }
+    .render-card-overlay.visible { opacity: 1; pointer-events: all; }
+    .overlay-spinner {
+      width: 24px; height: 24px;
+      border: 2px solid #333;
+      border-top-color: #aaa;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    .render-card-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 6px; }
+    .render-card-label { font-size: 11px; color: #555; text-transform: uppercase; letter-spacing: 0.04em; }
+    .dims-mini { display: flex; flex-wrap: wrap; gap: 3px; }
+    .dim-chip {
+      font-size: 10px;
+      background: #161616;
+      color: #555;
+      padding: 2px 6px;
+      border-radius: 4px;
+      border: 1px solid #1e1e1e;
+    }
+    .btn-download {
+      display: block;
+      text-align: center;
+      text-decoration: none;
+      background: #161616;
+      color: #888;
+      border: 1px solid #1e1e1e;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 500;
+      padding: 6px 10px;
+      margin-top: 2px;
+      transition: background 0.12s;
+    }
+    .btn-download:hover { background: #1e1e1e; }
+
+    .skeleton-card {
+      background: #111;
+      border: 1px solid #1c1c1c;
+      border-radius: 11px;
+      aspect-ratio: 1080 / 1920;
+      animation: pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes pulse { 0%,100% { opacity: 0.3; } 50% { opacity: 0.6; } }
+
+    .spinner {
+      display: inline-block;
+      width: 11px; height: 11px;
+      border: 1.5px solid #2a2a2a;
+      border-top-color: #777;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 5px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>poster-motion</h1>
+    <span class="tag">Phase 1</span>
+  </header>
+
+  <div class="layout">
+
+    <!-- ── Left panel ── -->
+    <aside class="panel-left">
+
+      <div class="section-title">输入</div>
+
+      <div class="field">
+        <label>App URL</label>
+        <input type="url" id="urlInput" placeholder="https://example.com" value="https://justyn.spailab.com/ev-calc.html" />
+      </div>
+
+      <div class="field">
+        <label>标题</label>
+        <input type="text" id="titleInput" placeholder="全新体验" maxlength="20" value="主标题长度测试" />
+      </div>
+
+      <div class="section-title">维度</div>
+
+      <div class="dims-section" id="dimsSection">
+        <!-- rendered by JS -->
+      </div>
+
+      <button class="btn btn-primary" id="generateBtn">一键生成</button>
+      <button class="btn btn-secondary" id="quickTestBtn">快速测试（跳过截图）</button>
+
+      <div class="progress-box hidden" id="progressBox">
+        <div class="phase-label" id="phaseLabel"></div>
+        <div id="progressDetail"></div>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar" id="progressBar" style="width:0%"></div>
+        </div>
+      </div>
+
+      <button class="btn btn-secondary hidden" id="regenBtn">重新生成（新配色）</button>
+
+    </aside>
+
+    <!-- ── Right panel ── -->
+    <main class="panel-right" id="panelRight">
+
+      <!-- Live animation preview (always visible) -->
+      <div class="preview-pane">
+        <div class="preview-pane-header">
+          <span class="preview-pane-label">实时预览</span>
+          <span class="preview-pane-hint" id="previewHint">默认配色 · 生成后同步真实配色</span>
+        </div>
+        <div class="preview-wrap">
+          <iframe id="previewFrame" src="/preview.html"></iframe>
+        </div>
+      </div>
+
+    </main>
+
+  </div>
+
+  <script>
+    // ── Dimension config ───────────────────────────────────────────────────────
+    const DIM_CONFIG = [
+      // Background order follows reactbits sidebar; custom (non-reactbits) entries listed first
+      { key: 'background', label: 'Background', options: [
+          { value: 'gradient',   label: 'Gradient'    },  // custom
+          { value: 'blocks',     label: 'Blocks'      },  // custom
+          { value: 'silk',       label: 'Silk'        },  // #5
+          { value: 'lineWaves',  label: 'Line Waves'  },  // #11
+          { value: 'aurora',     label: 'Aurora'      },  // #14
+          { value: 'beams',      label: 'Beams'       },  // #21
+          { value: 'galaxy',     label: 'Galaxy'      },  // #25
+          { value: 'rippleGrid', label: 'Ripple Grid' },  // #28
+          { value: 'dotField',   label: 'Dot Field'   },  // #29
+          { value: 'dotGrid',    label: 'Dot Grid'    },  // #30
+          { value: 'threads',    label: 'Threads'     },  // #31
+          { value: 'waves',      label: 'Waves'       },  // #34
+          { value: 'ballpit',    label: 'Ballpit'     },  // #36
+          { value: 'balatro',    label: 'Balatro'     },  // #42
+      ]},
+      // Text Effect order follows reactbits Text Animations sidebar
+      { key: 'textEffect', label: 'Text Effect', options: [
+          { value: 'splitText',    label: 'Split Text'    },  // #1
+          { value: 'blurText',     label: 'Blur Text'     },  // #2
+          { value: 'circularText', label: 'Circular Text' },  // #3
+          { value: 'textType',     label: 'Text Type'     },  // #4
+          { value: 'shuffleText',  label: 'Shuffle'       },  // #5
+          { value: 'shinyText',    label: 'Shiny Text'    },  // #6
+          { value: 'fuzzyText',    label: 'Fuzzy Text'    },  // #7
+          { value: 'rotatingText', label: 'Rotating Text' },  // #8
+          { value: 'glitchText',   label: 'Glitch Text'   },  // #9
+          { value: 'gradientText', label: 'Gradient Text' },  // #10
+          { value: 'countUp',      label: 'Count Up'      },  // #11
+      ]},
+      { key: 'decoration', label: 'Decoration', options: [
+          { value: 'circles',      label: 'Circles'       },
+          { value: 'lines',        label: 'Lines'         },
+          { value: 'glowRing',     label: 'Glow Ring'     },
+          { value: 'circularText', label: 'Circular Text' },
+      ]},
+      { key: 'entrance', label: 'Entrance', options: [
+          { value: 'fadeSlideUp', label: 'Fade Slide Up' },
+          { value: 'scaleIn',     label: 'Scale In'      },
+          { value: 'floatIn',     label: 'Float In'      },
+          { value: 'blurIn',      label: 'Blur In'       },
+      ]},
+      { key: 'layout', label: 'Layout', options: [
+          { value: 'titleTop',    label: 'Title Top'    },
+          { value: 'titleBottom', label: 'Title Bottom' },
+      ]},
+    ];
+
+    const selected = {};
+    DIM_CONFIG.forEach(d => { selected[d.key] = d.options[0].value; });
+
+    // State: captured imageUrl/seed kept after first render — enables fast re-render
+    let currentImageUrl = null;
+    let currentTitle    = null;
+    let currentSeed     = null;   // preserve seed so palette stays identical on dimension switch
+    let rerenderInFlight = false;
+
+    // ── Preview iframe messaging ───────────────────────────────────────────────
+    function previewPost(msg) {
+      const f = document.getElementById('previewFrame');
+      if (f && f.contentWindow) f.contentWindow.postMessage(msg, '*');
+    }
+    function syncPreviewDims() {
+      previewPost({ type: 'UPDATE_DIMS', dimensions: { ...selected } });
+    }
+    function syncPreviewTitle() {
+      const title = document.getElementById('titleInput').value.trim() || '预览动效';
+      previewPost({ type: 'UPDATE_TITLE', title });
+    }
+
+    // Build dimension selector UI
+    const dimsSection = document.getElementById('dimsSection');
+    DIM_CONFIG.forEach(dim => {
+      const row = document.createElement('div');
+      row.className = 'dim-row';
+      row.innerHTML = `<div class="dim-label">${dim.label}</div><div class="dim-options" id="opts-${dim.key}"></div>`;
+      const opts = row.querySelector('.dim-options');
+      dim.options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'dim-btn' + (opt.value === selected[dim.key] ? ' active' : '');
+        btn.textContent = opt.label;
+        btn.addEventListener('click', () => {
+          if (selected[dim.key] === opt.value) return; // nothing changed
+          selected[dim.key] = opt.value;
+          opts.querySelectorAll('.dim-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          // Always update the live preview immediately
+          syncPreviewDims();
+          // If a poster already exists, re-render with new dimensions (skip Playwright)
+          if (currentImageUrl) triggerRerender();
+        });
+        opts.appendChild(btn);
+      });
+      dimsSection.appendChild(row);
+    });
+
+    // ── Elements ───────────────────────────────────────────────────────────────
+    const urlInput       = document.getElementById('urlInput');
+    const titleInput     = document.getElementById('titleInput');
+    // Sync title to preview as user types
+    titleInput.addEventListener('input', syncPreviewTitle);
+    const generateBtn    = document.getElementById('generateBtn');
+    const quickTestBtn   = document.getElementById('quickTestBtn');
+    const regenBtn       = document.getElementById('regenBtn');
+    const progressBox    = document.getElementById('progressBox');
+    const phaseLabel     = document.getElementById('phaseLabel');
+    const progressDetail = document.getElementById('progressDetail');
+    const progressBar    = document.getElementById('progressBar');
+
+    let pollTimer = null;
+
+    // ── Full render (Playwright + Remotion) ────────────────────────────────────
+    generateBtn.addEventListener('click',  () => startRender());
+    quickTestBtn.addEventListener('click', () => triggerQuickTest());
+    regenBtn.addEventListener('click',     () => triggerRecolor());
+
+    async function startRender() {
+      const url   = urlInput.value.trim();
+      const title = titleInput.value.trim() || '全新体验';
+      if (!url) { urlInput.focus(); return; }
+
+      currentImageUrl = null; // reset so dimension switches don't fire during capture
+      currentSeed     = null;
+      stopPolling();
+      setUIRunning();
+
+      try {
+        const resp = await fetch('/api/render', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url, title, dimensions: { ...selected } }),
+        });
+        if (!resp.ok) {
+          const e = await resp.json().catch(() => ({ error: resp.statusText }));
+          throw new Error(e.error);
+        }
+        const { jobId } = await resp.json();
+        pollJob(jobId);
+      } catch (err) {
+        setUIIdle();
+        alert('启动失败: ' + err.message);
+      }
+    }
+
+    // ── Polling ────────────────────────────────────────────────────────────────
+    function pollJob(jobId) {
+      pollTimer = setInterval(async () => {
+        try {
+          const resp = await fetch(`/api/jobs/${jobId}`);
+          const job  = await resp.json();
+          updateProgress(job);
+          if (job.status === 'completed' || job.status === 'failed') {
+            stopPolling();
+            setUIIdle();
+            if (job.status === 'completed') {
+              if (job.renders.length > 0) {
+                currentImageUrl = job.renders[0].config.imageUrl;
+                currentTitle    = job.renders[0].config.title;
+                currentSeed     = job.renders[0].config.seed;
+                previewPost({ type: 'UPDATE_CONFIG', config: job.renders[0].config });
+                document.getElementById('previewHint').textContent = '已同步海报配色';
+                regenBtn.classList.remove('hidden');
+              } else {
+                alert('截图成功但渲染结果为空，请检查服务端日志');
+              }
+            } else {
+              alert('生成失败: ' + (job.error || '未知错误'));
+            }
+          }
+        } catch (e) { console.error('poll error', e); }
+      }, 1500);
+    }
+
+    function stopPolling() {
+      if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
+    }
+
+    // ── Quick test (fixed test image, no Playwright, just style testing) ─────────
+    async function triggerQuickTest() {
+      if (rerenderInFlight) return;
+      rerenderInFlight = true;
+      quickTestBtn.disabled = true;
+      quickTestBtn.textContent = '渲染中…';
+
+      const testImageUrl = `${window.location.origin}/placeholder-screenshot.png`;
+      const title = titleInput.value.trim() || '快速测试';
+      const seed  = crypto.randomUUID();
+
+      try {
+        const resp = await fetch('/api/rerender', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ imageUrl: testImageUrl, title, dimensions: { ...selected }, seed }),
+        });
+        if (!resp.ok) throw new Error((await resp.json().catch(() => ({}))).error || resp.statusText);
+        const { config } = await resp.json();
+
+        // Store state so dimension-switches and recolor button work from here
+        currentImageUrl = testImageUrl;
+        currentTitle    = title;
+        currentSeed     = seed;
+
+        previewPost({ type: 'UPDATE_CONFIG', config });
+        document.getElementById('previewHint').textContent = '测试图 · 已同步配色';
+        regenBtn.classList.remove('hidden');
+      } catch (err) {
+        alert('快速测试失败: ' + err.message);
+      } finally {
+        rerenderInFlight = false;
+        quickTestBtn.disabled = false;
+        quickTestBtn.textContent = '快速测试（跳过截图）';
+      }
+    }
+
+    // ── Fast re-render (dimension switch, no Playwright) ───────────────────────
+    async function triggerRerender() {
+      if (!currentImageUrl || rerenderInFlight) return;
+      rerenderInFlight = true;
+
+      try {
+        const resp = await fetch('/api/rerender', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            imageUrl:   currentImageUrl,
+            title:      currentTitle || titleInput.value.trim() || '全新体验',
+            dimensions: { ...selected },
+            seed:       currentSeed,
+          }),
+        });
+        if (!resp.ok) {
+          const e = await resp.json().catch(() => ({ error: resp.statusText }));
+          throw new Error(e.error);
+        }
+        const { config } = await resp.json();
+        previewPost({ type: 'UPDATE_CONFIG', config });
+      } catch (err) {
+        console.error('rerender error:', err);
+      } finally {
+        rerenderInFlight = false;
+      }
+    }
+
+    // ── Recolor (same dimensions + image, new AI palette) ─────────────────────
+    async function triggerRecolor() {
+      console.log('[recolor] clicked — currentImageUrl:', currentImageUrl, '| rerenderInFlight:', rerenderInFlight);
+      if (!currentImageUrl) { console.warn('[recolor] 阻止：currentImageUrl 为 null，请先完成一次渲染'); return; }
+      if (rerenderInFlight) { console.warn('[recolor] 阻止：rerenderInFlight = true'); return; }
+      rerenderInFlight = true;
+      regenBtn.disabled = true;
+      regenBtn.textContent = '生成中…';
+
+      // New seed → forces AI to generate a fresh palette
+      const newSeed = crypto.randomUUID();
+
+      try {
+        const resp = await fetch('/api/rerender', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            imageUrl:   currentImageUrl,
+            title:      currentTitle || titleInput.value.trim() || '全新体验',
+            dimensions: { ...selected },
+            seed:       newSeed,
+          }),
+        });
+        if (!resp.ok) {
+          const e = await resp.json().catch(() => ({ error: resp.statusText }));
+          throw new Error(e.error);
+        }
+        const { config } = await resp.json();
+        // Update currentSeed so future dimension-switches use this new palette
+        currentSeed = newSeed;
+        previewPost({ type: 'UPDATE_CONFIG', config });
+        document.getElementById('previewHint').textContent = '已更新配色';
+      } catch (err) {
+        console.error('recolor error:', err);
+        alert('配色更新失败: ' + err.message);
+      } finally {
+        rerenderInFlight = false;
+        regenBtn.disabled = false;
+        regenBtn.textContent = '重新生成（新配色）';
+      }
+    }
+
+    // ── Progress ───────────────────────────────────────────────────────────────
+    function updateProgress(job) {
+      if (job.phase === 'queued') {
+        phaseLabel.innerHTML = '<span class="spinner"></span>启动中…';
+        progressDetail.textContent = '正在创建任务';
+        progressBar.style.width = '5%';
+      } else if (job.phase === 'capturing') {
+        phaseLabel.innerHTML = '<span class="spinner"></span>正在截图…';
+        progressDetail.textContent = '正在访问页面';
+        progressBar.style.width = '15%';
+      } else if (job.phase === 'rendering') {
+        const done  = job.rendersDone || 0;
+        const total = job.total || 1;
+        phaseLabel.innerHTML = '<span class="spinner"></span>正在渲染…';
+        progressDetail.textContent = `${done} / ${total} 张完成`;
+        progressBar.style.width = (50 + (done / total) * 50) + '%';
+      }
+    }
+
+    // ── UI state ───────────────────────────────────────────────────────────────
+    function setUIRunning() {
+      generateBtn.disabled = true;
+      regenBtn.classList.add('hidden');
+      progressBox.classList.remove('hidden');
+      progressBar.style.width = '0%';
+      phaseLabel.innerHTML = '<span class="spinner"></span>启动中…';
+      progressDetail.textContent = '';
+    }
+
+    function setUIIdle() {
+      generateBtn.disabled = false;
+      progressBox.classList.add('hidden');
+    }
+  </script>
+</body>
+</html>

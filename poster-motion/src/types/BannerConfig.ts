@@ -1,0 +1,59 @@
+import React from 'react';
+
+// ─── Color palette ────────────────────────────────────────────────────────────
+
+export interface Palette {
+  bg: string;       // background base color
+  bgEnd: string;    // gradient end color
+  accent: string;   // primary accent
+  accent2: string;  // secondary accent
+  text: string;     // headline text color
+  muted: string;    // secondary text (rgba)
+  card: string;     // card / glass overlay (rgba)
+  shadow: string;   // shadow color (rgba)
+}
+
+// ─── Dimension keys ───────────────────────────────────────────────────────────
+
+export interface BannerDimensions {
+  background: string;  // 'gradient' | 'blocks' | ...
+  textEffect: string;  // 'static' | 'fade' | ...
+  decoration: string;  // 'circles' | 'lines' | ...
+  entrance: string;    // 'fadeSlideUp' | 'scaleIn' | ...
+  layout: string;      // 'titleTop' | 'titleBottom' | ...
+}
+
+// ─── Main config ─────────────────────────────────────────────────────────────
+
+export interface BannerConfig {
+  /** HTTP URL of the uploaded image (served locally by Express) */
+  imageUrl: string;
+  /** HTTP URL of the phone mockup frame PNG */
+  mockupUrl: string;
+  /** Headline text */
+  title: string;
+  /** One selected option per dimension */
+  dimensions: BannerDimensions;
+  /** Generated color palette */
+  palette: Palette;
+  /** Canvas width in px (App Store 5.5") */
+  width: number;
+  /** Canvas height in px */
+  height: number;
+  /** Reproducible seed string */
+  seed: string;
+}
+
+// ─── Dimension component props ────────────────────────────────────────────────
+
+export interface DimensionProps {
+  frame: number;
+  fps: number;
+  palette: Palette;
+  config: BannerConfig;
+}
+
+/** Entrance components wrap children and apply an animated container */
+export interface EntranceDimensionProps extends DimensionProps {
+  children: React.ReactNode;
+}

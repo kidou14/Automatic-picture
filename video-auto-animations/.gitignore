@@ -1,0 +1,11 @@
+# Generated video output
+output/
+
+# Test session artifacts
+sessions/
+
+# Playwright screenshots
+public/screenshots/
+
+# Webpack build
+build/

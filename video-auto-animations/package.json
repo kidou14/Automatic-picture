@@ -6,19 +6,26 @@
   "scripts": {
     "studio": "npx remotion studio src/index.tsx",
     "render": "npx remotion render src/index.tsx",
-    "render:video": "node scripts/render.js"
+    "render:video": "node scripts/render.js",
+    "server": "node server/server.js",
+    "dev": "node server/server.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.89.0",
     "@remotion/cli": "^4.0.443",
     "@remotion/renderer": "^4.0.443",
     "@remotion/studio": "^4.0.443",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
     "mediabunny": "^1.40.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "remotion": "^4.0.443"
+    "remotion": "^4.0.443",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "playwright": "^1.59.1"

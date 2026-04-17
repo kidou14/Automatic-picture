@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8" />
+  <title>Preview</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { width: 100%; height: 100%; overflow: hidden; background: #050505; }
+    #root { width: 100%; height: 100%; }
+    /* Loading state shown before the bundle mounts */
+    #loading {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      color: #333; font-family: system-ui, sans-serif; font-size: 13px;
+      background: #050505;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading">加载中…</div>
+  <div id="root"></div>
+  <script>
+    // Hide loading indicator once the bundle starts executing
+    document.addEventListener('DOMContentLoaded', () => {
+      const loading = document.getElementById('loading');
+      if (loading) setTimeout(() => loading.style.display = 'none', 200);
+    });
+  </script>
+  <script src="/preview.bundle.js"></script>
+</body>
+</html>
