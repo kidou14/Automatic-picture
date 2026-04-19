@@ -1,12 +1,13 @@
 import React from 'react';
 import { AbsoluteFill } from 'remotion';
 import { DimensionProps } from '../../types/BannerConfig';
+import { MARGIN_V, TEXT_H } from '../../layout';
 
 export const StaticText: React.FC<DimensionProps> = ({ palette, config }) => {
   const isTop = config.dimensions.layout === 'titleTop';
   const posStyle: React.CSSProperties = isTop
-    ? { top: 0, height: config.height * 0.22 }
-    : { bottom: 0, height: config.height * 0.22 };
+    ? { top: config.height * MARGIN_V, height: config.height * TEXT_H }
+    : { bottom: config.height * MARGIN_V, height: config.height * TEXT_H };
 
   return (
     <AbsoluteFill>

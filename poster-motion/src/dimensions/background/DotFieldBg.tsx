@@ -55,9 +55,10 @@ export const DotFieldBg: React.FC<DimensionProps> = ({ frame, fps, palette, conf
     grad.addColorStop(1, hexToRgba(palette.accent2, 0.40));
     ctx.fillStyle = grad;
 
-    const DOT_RADIUS   = 2.5;
-    const WAVE_AMP     = 9;           // px ripple amplitude
-    const t            = frame * 0.02; // matches original frameCount * 0.02
+    const bp         = config.params?.bg ?? {};
+    const DOT_RADIUS = bp.dotRadius ?? 2.5;
+    const WAVE_AMP   = bp.waveAmp ?? 9;
+    const t          = frame * 0.02; // matches original frameCount * 0.02
 
     ctx.beginPath();
     for (const d of dotsRef.current) {
@@ -67,7 +68,7 @@ export const DotFieldBg: React.FC<DimensionProps> = ({ frame, fps, palette, conf
       ctx.arc(drawX, drawY, DOT_RADIUS, 0, Math.PI * 2);
     }
     ctx.fill();
-  }, [frame, fps, palette, W, H]);
+  }, [frame, fps, palette, W, H, config.params]);
 
   return (
     <AbsoluteFill>

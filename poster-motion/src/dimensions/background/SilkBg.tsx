@@ -65,17 +65,18 @@ export const SilkBg: React.FC<DimensionProps> = ({ frame, fps, palette, config }
     const [cr, cg, cb] = hexToVec3(palette.accent);
     const [br, bg, bb] = hexToVec3(palette.bg);
 
+    const bp = config.params?.bg ?? {};
     gl.uniform1f(u('uTime'),          t);
-    gl.uniform1f(u('uSpeed'),         5.0);
-    gl.uniform1f(u('uScale'),         1.0);   // original default is 1.0
-    gl.uniform1f(u('uNoiseIntensity'),1.5);
+    gl.uniform1f(u('uSpeed'),         bp.speed ?? 5.0);
+    gl.uniform1f(u('uScale'),         bp.scale ?? 1.0);
+    gl.uniform1f(u('uNoiseIntensity'),bp.noiseIntensity ?? 1.5);
     gl.uniform3f(u('uColor'),  cr, cg, cb);
     gl.uniform3f(u('uBgColor'),br, bg, bb);
 
     gl.clearColor(br, bg, bb, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
-  }, [frame, fps, palette]);
+  }, [frame, fps, palette, config.params]);
 
   return (
     <AbsoluteFill>

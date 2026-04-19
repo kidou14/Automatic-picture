@@ -18,9 +18,34 @@ export interface Palette {
 export interface BannerDimensions {
   background: string;  // 'gradient' | 'blocks' | ...
   textEffect: string;  // 'static' | 'fade' | ...
-  decoration: string;  // 'circles' | 'lines' | ...
   entrance: string;    // 'fadeSlideUp' | 'scaleIn' | ...
   layout: string;      // 'titleTop' | 'titleBottom' | ...
+}
+
+// ─── Adjustable parameters (per-dimension overrides) ─────────────────────────
+
+export interface BannerParams {
+  /** Mockup / phone frame controls */
+  mockup?: {
+    scale?: number;
+    [key: string]: number | undefined;
+  };
+  /** Text effect controls (used by Stage 2 text components) */
+  text?: {
+    fontSize?: number;
+    letterSpacing?: number;
+    speed?: number;
+    [key: string]: number | undefined;
+  };
+  /** Background effect controls (used by Stage 3 bg components) */
+  bg?: {
+    [key: string]: number | undefined;
+  };
+  /** Global controls that map to top-level BannerConfig fields */
+  global?: {
+    textScale?: number;
+    [key: string]: number | undefined;
+  };
 }
 
 // ─── Main config ─────────────────────────────────────────────────────────────
@@ -42,6 +67,10 @@ export interface BannerConfig {
   height: number;
   /** Reproducible seed string */
   seed: string;
+  /** Optional uniform text scale multiplier (default 1.0) */
+  textScale?: number;
+  /** Per-dimension parameter overrides (sliders, knobs, etc.) */
+  params?: BannerParams;
 }
 
 // ─── Dimension component props ────────────────────────────────────────────────

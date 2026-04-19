@@ -98,9 +98,10 @@ export const AuroraBg: React.FC<DimensionProps> = ({ frame, fps, palette, config
     const [c2r, c2g, c2b] = hexToVec3(palette.accent);
     const [br,  bg_, bb ] = hexToVec3(palette.bg);
 
+    const bp = config.params?.bg ?? {};
     gl.uniform1f(u('uTime'),        t);
-    gl.uniform1f(u('uAmplitude'),   1.0);
-    gl.uniform1f(u('uBlend'),       0.5);
+    gl.uniform1f(u('uAmplitude'),   bp.amplitude ?? 1.0);
+    gl.uniform1f(u('uBlend'),       bp.blend ?? 0.5);
     gl.uniform2f(u('uResolution'),  config.width, config.height);
     gl.uniform3fv(u('uColorStops'), new Float32Array([c0r,c0g,c0b, c1r,c1g,c1b, c2r,c2g,c2b]));
     gl.uniform3f(u('uBgColor'),     br, bg_, bb);
@@ -108,7 +109,7 @@ export const AuroraBg: React.FC<DimensionProps> = ({ frame, fps, palette, config
     gl.clearColor(br, bg_, bb, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
-  }, [frame, fps, palette, config.width, config.height]);
+  }, [frame, fps, palette, config.width, config.height, config.params]);
 
   return (
     <AbsoluteFill>

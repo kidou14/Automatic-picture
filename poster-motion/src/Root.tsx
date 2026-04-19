@@ -11,7 +11,6 @@ const defaultConfig: BannerConfig = {
   dimensions: {
     background: 'gradient',
     textEffect: 'fade',
-    decoration: 'circles',
     entrance: 'fadeSlideUp',
     layout: 'titleTop',
   },

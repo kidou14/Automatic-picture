@@ -1,6 +1,7 @@
 import React from 'react';
 import { AbsoluteFill } from 'remotion';
 import { DimensionProps } from '../../types/BannerConfig';
+import { MARGIN_V, TEXT_H } from '../../layout';
 
 // Faithful Remotion port of reactbits.dev TextType (typewriter effect).
 // Characters appear one at a time; a blinking cursor follows the insertion point.
@@ -10,8 +11,8 @@ import { DimensionProps } from '../../types/BannerConfig';
 export const TextType: React.FC<DimensionProps> = ({ frame, palette, config }) => {
   const isTop = config.dimensions.layout === 'titleTop';
   const posStyle: React.CSSProperties = isTop
-    ? { top: 0, height: config.height * 0.22 }
-    : { bottom: 0, height: config.height * 0.22 };
+    ? { top: config.height * MARGIN_V, height: config.height * TEXT_H }
+    : { bottom: config.height * MARGIN_V, height: config.height * TEXT_H };
 
   const chars           = Array.from(config.title);
   // Finish typing well before the clip ends so the final paused frame shows the full title.

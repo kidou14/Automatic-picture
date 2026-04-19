@@ -1,6 +1,7 @@
 import React from 'react';
 import { AbsoluteFill, interpolate } from 'remotion';
 import { DimensionProps } from '../../types/BannerConfig';
+import { MARGIN_V, TEXT_H } from '../../layout';
 
 // Inspired by reactbits.dev ShinyText:
 // a shine highlight sweeps left→right across the text.
@@ -9,8 +10,8 @@ import { DimensionProps } from '../../types/BannerConfig';
 export const ShinyText: React.FC<DimensionProps> = ({ frame, palette, config }) => {
   const isTop = config.dimensions.layout === 'titleTop';
   const posStyle: React.CSSProperties = isTop
-    ? { top: 0, height: config.height * 0.22 }
-    : { bottom: 0, height: config.height * 0.22 };
+    ? { top: config.height * MARGIN_V, height: config.height * TEXT_H }
+    : { bottom: config.height * MARGIN_V, height: config.height * TEXT_H };
 
   // shinePos: 150% (shine off-right) at frame 0 → -50% (shine off-left) at frame 90
   // so at frame 60 shine sits at 150 - (60/90)*200 ≈ 17% = nicely visible on text

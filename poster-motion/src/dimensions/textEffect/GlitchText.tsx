@@ -1,6 +1,7 @@
 import React from 'react';
 import { AbsoluteFill } from 'remotion';
 import { DimensionProps } from '../../types/BannerConfig';
+import { MARGIN_V, TEXT_H } from '../../layout';
 
 // Faithful Remotion port of reactbits.dev GlitchText.
 // Three-layer approach: main text + red shadow ghost + cyan shadow ghost.
@@ -19,10 +20,10 @@ const polygonStrip = (top: number, h: number): string => {
 
 export const GlitchText: React.FC<DimensionProps> = ({ frame, palette, config }) => {
   const isTop = config.dimensions.layout === 'titleTop';
-  const areaH = Math.round(config.height * 0.22);
+  const areaH = Math.round(config.height * TEXT_H);
   const posStyle: React.CSSProperties = isTop
-    ? { top: 0, height: areaH }
-    : { bottom: 0, height: areaH };
+    ? { top: Math.round(config.height * MARGIN_V), height: areaH }
+    : { bottom: Math.round(config.height * MARGIN_V), height: areaH };
 
   // Glitch active for 6 frames out of every 30 (~speed=1 CSS animation tempo)
   const isGlitching = (frame % 30) < 6;
@@ -32,13 +33,17 @@ export const GlitchText: React.FC<DimensionProps> = ({ frame, palette, config })
   const strip1 = polygonStrip(lcg(seed * 11)      * 80, lcg(seed * 11 + 3) * 15 + 5);
   const strip2 = polygonStrip(lcg(seed * 17)      * 80, lcg(seed * 17 + 5) * 15 + 5);
 
+  const tp            = config.params?.text ?? {};
+  const fontSize      = tp.fontSize ?? 88;
+  const letterSpacing = tp.letterSpacing !== undefined ? `${tp.letterSpacing}em` : '-0.02em';
+
   const baseStyle: React.CSSProperties = {
     margin:        0,
     textAlign:     'center',
-    fontSize:      88,
+    fontSize,
     fontWeight:    800,
     lineHeight:    1.15,
-    letterSpacing: '-0.02em',
+    letterSpacing,
     fontFamily:    'system-ui, -apple-system, sans-serif',
     color:         palette.text,
     width:         '100%',

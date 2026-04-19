@@ -1,6 +1,7 @@
 import React from 'react';
 import { Img } from 'remotion';
 import { BannerConfig } from '../types/BannerConfig';
+import { MARGIN_V, IMG_OFFSET } from '../layout';
 
 // ── Mockup frame constants (iPhone 16 Pro Max frame: 1022×2082) ───────────────
 // Identical to Auto-banner-OneClick/render-engine.js lines 17-23.
@@ -22,8 +23,8 @@ export const ImageLayer: React.FC<{ config: BannerConfig }> = ({ config }) => {
 
   // Title takes 26% of height; image occupies the remaining space.
   const imageAreaStyle: React.CSSProperties = isTop
-    ? { position: 'absolute', top: height * 0.26, bottom: 0, left: 60, right: 60 }
-    : { position: 'absolute', top: 0, bottom: height * 0.26, left: 60, right: 60 };
+    ? { position: 'absolute', top: height * IMG_OFFSET, bottom: height * MARGIN_V, left: 60, right: 60 }
+    : { position: 'absolute', top: height * MARGIN_V, bottom: height * IMG_OFFSET, left: 60, right: 60 };
 
   return (
     <div style={imageAreaStyle}>
@@ -38,6 +39,7 @@ export const ImageLayer: React.FC<{ config: BannerConfig }> = ({ config }) => {
           aspectRatio: `${MK_W} / ${MK_H}`,
           maxWidth:    '92%',
           flexShrink:  0,
+          transform:   `scale(${config.params?.mockup?.scale ?? 1.32})`,
         }}>
 
           {/* Mockup frame PNG — phone bezel sits at the bottom layer */}

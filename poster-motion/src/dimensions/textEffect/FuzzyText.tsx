@@ -1,6 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { AbsoluteFill } from 'remotion';
 import { DimensionProps } from '../../types/BannerConfig';
+import { MARGIN_V, TEXT_H } from '../../layout';
 
 // Faithful Remotion port of reactbits.dev FuzzyText.
 // Canvas-based: each row is drawn with a random horizontal offset.
@@ -70,8 +71,10 @@ export const FuzzyText: React.FC<DimensionProps> = ({ frame, palette, config }) 
     ctx.restore();
   }, [frame, palette.text, config.title]);
 
-  const areaH   = Math.round(config.height * 0.22);
-  const areaTop = isTop ? 0 : config.height - areaH;
+  const areaH   = Math.round(config.height * TEXT_H);
+  const areaTop = isTop
+    ? Math.round(config.height * MARGIN_V)
+    : config.height - Math.round(config.height * MARGIN_V) - areaH;
 
   return (
     <AbsoluteFill>

@@ -34,7 +34,7 @@ export const BallpitBg: React.FC<DimensionProps> = ({ frame, palette, config }) 
     const phase = rand() * Math.PI * 2;
     const depth = rand();                // 0 = far/back, 1 = near/front
 
-    const t  = frame / 30;
+    const t  = (frame / 30) * (config.params?.bg?.speed ?? 1.0);
     const ax = x0 + Math.sin(t * speed + phase)        * 7;
     const ay = y0 + Math.cos(t * speed * 0.8 + phase)  * 9;
 

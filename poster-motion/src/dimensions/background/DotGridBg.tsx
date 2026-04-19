@@ -42,8 +42,9 @@ export const DotGridBg: React.FC<DimensionProps> = ({ frame, fps, palette, confi
     ctx.fillStyle = palette.bg;
     ctx.fillRect(0, 0, W, H);
 
-    const DOT_RADIUS = 5;
-    const PROXIMITY  = 220;
+    const bp         = config.params?.bg ?? {};
+    const DOT_RADIUS = bp.dotRadius ?? 5;
+    const PROXIMITY  = bp.proximity ?? 220;
     const proxSq     = PROXIMITY * PROXIMITY;
 
     // Virtual hotspot: slow elliptical orbit across the canvas
@@ -77,7 +78,7 @@ export const DotGridBg: React.FC<DimensionProps> = ({ frame, fps, palette, confi
       ctx.fillStyle = fillStyle;
       ctx.fill();
     }
-  }, [frame, fps, palette, W, H]);
+  }, [frame, fps, palette, W, H, config.params]);
 
   return (
     <AbsoluteFill>

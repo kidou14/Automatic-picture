@@ -1,6 +1,7 @@
 import React from 'react';
 import { AbsoluteFill, interpolate } from 'remotion';
 import { DimensionProps } from '../../types/BannerConfig';
+import { MARGIN_V, TEXT_H } from '../../layout';
 
 // Inspired by reactbits.dev GradientText:
 // text rendered with an animated moving gradient fill.
@@ -9,8 +10,8 @@ import { DimensionProps } from '../../types/BannerConfig';
 export const GradientText: React.FC<DimensionProps> = ({ frame, palette, config }) => {
   const isTop = config.dimensions.layout === 'titleTop';
   const posStyle: React.CSSProperties = isTop
-    ? { top: 0, height: config.height * 0.22 }
-    : { bottom: 0, height: config.height * 0.22 };
+    ? { top: config.height * MARGIN_V, height: config.height * TEXT_H }
+    : { bottom: config.height * MARGIN_V, height: config.height * TEXT_H };
 
   // Full yoyo sweep over 90 frames: 0 → 100 → 0 (matches reactbits yoyo: true default)
   const gradientPos = interpolate(frame, [0, 45, 90], [0, 100, 0], {

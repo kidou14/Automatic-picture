@@ -124,6 +124,29 @@
     .progress-bar-wrap { height: 2px; background: #1c1c1c; border-radius: 2px; overflow: hidden; margin-top: 8px; }
     .progress-bar { height: 100%; background: #444; border-radius: 2px; transition: width 0.4s ease; }
 
+    /* ── Param sliders ─────────────────────────────────── */
+    .params-section { display: flex; flex-direction: column; gap: 10px; }
+    .param-row { display: flex; flex-direction: column; gap: 4px; }
+    .param-row-header { display: flex; justify-content: space-between; align-items: baseline; }
+    .param-label { font-size: 11px; color: #666; }
+    .param-value {
+      font-size: 10px; color: #444;
+      font-variant-numeric: tabular-nums;
+      min-width: 32px; text-align: right;
+    }
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%; height: 2px;
+      background: #222; border-radius: 2px; outline: none; cursor: pointer;
+    }
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 13px; height: 13px; border-radius: 50%;
+      background: #555; cursor: pointer;
+      transition: background 0.15s;
+    }
+    input[type="range"]::-webkit-slider-thumb:hover { background: #999; }
+
     .hidden { display: none !important; }
 
     /* ── Right panel ───────────────────────────────── */
@@ -290,6 +313,18 @@
     <!-- ── Left panel ── -->
     <aside class="panel-left">
 
+      <div class="section-title">维度</div>
+
+      <div class="dims-section" id="dimsSection">
+        <!-- rendered by JS -->
+      </div>
+
+      <div class="section-title">参数</div>
+
+      <div class="params-section" id="paramsSection">
+        <!-- rendered by JS -->
+      </div>
+
       <div class="section-title">输入</div>
 
       <div class="field">
@@ -302,14 +337,7 @@
         <input type="text" id="titleInput" placeholder="全新体验" maxlength="20" value="主标题长度测试" />
       </div>
 
-      <div class="section-title">维度</div>
-
-      <div class="dims-section" id="dimsSection">
-        <!-- rendered by JS -->
-      </div>
-
       <button class="btn btn-primary" id="generateBtn">一键生成</button>
-      <button class="btn btn-secondary" id="quickTestBtn">快速测试（跳过截图）</button>
 
       <div class="progress-box hidden" id="progressBox">
         <div class="phase-label" id="phaseLabel"></div>
@@ -346,51 +374,42 @@
     const DIM_CONFIG = [
       // Background order follows reactbits sidebar; custom (non-reactbits) entries listed first
       { key: 'background', label: 'Background', options: [
-          { value: 'gradient',   label: 'Gradient'    },  // custom
-          { value: 'blocks',     label: 'Blocks'      },  // custom
-          { value: 'silk',       label: 'Silk'        },  // #5
-          { value: 'lineWaves',  label: 'Line Waves'  },  // #11
-          { value: 'aurora',     label: 'Aurora'      },  // #14
-          { value: 'beams',      label: 'Beams'       },  // #21
-          { value: 'galaxy',     label: 'Galaxy'      },  // #25
-          { value: 'rippleGrid', label: 'Ripple Grid' },  // #28
-          { value: 'dotField',   label: 'Dot Field'   },  // #29
-          { value: 'dotGrid',    label: 'Dot Grid'    },  // #30
-          { value: 'threads',    label: 'Threads'     },  // #31
-          { value: 'waves',      label: 'Waves'       },  // #34
-          { value: 'ballpit',    label: 'Ballpit'     },  // #36
-          { value: 'balatro',    label: 'Balatro'     },  // #42
+          { value: 'gradient',    label: 'Gradient'     },  // custom
+          { value: 'blocks',      label: 'Blocks'       },  // custom
+          { value: 'silk',        label: 'Silk'         },  // #5
+          { value: 'lineWaves',   label: 'Line Waves'   },  // #11
+          { value: 'aurora',      label: 'Aurora'       },  // #14
+          { value: 'rippleGrid',  label: 'Ripple Grid'  },  // #28
+          { value: 'dotField',    label: 'Dot Field'    },  // #29
+          { value: 'dotGrid',     label: 'Dot Grid'     },  // #30
+          { value: 'threads',     label: 'Threads'      },  // #31
+          { value: 'ballpit',     label: 'Ballpit'      },  // #36
+          { value: 'nebula',      label: 'Nebula'       },  // custom
+          { value: 'shaderLines', label: 'Shader Lines' },  // custom
+          { value: 'nenoShader',  label: 'Neno Shader'  },  // custom
       ]},
       // Text Effect order follows reactbits Text Animations sidebar
       { key: 'textEffect', label: 'Text Effect', options: [
           { value: 'splitText',    label: 'Split Text'    },  // #1
           { value: 'blurText',     label: 'Blur Text'     },  // #2
-          { value: 'circularText', label: 'Circular Text' },  // #3
           { value: 'textType',     label: 'Text Type'     },  // #4
           { value: 'shuffleText',  label: 'Shuffle'       },  // #5
-          { value: 'shinyText',    label: 'Shiny Text'    },  // #6
           { value: 'fuzzyText',    label: 'Fuzzy Text'    },  // #7
           { value: 'rotatingText', label: 'Rotating Text' },  // #8
           { value: 'glitchText',   label: 'Glitch Text'   },  // #9
           { value: 'gradientText', label: 'Gradient Text' },  // #10
-          { value: 'countUp',      label: 'Count Up'      },  // #11
-      ]},
-      { key: 'decoration', label: 'Decoration', options: [
-          { value: 'circles',      label: 'Circles'       },
-          { value: 'lines',        label: 'Lines'         },
-          { value: 'glowRing',     label: 'Glow Ring'     },
-          { value: 'circularText', label: 'Circular Text' },
-      ]},
-      { key: 'entrance', label: 'Entrance', options: [
-          { value: 'fadeSlideUp', label: 'Fade Slide Up' },
-          { value: 'scaleIn',     label: 'Scale In'      },
-          { value: 'floatIn',     label: 'Float In'      },
-          { value: 'blurIn',      label: 'Blur In'       },
+          { value: 'handwriting',  label: 'Handwriting'   },  // custom
       ]},
       { key: 'layout', label: 'Layout', options: [
           { value: 'titleTop',    label: 'Title Top'    },
           { value: 'titleBottom', label: 'Title Bottom' },
       ]},
+      // { key: 'entrance', label: 'Entrance', options: [  // disabled
+      //     { value: 'fadeSlideUp', label: 'Fade Slide Up' },
+      //     { value: 'scaleIn',     label: 'Scale In'      },
+      //     { value: 'floatIn',     label: 'Float In'      },
+      //     { value: 'blurIn',      label: 'Blur In'       },
+      // ]},
     ];
 
     const selected = {};
@@ -415,6 +434,148 @@
       previewPost({ type: 'UPDATE_TITLE', title });
     }
 
+    // ── Param slider schema & state ───────────────────────────────────────────
+    // Each entry: { group, key, label, min, max, step, default, fmt? }
+    // group/key map to config.params[group][key] inside the React app.
+    // 'global.textScale' is special — also forwarded as top-level config.textScale.
+    const GLOBAL_PARAMS = [
+      { group: 'mockup', key: 'scale',     label: '样机缩放', min: 0.80, max: 2.00, step: 0.02, default: 1.32, decimals: 2, suffix: '' },
+      { group: 'global', key: 'textScale', label: '文字缩放', min: 0.50, max: 2.00, step: 0.05, default: 1.20, decimals: 2, suffix: '' },
+    ];
+
+    // ── Per-background param schemas ──────────────────────────────────────────
+    const DIM_PARAMS = {
+      background: {
+        gradient:    [],
+        blocks:      [],
+        aurora:      [
+          { key: 'amplitude', label: '振幅',   min: 0.2, max: 3.0,  step: 0.1,  default: 1.0,  decimals: 1, suffix: '' },
+          { key: 'blend',     label: '融合',   min: 0.1, max: 1.0,  step: 0.05, default: 0.5,  decimals: 2, suffix: '' },
+        ],
+        silk:        [
+          { key: 'speed',          label: '速度', min: 0.5, max: 15.0, step: 0.5,  default: 5.0, decimals: 1, suffix: '' },
+          { key: 'scale',          label: '缩放', min: 0.3, max: 4.0,  step: 0.1,  default: 1.0, decimals: 1, suffix: '' },
+          { key: 'noiseIntensity', label: '噪点', min: 0.0, max: 5.0,  step: 0.1,  default: 1.5, decimals: 1, suffix: '' },
+        ],
+        lineWaves:   [
+          { key: 'speed',         label: '速度', min: 0.05, max: 2.0, step: 0.05, default: 0.3,  decimals: 2, suffix: '' },
+          { key: 'brightness',    label: '亮度', min: 0.05, max: 0.6, step: 0.01, default: 0.2,  decimals: 2, suffix: '' },
+          { key: 'warpIntensity', label: '扭曲', min: 0.0,  max: 3.0, step: 0.1,  default: 1.2,  decimals: 1, suffix: '' },
+        ],
+        threads:     [
+          { key: 'amplitude', label: '振幅', min: 0.2, max: 4.0, step: 0.1,  default: 1.4,  decimals: 1, suffix: '' },
+          { key: 'distance',  label: '间距', min: 0.1, max: 0.8, step: 0.05, default: 0.35, decimals: 2, suffix: '' },
+        ],
+        rippleGrid:  [
+          { key: 'rippleIntensity', label: '涟漪', min: 0.0,  max: 0.3,  step: 0.01, default: 0.06, decimals: 2, suffix: '' },
+          { key: 'gridSize',        label: '密度', min: 4,    max: 25,   step: 1,    default: 10,   decimals: 0, suffix: '' },
+          { key: 'gridThickness',   label: '粗细', min: 4,    max: 30,   step: 1,    default: 12,   decimals: 0, suffix: '' },
+        ],
+        dotField:    [
+          { key: 'dotRadius', label: '点大小', min: 1.0, max: 8.0,  step: 0.5, default: 2.5, decimals: 1, suffix: '' },
+          { key: 'waveAmp',   label: '波动',   min: 0,   max: 30,   step: 1,   default: 9,   decimals: 0, suffix: '' },
+        ],
+        dotGrid:     [
+          { key: 'dotRadius', label: '点大小', min: 2,   max: 15,  step: 1,  default: 5,   decimals: 0, suffix: '' },
+          { key: 'proximity', label: '感应',   min: 50,  max: 500, step: 10, default: 220, decimals: 0, suffix: '' },
+        ],
+        ballpit:     [
+          { key: 'speed', label: '速度', min: 0.2, max: 3.0, step: 0.1, default: 1.0, decimals: 1, suffix: 'x' },
+        ],
+        nebula:      [],
+        shaderLines: [],
+        nenoShader:  [],
+      },
+    };
+
+    // Per-bg param value store (persists across bg switches within the session)
+    const bgParamStore = {};
+
+    // Live param state — initialised from defaults
+    const currentParams = {};
+    GLOBAL_PARAMS.forEach(p => {
+      if (!currentParams[p.group]) currentParams[p.group] = {};
+      currentParams[p.group][p.key] = p.default;
+    });
+
+    function syncPreviewParams() {
+      previewPost({
+        type:      'UPDATE_PARAMS',
+        params:    JSON.parse(JSON.stringify(currentParams)),          // deep clone
+        textScale: currentParams.global && currentParams.global.textScale,
+      });
+    }
+
+    // Build param sliders
+    const paramsSection = document.getElementById('paramsSection');
+    GLOBAL_PARAMS.forEach(p => {
+      const valueId  = `pv-${p.group}-${p.key}`;
+      const fmtVal   = v => v.toFixed(p.decimals ?? 2) + (p.suffix ?? '');
+      const row = document.createElement('div');
+      row.className = 'param-row';
+      row.innerHTML =
+        `<div class="param-row-header">` +
+          `<span class="param-label">${p.label}</span>` +
+          `<span class="param-value" id="${valueId}">${fmtVal(p.default)}</span>` +
+        `</div>` +
+        `<input type="range" min="${p.min}" max="${p.max}" step="${p.step}" value="${p.default}" />`;
+      row.querySelector('input').addEventListener('input', function() {
+        const val = parseFloat(this.value);
+        currentParams[p.group][p.key] = val;
+        document.getElementById(valueId).textContent = fmtVal(val);
+        syncPreviewParams();
+      });
+      paramsSection.appendChild(row);
+    });
+
+    // ── Background-specific param panel ──────────────────────────────────────
+    const bgParamsContainer = document.createElement('div');
+    bgParamsContainer.style.cssText = 'display:flex;flex-direction:column;gap:10px';
+    paramsSection.appendChild(bgParamsContainer);
+
+    function renderBgParams(bgKey) {
+      bgParamsContainer.innerHTML = '';
+      const schema = (DIM_PARAMS.background && DIM_PARAMS.background[bgKey]) || [];
+      if (schema.length === 0) return;
+
+      // Init store for this bg if first visit
+      if (!bgParamStore[bgKey]) {
+        bgParamStore[bgKey] = {};
+        schema.forEach(p => { bgParamStore[bgKey][p.key] = p.default; });
+      }
+      currentParams.bg = bgParamStore[bgKey];
+
+      // Divider
+      const sep = document.createElement('div');
+      sep.style.cssText = 'height:1px;background:#1c1c1c';
+      bgParamsContainer.appendChild(sep);
+
+      schema.forEach(p => {
+        const cur     = bgParamStore[bgKey][p.key] ?? p.default;
+        const valueId = `pv-bg-${bgKey}-${p.key}`;
+        const fmtVal  = v => v.toFixed(p.decimals ?? 2) + (p.suffix ?? '');
+        const row = document.createElement('div');
+        row.className = 'param-row';
+        row.innerHTML =
+          `<div class="param-row-header">` +
+            `<span class="param-label">${p.label}</span>` +
+            `<span class="param-value" id="${valueId}">${fmtVal(cur)}</span>` +
+          `</div>` +
+          `<input type="range" min="${p.min}" max="${p.max}" step="${p.step}" value="${cur}" />`;
+        row.querySelector('input').addEventListener('input', function() {
+          const val = parseFloat(this.value);
+          bgParamStore[bgKey][p.key] = val;
+          currentParams.bg = bgParamStore[bgKey];
+          document.getElementById(valueId).textContent = fmtVal(val);
+          syncPreviewParams();
+        });
+        bgParamsContainer.appendChild(row);
+      });
+    }
+
+    // Render initial bg params for the default selection
+    renderBgParams(selected.background);
+
     // Build dimension selector UI
     const dimsSection = document.getElementById('dimsSection');
     DIM_CONFIG.forEach(dim => {
@@ -433,6 +594,11 @@
           btn.classList.add('active');
           // Always update the live preview immediately
           syncPreviewDims();
+          // When background changes, refresh bg param sliders and push new params
+          if (dim.key === 'background') {
+            renderBgParams(opt.value);
+            syncPreviewParams();
+          }
           // If a poster already exists, re-render with new dimensions (skip Playwright)
           if (currentImageUrl) triggerRerender();
         });
@@ -447,7 +613,6 @@
     // Sync title to preview as user types
     titleInput.addEventListener('input', syncPreviewTitle);
     const generateBtn    = document.getElementById('generateBtn');
-    const quickTestBtn   = document.getElementById('quickTestBtn');
     const regenBtn       = document.getElementById('regenBtn');
     const progressBox    = document.getElementById('progressBox');
     const phaseLabel     = document.getElementById('phaseLabel');
@@ -457,9 +622,8 @@
     let pollTimer = null;
 
     // ── Full render (Playwright + Remotion) ────────────────────────────────────
-    generateBtn.addEventListener('click',  () => startRender());
-    quickTestBtn.addEventListener('click', () => triggerQuickTest());
-    regenBtn.addEventListener('click',     () => triggerRecolor());
+    generateBtn.addEventListener('click', () => startRender());
+    regenBtn.addEventListener('click',    () => triggerRecolor());
 
     async function startRender() {
       const url   = urlInput.value.trim();
@@ -520,43 +684,6 @@
 
     function stopPolling() {
       if (pollTimer) { clearInterval(pollTimer); pollTimer = null; }
-    }
-
-    // ── Quick test (fixed test image, no Playwright, just style testing) ─────────
-    async function triggerQuickTest() {
-      if (rerenderInFlight) return;
-      rerenderInFlight = true;
-      quickTestBtn.disabled = true;
-      quickTestBtn.textContent = '渲染中…';
-
-      const testImageUrl = `${window.location.origin}/placeholder-screenshot.png`;
-      const title = titleInput.value.trim() || '快速测试';
-      const seed  = crypto.randomUUID();
-
-      try {
-        const resp = await fetch('/api/rerender', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ imageUrl: testImageUrl, title, dimensions: { ...selected }, seed }),
-        });
-        if (!resp.ok) throw new Error((await resp.json().catch(() => ({}))).error || resp.statusText);
-        const { config } = await resp.json();
-
-        // Store state so dimension-switches and recolor button work from here
-        currentImageUrl = testImageUrl;
-        currentTitle    = title;
-        currentSeed     = seed;
-
-        previewPost({ type: 'UPDATE_CONFIG', config });
-        document.getElementById('previewHint').textContent = '测试图 · 已同步配色';
-        regenBtn.classList.remove('hidden');
-      } catch (err) {
-        alert('快速测试失败: ' + err.message);
-      } finally {
-        rerenderInFlight = false;
-        quickTestBtn.disabled = false;
-        quickTestBtn.textContent = '快速测试（跳过截图）';
-      }
     }
 
     // ── Fast re-render (dimension switch, no Playwright) ───────────────────────

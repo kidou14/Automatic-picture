@@ -116,12 +116,13 @@ export const RippleGridBg: React.FC<DimensionProps> = ({ frame, fps, palette, co
     const [cr,cg,cb]  = hexToVec3(palette.accent);
     const [br,bg_,bb] = hexToVec3(palette.bg);
 
+    const bp = config.params?.bg ?? {};
     gl.uniform1f(u('iTime'),           t);
     gl.uniform2f(u('iResolution'),     config.width, config.height);
     gl.uniform3f(u('gridColor'),       cr, cg, cb);
-    gl.uniform1f(u('rippleIntensity'), 0.06);
-    gl.uniform1f(u('gridSize'),        10.0);
-    gl.uniform1f(u('gridThickness'),   12.0);
+    gl.uniform1f(u('rippleIntensity'), bp.rippleIntensity ?? 0.06);
+    gl.uniform1f(u('gridSize'),        bp.gridSize ?? 10.0);
+    gl.uniform1f(u('gridThickness'),   bp.gridThickness ?? 12.0);
     gl.uniform1f(u('fadeDistance'),    1.5);
     gl.uniform1f(u('vignetteStrength'),2.0);
     gl.uniform1f(u('glowIntensity'),   0.12);
@@ -130,7 +131,7 @@ export const RippleGridBg: React.FC<DimensionProps> = ({ frame, fps, palette, co
     gl.clearColor(br, bg_, bb, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
-  }, [frame, fps, palette, config.width, config.height]);
+  }, [frame, fps, palette, config.width, config.height, config.params]);
 
   return (
     <AbsoluteFill>

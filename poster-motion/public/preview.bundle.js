@@ -767,7 +767,7 @@
   var require_react_dom_production = __commonJS({
     "node_modules/react-dom/cjs/react-dom.production.js"(exports) {
       "use strict";
-      var React66 = require_react();
+      var React59 = require_react();
       function formatProdErrorMessage(code) {
         var url = "https://react.dev/errors/" + code;
         if (1 < arguments.length) {
@@ -807,7 +807,7 @@
           implementation
         };
       }
-      var ReactSharedInternals = React66.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+      var ReactSharedInternals = React59.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
       function getCrossOriginStringAs(as, input) {
         if ("font" === as) return "";
         if ("string" === typeof input)
@@ -943,7 +943,7 @@
     "node_modules/react-dom/cjs/react-dom-client.production.js"(exports) {
       "use strict";
       var Scheduler = require_scheduler();
-      var React66 = require_react();
+      var React59 = require_react();
       var ReactDOM = require_react_dom();
       function formatProdErrorMessage(code) {
         var url = "https://react.dev/errors/" + code;
@@ -1134,7 +1134,7 @@
         return null;
       }
       var isArrayImpl = Array.isArray;
-      var ReactSharedInternals = React66.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
+      var ReactSharedInternals = React59.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
       var ReactDOMSharedInternals = ReactDOM.__DOM_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE;
       var sharedNotPendingObject = {
         pending: false,
@@ -12580,7 +12580,7 @@
           0 === i && attemptExplicitHydrationTarget(target);
         }
       };
-      var isomorphicReactPackageVersion$jscomp$inline_1840 = React66.version;
+      var isomorphicReactPackageVersion$jscomp$inline_1840 = React59.version;
       if ("19.2.5" !== isomorphicReactPackageVersion$jscomp$inline_1840)
         throw Error(
           formatProdErrorMessage(
@@ -12748,7 +12748,7 @@
   });
 
   // src/preview-app.tsx
-  var import_react144 = __toESM(require_react());
+  var import_react137 = __toESM(require_react());
   var import_client = __toESM(require_client());
 
   // node_modules/@remotion/player/dist/esm/index.mjs
@@ -24434,7 +24434,7 @@ Check that all your Remotion packages are on the same version. If your dependenc
   var Thumbnail = forward2(ThumbnailFn);
 
   // src/compositions/BannerComposition.tsx
-  var import_react143 = __toESM(require_react());
+  var import_react136 = __toESM(require_react());
 
   // src/dimensions/background/GradientBg.tsx
   var import_react107 = __toESM(require_react());
@@ -24617,138 +24617,22 @@ void main() {
       const [c1r, c1g, c1b] = hexToVec3(palette.accent2);
       const [c2r, c2g, c2b] = hexToVec3(palette.accent);
       const [br, bg_, bb] = hexToVec3(palette.bg);
+      const bp = config.params?.bg ?? {};
       gl.uniform1f(u("uTime"), t);
-      gl.uniform1f(u("uAmplitude"), 1);
-      gl.uniform1f(u("uBlend"), 0.5);
+      gl.uniform1f(u("uAmplitude"), bp.amplitude ?? 1);
+      gl.uniform1f(u("uBlend"), bp.blend ?? 0.5);
       gl.uniform2f(u("uResolution"), config.width, config.height);
       gl.uniform3fv(u("uColorStops"), new Float32Array([c0r, c0g, c0b, c1r, c1g, c1b, c2r, c2g, c2b]));
       gl.uniform3f(u("uBgColor"), br, bg_, bb);
       gl.clearColor(br, bg_, bb, 1);
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
-    }, [frame, fps, palette, config.width, config.height]);
+    }, [frame, fps, palette, config.width, config.height, config.params]);
     return /* @__PURE__ */ import_react109.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react109.default.createElement("canvas", { ref: canvasRef, style: { width: "100%", height: "100%" } }));
   };
 
-  // src/dimensions/background/BalatrosBg.tsx
-  var import_react110 = __toESM(require_react());
-  var FRAG2 = `
-precision highp float;
-#define PI 3.14159265359
-
-uniform float iTime;
-uniform vec3  iResolution;
-uniform float uSpinRotation;
-uniform float uSpinSpeed;
-uniform vec2  uOffset;
-uniform vec4  uColor1;
-uniform vec4  uColor2;
-uniform vec4  uColor3;
-uniform float uContrast;
-uniform float uLighting;
-uniform float uSpinAmount;
-uniform float uPixelFilter;
-uniform float uSpinEase;
-uniform int   uIsRotate;
-uniform vec2  uMouse;
-
-varying vec2 vUv;
-
-vec4 effect(vec2 screenSize, vec2 screen_coords) {
-  float pixel_size = length(screenSize.xy) / uPixelFilter;
-  vec2 uv = (floor(screen_coords.xy * (1.0 / pixel_size)) * pixel_size
-             - 0.5 * screenSize.xy) / length(screenSize.xy) - uOffset;
-  float uv_len = length(uv);
-
-  float speed = (uSpinRotation * uSpinEase * 0.2);
-  if (uIsRotate != 0) {
-    speed = iTime * speed;
-  }
-  speed += 302.2;
-  float mouseInfluence = (uMouse.x * 2.0 - 1.0);
-  speed += mouseInfluence * 0.1;
-
-  float new_pixel_angle = atan(uv.y, uv.x) + speed
-    - uSpinEase * 20.0 * (uSpinAmount * uv_len + (1.0 - uSpinAmount));
-  vec2 mid = (screenSize.xy / length(screenSize.xy)) / 2.0;
-  uv = (vec2(uv_len * cos(new_pixel_angle) + mid.x,
-             uv_len * sin(new_pixel_angle) + mid.y) - mid);
-  uv *= 30.0;
-
-  float baseSpeed = iTime * uSpinSpeed;
-  float speed2    = baseSpeed + mouseInfluence * 2.0;
-  vec2  uv2       = vec2(uv.x + uv.y);
-
-  for (int i = 0; i < 5; i++) {
-    uv2 += sin(max(uv.x, uv.y)) + uv;
-    uv  += 0.5 * vec2(
-      cos(5.1123314 + 0.353 * uv2.y + speed2 * 0.131121),
-      sin(uv2.x - 0.113 * speed2)
-    );
-    uv -= cos(uv.x + uv.y) - sin(uv.x * 0.711 - uv.y);
-  }
-
-  float contrast_mod = (0.25 * uContrast + 0.5 * uSpinAmount + 1.2);
-  float paint_res    = min(2.0, max(0.0, length(uv) * 0.035 * contrast_mod));
-  float c1p = max(0.0, 1.0 - contrast_mod * abs(1.0 - paint_res));
-  float c2p = max(0.0, 1.0 - contrast_mod * abs(paint_res));
-  float c3p = 1.0 - min(1.0, c1p + c2p);
-  float light = (uLighting - 0.2) * max(c1p * 5.0 - 4.0, 0.0)
-              + uLighting          * max(c2p * 5.0 - 4.0, 0.0);
-
-  return (0.3 / uContrast) * uColor1
-    + (1.0 - 0.3 / uContrast)
-      * (uColor1 * c1p + uColor2 * c2p + vec4(c3p * uColor3.rgb, c3p * uColor1.a))
-    + light;
-}
-
-void main() {
-  vec2 pixelCoords = vUv * iResolution.xy;
-  gl_FragColor = effect(iResolution.xy, pixelCoords);
-}
-`;
-  var BalatrosBg = ({ frame, fps, palette, config }) => {
-    const canvasRef = (0, import_react110.useRef)(null);
-    const glRef = (0, import_react110.useRef)(null);
-    (0, import_react110.useEffect)(() => {
-      const setup = initGL(canvasRef.current, FULLSCREEN_VERT, FRAG2, config.width, config.height);
-      glRef.current = setup;
-      return () => {
-        glRef.current?.gl.getExtension("WEBGL_lose_context")?.loseContext();
-      };
-    }, []);
-    (0, import_react110.useEffect)(() => {
-      const s = glRef.current;
-      if (!s) return;
-      const { gl, u } = s;
-      const t = frame / fps;
-      const [c1r, c1g, c1b] = hexToVec3(palette.accent);
-      const [c2r, c2g, c2b] = hexToVec3(palette.accent2);
-      const [c3r, c3g, c3b] = hexToVec3(palette.bg);
-      gl.uniform1f(u("iTime"), t);
-      gl.uniform3f(u("iResolution"), config.width, config.height, config.width / config.height);
-      gl.uniform1f(u("uSpinRotation"), -2);
-      gl.uniform1f(u("uSpinSpeed"), 7);
-      gl.uniform2f(u("uOffset"), 0, 0);
-      gl.uniform4f(u("uColor1"), c1r, c1g, c1b, 1);
-      gl.uniform4f(u("uColor2"), c2r, c2g, c2b, 1);
-      gl.uniform4f(u("uColor3"), c3r, c3g, c3b, 1);
-      gl.uniform1f(u("uContrast"), 3.5);
-      gl.uniform1f(u("uLighting"), 0.4);
-      gl.uniform1f(u("uSpinAmount"), 0.25);
-      gl.uniform1f(u("uPixelFilter"), 745);
-      gl.uniform1f(u("uSpinEase"), 1);
-      gl.uniform1i(u("uIsRotate"), 1);
-      gl.uniform2f(u("uMouse"), 0.5, 0.5);
-      gl.clearColor(c3r, c3g, c3b, 1);
-      gl.clear(gl.COLOR_BUFFER_BIT);
-      gl.drawArrays(gl.TRIANGLES, 0, 3);
-    }, [frame, fps, palette, config.width, config.height]);
-    return /* @__PURE__ */ import_react110.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react110.default.createElement("canvas", { ref: canvasRef, style: { width: "100%", height: "100%" } }));
-  };
-
   // src/dimensions/background/BallpitBg.tsx
-  var import_react111 = __toESM(require_react());
+  var import_react110 = __toESM(require_react());
   function rng(seed) {
     let s = (seed ^ 2654435769) >>> 0;
     return () => {
@@ -24774,7 +24658,7 @@ void main() {
       const speed = 0.25 + rand() * 0.6;
       const phase = rand() * Math.PI * 2;
       const depth = rand();
-      const t = frame / 30;
+      const t = frame / 30 * (config.params?.bg?.speed ?? 1);
       const ax = x0 + Math.sin(t * speed + phase) * 7;
       const ay = y0 + Math.cos(t * speed * 0.8 + phase) * 9;
       const colorIdx = Math.floor(rand() * 3);
@@ -24784,7 +24668,7 @@ void main() {
       const highlight = `radial-gradient(circle at 35% 32%, rgba(255,255,255,${(0.35 + depth * 0.3).toFixed(2)}) 0%, ${color}cc 40%, ${color}88 100%)`;
       return { ax, ay, size, highlight, blurPx, opacity };
     });
-    return /* @__PURE__ */ import_react111.default.createElement(AbsoluteFill, { style: { background: palette.bg, overflow: "hidden" } }, balls.map((b, i) => /* @__PURE__ */ import_react111.default.createElement("div", { key: i, style: {
+    return /* @__PURE__ */ import_react110.default.createElement(AbsoluteFill, { style: { background: palette.bg, overflow: "hidden" } }, balls.map((b, i) => /* @__PURE__ */ import_react110.default.createElement("div", { key: i, style: {
       position: "absolute",
       width: b.size,
       height: b.size,
@@ -24796,91 +24680,21 @@ void main() {
       filter: `blur(${b.blurPx}px)`,
       opacity: b.opacity,
       pointerEvents: "none"
-    } })), /* @__PURE__ */ import_react111.default.createElement("div", { style: {
+    } })), /* @__PURE__ */ import_react110.default.createElement("div", { style: {
       position: "absolute",
       inset: 0,
       background: `radial-gradient(ellipse 100% 100% at 50% 50%, ${palette.bg}44 0%, ${palette.bg}99 60%, ${palette.bg}cc 100%)`
     } }));
   };
 
-  // src/dimensions/background/BeamsBg.tsx
-  var import_react112 = __toESM(require_react());
-  function rng2(seed) {
-    let s = (seed ^ 2654435769) >>> 0;
-    return () => {
-      s = (Math.imul(s ^ s >>> 15, s | 1) ^ 0) >>> 0;
-      s ^= s + Math.imul(s ^ s >>> 7, s | 61);
-      return ((s ^ s >>> 14) >>> 0) / 4294967296;
-    };
-  }
-  function hashStr2(str) {
-    let h = 2166136261;
-    for (let i = 0; i < str.length; i++) {
-      h ^= str.charCodeAt(i);
-      h = Math.imul(h, 16777619) >>> 0;
-    }
-    return h || 1;
-  }
-  var BeamsBg = ({ frame, palette, config }) => {
-    const rand = rng2(hashStr2(config.seed + "-beams"));
-    const beams = Array.from({ length: 9 }, () => {
-      const x0 = 5 + rand() * 90;
-      const width = 2 + rand() * 10;
-      const opacity = 0.07 + rand() * 0.2;
-      const speed = 0.15 + rand() * 0.35;
-      const phase = rand() * Math.PI * 2;
-      const tilt = 10 + rand() * 20;
-      const useAcc2 = rand() > 0.5;
-      return { x0, width, opacity, speed, phase, tilt, useAcc2 };
-    });
-    const t = frame / 30;
-    const brightness = interpolate(frame, [0, 45, 90], [0.85, 1, 0.85], {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp"
-    });
-    return /* @__PURE__ */ import_react112.default.createElement(AbsoluteFill, { style: { overflow: "hidden" } }, /* @__PURE__ */ import_react112.default.createElement("div", { style: {
-      position: "absolute",
-      inset: 0,
-      background: `linear-gradient(168deg, ${palette.bg} 0%, ${palette.bgEnd} 100%)`
-    } }), beams.map((b, i) => {
-      const xAnim = b.x0 + Math.sin(t * b.speed + b.phase) * 3.5;
-      const color = b.useAcc2 ? palette.accent2 : palette.accent;
-      const hexOp = Math.round(b.opacity * brightness * 255).toString(16).padStart(2, "0");
-      return /* @__PURE__ */ import_react112.default.createElement("div", { key: i, style: {
-        position: "absolute",
-        left: `${xAnim}%`,
-        top: "-30%",
-        width: `${b.width}%`,
-        height: "160%",
-        background: `linear-gradient(to bottom, transparent 0%, ${color}${hexOp} 30%, ${color}${hexOp} 70%, transparent 100%)`,
-        transform: `rotate(${b.tilt}deg)`,
-        transformOrigin: "top center",
-        filter: "blur(10px)",
-        pointerEvents: "none"
-      } });
-    }), /* @__PURE__ */ import_react112.default.createElement("div", { style: {
-      position: "absolute",
-      width: "120%",
-      height: "45%",
-      left: "-10%",
-      top: "-10%",
-      background: `radial-gradient(ellipse at 50% 0%, ${palette.accent}22 0%, transparent 60%)`,
-      filter: "blur(30px)"
-    } }), /* @__PURE__ */ import_react112.default.createElement("div", { style: {
-      position: "absolute",
-      inset: 0,
-      background: `radial-gradient(ellipse 85% 85% at 50% 50%, transparent 30%, ${palette.bg}88 68%, ${palette.bg}dd 100%)`
-    } }));
-  };
-
   // src/dimensions/background/DotFieldBg.tsx
-  var import_react113 = __toESM(require_react());
+  var import_react111 = __toESM(require_react());
   var DotFieldBg = ({ frame, fps, palette, config }) => {
-    const canvasRef = (0, import_react113.useRef)(null);
-    const dotsRef = (0, import_react113.useRef)([]);
+    const canvasRef = (0, import_react111.useRef)(null);
+    const dotsRef = (0, import_react111.useRef)([]);
     const W = config.width;
     const H = config.height;
-    (0, import_react113.useEffect)(() => {
+    (0, import_react111.useEffect)(() => {
       const DOT_RADIUS = 2.5;
       const DOT_SPACING = 18;
       const step = DOT_RADIUS + DOT_SPACING;
@@ -24899,7 +24713,7 @@ void main() {
       }
       dotsRef.current = dots;
     }, [W, H]);
-    (0, import_react113.useEffect)(() => {
+    (0, import_react111.useEffect)(() => {
       const canvas = canvasRef.current;
       if (!canvas || dotsRef.current.length === 0) return;
       canvas.width = W;
@@ -24911,8 +24725,9 @@ void main() {
       grad.addColorStop(0, hexToRgba(palette.accent, 0.55));
       grad.addColorStop(1, hexToRgba(palette.accent2, 0.4));
       ctx.fillStyle = grad;
-      const DOT_RADIUS = 2.5;
-      const WAVE_AMP = 9;
+      const bp = config.params?.bg ?? {};
+      const DOT_RADIUS = bp.dotRadius ?? 2.5;
+      const WAVE_AMP = bp.waveAmp ?? 9;
       const t = frame * 0.02;
       ctx.beginPath();
       for (const d of dotsRef.current) {
@@ -24922,18 +24737,18 @@ void main() {
         ctx.arc(drawX, drawY, DOT_RADIUS, 0, Math.PI * 2);
       }
       ctx.fill();
-    }, [frame, fps, palette, W, H]);
-    return /* @__PURE__ */ import_react113.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react113.default.createElement("canvas", { ref: canvasRef, style: { width: "100%", height: "100%" } }));
+    }, [frame, fps, palette, W, H, config.params]);
+    return /* @__PURE__ */ import_react111.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react111.default.createElement("canvas", { ref: canvasRef, style: { width: "100%", height: "100%" } }));
   };
 
   // src/dimensions/background/DotGridBg.tsx
-  var import_react114 = __toESM(require_react());
+  var import_react112 = __toESM(require_react());
   var DotGridBg = ({ frame, fps, palette, config }) => {
-    const canvasRef = (0, import_react114.useRef)(null);
-    const dotsRef = (0, import_react114.useRef)([]);
+    const canvasRef = (0, import_react112.useRef)(null);
+    const dotsRef = (0, import_react112.useRef)([]);
     const W = config.width;
     const H = config.height;
-    (0, import_react114.useEffect)(() => {
+    (0, import_react112.useEffect)(() => {
       const DOT_SIZE = 10;
       const GAP = 22;
       const cell = DOT_SIZE + GAP;
@@ -24947,7 +24762,7 @@ void main() {
           dots.push({ cx: startX + x * cell, cy: startY + y * cell });
       dotsRef.current = dots;
     }, [W, H]);
-    (0, import_react114.useEffect)(() => {
+    (0, import_react112.useEffect)(() => {
       const canvas = canvasRef.current;
       if (!canvas || dotsRef.current.length === 0) return;
       canvas.width = W;
@@ -24955,8 +24770,9 @@ void main() {
       const ctx = canvas.getContext("2d");
       ctx.fillStyle = palette.bg;
       ctx.fillRect(0, 0, W, H);
-      const DOT_RADIUS = 5;
-      const PROXIMITY = 220;
+      const bp = config.params?.bg ?? {};
+      const DOT_RADIUS = bp.dotRadius ?? 5;
+      const PROXIMITY = bp.proximity ?? 220;
       const proxSq = PROXIMITY * PROXIMITY;
       const t = frame / fps;
       const hx = W / 2 + Math.cos(t * 0.4) * W * 0.28;
@@ -24984,394 +24800,13 @@ void main() {
         ctx.fillStyle = fillStyle;
         ctx.fill();
       }
-    }, [frame, fps, palette, W, H]);
-    return /* @__PURE__ */ import_react114.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react114.default.createElement("canvas", { ref: canvasRef, style: { width: "100%", height: "100%" } }));
-  };
-
-  // src/dimensions/background/WavesBg.tsx
-  var import_react115 = __toESM(require_react());
-  var Grad = class {
-    constructor(x, y, z) {
-      this.x = x;
-      this.y = y;
-      this.z = z;
-    }
-    dot2(x, y) {
-      return this.x * x + this.y * y;
-    }
-  };
-  var GRAD3 = [
-    new Grad(1, 1, 0),
-    new Grad(-1, 1, 0),
-    new Grad(1, -1, 0),
-    new Grad(-1, -1, 0),
-    new Grad(1, 0, 1),
-    new Grad(-1, 0, 1),
-    new Grad(1, 0, -1),
-    new Grad(-1, 0, -1),
-    new Grad(0, 1, 1),
-    new Grad(0, -1, 1),
-    new Grad(0, 1, -1),
-    new Grad(0, -1, -1)
-  ];
-  var P = [
-    151,
-    160,
-    137,
-    91,
-    90,
-    15,
-    131,
-    13,
-    201,
-    95,
-    96,
-    53,
-    194,
-    233,
-    7,
-    225,
-    140,
-    36,
-    103,
-    30,
-    69,
-    142,
-    8,
-    99,
-    37,
-    240,
-    21,
-    10,
-    23,
-    190,
-    6,
-    148,
-    247,
-    120,
-    234,
-    75,
-    0,
-    26,
-    197,
-    62,
-    94,
-    252,
-    219,
-    203,
-    117,
-    35,
-    11,
-    32,
-    57,
-    177,
-    33,
-    88,
-    237,
-    149,
-    56,
-    87,
-    174,
-    20,
-    125,
-    136,
-    171,
-    168,
-    68,
-    175,
-    74,
-    165,
-    71,
-    134,
-    139,
-    48,
-    27,
-    166,
-    77,
-    146,
-    158,
-    231,
-    83,
-    111,
-    229,
-    122,
-    60,
-    211,
-    133,
-    230,
-    220,
-    105,
-    92,
-    41,
-    55,
-    46,
-    245,
-    40,
-    244,
-    102,
-    143,
-    54,
-    65,
-    25,
-    63,
-    161,
-    1,
-    216,
-    80,
-    73,
-    209,
-    76,
-    132,
-    187,
-    208,
-    89,
-    18,
-    169,
-    200,
-    196,
-    135,
-    130,
-    116,
-    188,
-    159,
-    86,
-    164,
-    100,
-    109,
-    198,
-    173,
-    186,
-    3,
-    64,
-    52,
-    217,
-    226,
-    250,
-    124,
-    123,
-    5,
-    202,
-    38,
-    147,
-    118,
-    126,
-    255,
-    82,
-    85,
-    212,
-    207,
-    206,
-    59,
-    227,
-    47,
-    16,
-    58,
-    17,
-    182,
-    189,
-    28,
-    42,
-    223,
-    183,
-    170,
-    213,
-    119,
-    248,
-    152,
-    2,
-    44,
-    154,
-    163,
-    70,
-    221,
-    153,
-    101,
-    155,
-    167,
-    43,
-    172,
-    9,
-    129,
-    22,
-    39,
-    253,
-    19,
-    98,
-    108,
-    110,
-    79,
-    113,
-    224,
-    232,
-    178,
-    185,
-    112,
-    104,
-    218,
-    246,
-    97,
-    228,
-    251,
-    34,
-    242,
-    193,
-    238,
-    210,
-    144,
-    12,
-    191,
-    179,
-    162,
-    241,
-    81,
-    51,
-    145,
-    235,
-    249,
-    14,
-    239,
-    107,
-    49,
-    192,
-    214,
-    31,
-    181,
-    199,
-    106,
-    157,
-    184,
-    84,
-    204,
-    176,
-    115,
-    121,
-    50,
-    45,
-    127,
-    4,
-    150,
-    254,
-    138,
-    236,
-    205,
-    93,
-    222,
-    114,
-    67,
-    29,
-    24,
-    72,
-    243,
-    141,
-    128,
-    195,
-    78,
-    66,
-    215,
-    61,
-    156,
-    180
-  ];
-  var Noise = class {
-    constructor(seed = 0) {
-      this.perm = new Array(512);
-      this.gradP = new Array(512);
-      if (seed > 0 && seed < 1) seed *= 65536;
-      seed = Math.floor(seed);
-      if (seed < 256) seed |= seed << 8;
-      for (let i = 0; i < 256; i++) {
-        const v = i & 1 ? P[i] ^ seed & 255 : P[i] ^ seed >> 8 & 255;
-        this.perm[i] = this.perm[i + 256] = v;
-        this.gradP[i] = this.gradP[i + 256] = GRAD3[v % 12];
-      }
-    }
-    fade(t) {
-      return t * t * t * (t * (t * 6 - 15) + 10);
-    }
-    lerp(a, b, t) {
-      return (1 - t) * a + t * b;
-    }
-    perlin2(x, y) {
-      let X = Math.floor(x), Y = Math.floor(y);
-      x -= X;
-      y -= Y;
-      X &= 255;
-      Y &= 255;
-      const n00 = this.gradP[X + this.perm[Y]].dot2(x, y);
-      const n01 = this.gradP[X + this.perm[Y + 1]].dot2(x, y - 1);
-      const n10 = this.gradP[X + 1 + this.perm[Y]].dot2(x - 1, y);
-      const n11 = this.gradP[X + 1 + this.perm[Y + 1]].dot2(x - 1, y - 1);
-      const u = this.fade(x);
-      return this.lerp(this.lerp(n00, n10, u), this.lerp(n01, n11, u), this.fade(y));
-    }
-  };
-  var WavesBg = ({ frame, fps, palette, config }) => {
-    const canvasRef = (0, import_react115.useRef)(null);
-    const linesRef = (0, import_react115.useRef)([]);
-    const noiseRef = (0, import_react115.useRef)(null);
-    const W = config.width;
-    const H = config.height;
-    const X_GAP = 20;
-    const Y_GAP = 72;
-    const WAVE_SPD_X = 0.0125;
-    const WAVE_SPD_Y = 5e-3;
-    const WAVE_AMP_X = 42;
-    const WAVE_AMP_Y = 22;
-    (0, import_react115.useEffect)(() => {
-      noiseRef.current = new Noise(0.42);
-      const oW = W + 200, oH = H + 30;
-      const totalLines = Math.ceil(oW / X_GAP);
-      const totalPoints = Math.ceil(oH / Y_GAP);
-      const xStart = (W - X_GAP * totalLines) / 2;
-      const yStart = (H - Y_GAP * totalPoints) / 2;
-      const lines = [];
-      for (let i = 0; i <= totalLines; i++) {
-        const pts = [];
-        for (let j = 0; j <= totalPoints; j++)
-          pts.push({ x: xStart + X_GAP * i, y: yStart + Y_GAP * j, wave: { x: 0, y: 0 } });
-        lines.push(pts);
-      }
-      linesRef.current = lines;
-    }, [W, H]);
-    (0, import_react115.useEffect)(() => {
-      const canvas = canvasRef.current;
-      if (!canvas || linesRef.current.length === 0 || !noiseRef.current) return;
-      canvas.width = W;
-      canvas.height = H;
-      const ctx = canvas.getContext("2d");
-      const noise = noiseRef.current;
-      const timeMs = frame / fps * 1e3;
-      for (const pts of linesRef.current) {
-        for (const p of pts) {
-          const move = noise.perlin2(
-            (p.x + timeMs * WAVE_SPD_X) * 2e-3,
-            (p.y + timeMs * WAVE_SPD_Y) * 15e-4
-          ) * 12;
-          p.wave.x = Math.cos(move) * WAVE_AMP_X;
-          p.wave.y = Math.sin(move) * WAVE_AMP_Y;
-        }
-      }
-      ctx.fillStyle = palette.bg;
-      ctx.fillRect(0, 0, W, H);
-      ctx.beginPath();
-      ctx.strokeStyle = hexToRgba(palette.accent, 0.55);
-      ctx.lineWidth = 1.2;
-      for (const points of linesRef.current) {
-        const p0 = points[0];
-        ctx.moveTo(p0.x + p0.wave.x, p0.y + p0.wave.y);
-        for (let idx = 1; idx < points.length; idx++) {
-          const p = points[idx];
-          ctx.lineTo(p.x + p.wave.x, p.y + p.wave.y);
-        }
-      }
-      ctx.stroke();
-    }, [frame, fps, palette, W, H]);
-    return /* @__PURE__ */ import_react115.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react115.default.createElement("canvas", { ref: canvasRef, style: { width: "100%", height: "100%" } }));
+    }, [frame, fps, palette, W, H, config.params]);
+    return /* @__PURE__ */ import_react112.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react112.default.createElement("canvas", { ref: canvasRef, style: { width: "100%", height: "100%" } }));
   };
 
   // src/dimensions/background/SilkBg.tsx
-  var import_react116 = __toESM(require_react());
-  var FRAG3 = `
+  var import_react113 = __toESM(require_react());
+  var FRAG2 = `
 precision highp float;
 
 varying vec2 vUv;
@@ -25408,38 +24843,39 @@ void main() {
 }
 `;
   var SilkBg = ({ frame, fps, palette, config }) => {
-    const canvasRef = (0, import_react116.useRef)(null);
-    const glRef = (0, import_react116.useRef)(null);
-    (0, import_react116.useEffect)(() => {
-      const setup = initGL(canvasRef.current, FULLSCREEN_VERT, FRAG3, config.width, config.height);
+    const canvasRef = (0, import_react113.useRef)(null);
+    const glRef = (0, import_react113.useRef)(null);
+    (0, import_react113.useEffect)(() => {
+      const setup = initGL(canvasRef.current, FULLSCREEN_VERT, FRAG2, config.width, config.height);
       glRef.current = setup;
       return () => {
         glRef.current?.gl.getExtension("WEBGL_lose_context")?.loseContext();
       };
     }, []);
-    (0, import_react116.useEffect)(() => {
+    (0, import_react113.useEffect)(() => {
       const s = glRef.current;
       if (!s) return;
       const { gl, u } = s;
       const t = frame / fps * 0.1;
       const [cr, cg, cb] = hexToVec3(palette.accent);
       const [br, bg, bb] = hexToVec3(palette.bg);
+      const bp = config.params?.bg ?? {};
       gl.uniform1f(u("uTime"), t);
-      gl.uniform1f(u("uSpeed"), 5);
-      gl.uniform1f(u("uScale"), 1);
-      gl.uniform1f(u("uNoiseIntensity"), 1.5);
+      gl.uniform1f(u("uSpeed"), bp.speed ?? 5);
+      gl.uniform1f(u("uScale"), bp.scale ?? 1);
+      gl.uniform1f(u("uNoiseIntensity"), bp.noiseIntensity ?? 1.5);
       gl.uniform3f(u("uColor"), cr, cg, cb);
       gl.uniform3f(u("uBgColor"), br, bg, bb);
       gl.clearColor(br, bg, bb, 1);
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
-    }, [frame, fps, palette]);
-    return /* @__PURE__ */ import_react116.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react116.default.createElement("canvas", { ref: canvasRef, style: { width: "100%", height: "100%" } }));
+    }, [frame, fps, palette, config.params]);
+    return /* @__PURE__ */ import_react113.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react113.default.createElement("canvas", { ref: canvasRef, style: { width: "100%", height: "100%" } }));
   };
 
   // src/dimensions/background/ThreadsBg.tsx
-  var import_react117 = __toESM(require_react());
-  var FRAG4 = `
+  var import_react114 = __toESM(require_react());
+  var FRAG3 = `
 precision highp float;
 
 uniform float iTime;
@@ -25508,38 +24944,39 @@ void main() {
 }
 `;
   var ThreadsBg = ({ frame, fps, palette, config }) => {
-    const canvasRef = (0, import_react117.useRef)(null);
-    const glRef = (0, import_react117.useRef)(null);
-    (0, import_react117.useEffect)(() => {
-      const setup = initGL(canvasRef.current, FULLSCREEN_VERT, FRAG4, config.width, config.height);
+    const canvasRef = (0, import_react114.useRef)(null);
+    const glRef = (0, import_react114.useRef)(null);
+    (0, import_react114.useEffect)(() => {
+      const setup = initGL(canvasRef.current, FULLSCREEN_VERT, FRAG3, config.width, config.height);
       glRef.current = setup;
       return () => {
         glRef.current?.gl.getExtension("WEBGL_lose_context")?.loseContext();
       };
     }, []);
-    (0, import_react117.useEffect)(() => {
+    (0, import_react114.useEffect)(() => {
       const s = glRef.current;
       if (!s) return;
       const { gl, u } = s;
       const t = frame / fps;
       const [r, g, b] = hexToVec3(palette.text);
       const [br, bg_, bb] = hexToVec3(palette.bg);
+      const bp = config.params?.bg ?? {};
       gl.uniform1f(u("iTime"), t);
       gl.uniform3f(u("iResolution"), config.width, config.height, config.width / config.height);
       gl.uniform3f(u("uColor"), r, g, b);
-      gl.uniform1f(u("uAmplitude"), 1.4);
-      gl.uniform1f(u("uDistance"), 0.35);
+      gl.uniform1f(u("uAmplitude"), bp.amplitude ?? 1.4);
+      gl.uniform1f(u("uDistance"), bp.distance ?? 0.35);
       gl.uniform2f(u("uMouse"), 0.5, 0.5);
       gl.clearColor(br, bg_, bb, 1);
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
-    }, [frame, fps, palette, config.width, config.height]);
-    return /* @__PURE__ */ import_react117.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react117.default.createElement("canvas", { ref: canvasRef, style: { width: "100%", height: "100%" } }));
+    }, [frame, fps, palette, config.width, config.height, config.params]);
+    return /* @__PURE__ */ import_react114.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react114.default.createElement("canvas", { ref: canvasRef, style: { width: "100%", height: "100%" } }));
   };
 
   // src/dimensions/background/LineWavesBg.tsx
-  var import_react118 = __toESM(require_react());
-  var FRAG5 = `
+  var import_react115 = __toESM(require_react());
+  var FRAG4 = `
 precision highp float;
 
 uniform float uTime;
@@ -25619,16 +25056,16 @@ void main() {
 }
 `;
   var LineWavesBg = ({ frame, fps, palette, config }) => {
-    const canvasRef = (0, import_react118.useRef)(null);
-    const glRef = (0, import_react118.useRef)(null);
-    (0, import_react118.useEffect)(() => {
-      const setup = initGL(canvasRef.current, FULLSCREEN_VERT, FRAG5, config.width, config.height);
+    const canvasRef = (0, import_react115.useRef)(null);
+    const glRef = (0, import_react115.useRef)(null);
+    (0, import_react115.useEffect)(() => {
+      const setup = initGL(canvasRef.current, FULLSCREEN_VERT, FRAG4, config.width, config.height);
       glRef.current = setup;
       return () => {
         glRef.current?.gl.getExtension("WEBGL_lose_context")?.loseContext();
       };
     }, []);
-    (0, import_react118.useEffect)(() => {
+    (0, import_react115.useEffect)(() => {
       const s = glRef.current;
       if (!s) return;
       const { gl, u } = s;
@@ -25638,16 +25075,17 @@ void main() {
       const [c3r, c3g, c3b] = hexToVec3(palette.text);
       const [br, bg_, bb] = hexToVec3(palette.bg);
       const rotRad = -45 * Math.PI / 180;
+      const bp = config.params?.bg ?? {};
       gl.uniform1f(u("uTime"), t);
       gl.uniform3f(u("uResolution"), config.width, config.height, config.width / config.height);
-      gl.uniform1f(u("uSpeed"), 0.3);
+      gl.uniform1f(u("uSpeed"), bp.speed ?? 0.3);
       gl.uniform1f(u("uInnerLines"), 32);
       gl.uniform1f(u("uOuterLines"), 36);
-      gl.uniform1f(u("uWarpIntensity"), 1.2);
+      gl.uniform1f(u("uWarpIntensity"), bp.warpIntensity ?? 1.2);
       gl.uniform1f(u("uRotation"), rotRad);
       gl.uniform1f(u("uEdgeFadeWidth"), 0);
       gl.uniform1f(u("uColorCycleSpeed"), 1);
-      gl.uniform1f(u("uBrightness"), 0.2);
+      gl.uniform1f(u("uBrightness"), bp.brightness ?? 0.2);
       gl.uniform3f(u("uColor1"), c1r, c1g, c1b);
       gl.uniform3f(u("uColor2"), c2r, c2g, c2b);
       gl.uniform3f(u("uColor3"), c3r, c3g, c3b);
@@ -25655,12 +25093,12 @@ void main() {
       gl.clearColor(br, bg_, bb, 1);
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
-    }, [frame, fps, palette, config.width, config.height]);
-    return /* @__PURE__ */ import_react118.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react118.default.createElement("canvas", { ref: canvasRef, style: { width: "100%", height: "100%" } }));
+    }, [frame, fps, palette, config.width, config.height, config.params]);
+    return /* @__PURE__ */ import_react115.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react115.default.createElement("canvas", { ref: canvasRef, style: { width: "100%", height: "100%" } }));
   };
 
   // src/dimensions/background/RippleGridBg.tsx
-  var import_react119 = __toESM(require_react());
+  var import_react116 = __toESM(require_react());
   var VERT = `
 attribute vec2 position;
 varying vec2 vUv;
@@ -25669,7 +25107,7 @@ void main() {
   gl_Position = vec4(position, 0.0, 1.0);
 }
 `;
-  var FRAG6 = `
+  var FRAG5 = `
 precision highp float;
 
 uniform float iTime;
@@ -25736,7 +25174,7 @@ void main() {
     }
     const prog = gl.createProgram();
     gl.attachShader(prog, compile(gl.VERTEX_SHADER, VERT));
-    gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FRAG6));
+    gl.attachShader(prog, compile(gl.FRAGMENT_SHADER, FRAG5));
     gl.linkProgram(prog);
     gl.useProgram(prog);
     const buf = gl.createBuffer();
@@ -25748,27 +25186,28 @@ void main() {
     return { gl, program: prog, u: (n) => gl.getUniformLocation(prog, n) };
   }
   var RippleGridBg = ({ frame, fps, palette, config }) => {
-    const canvasRef = (0, import_react119.useRef)(null);
-    const glRef = (0, import_react119.useRef)(null);
-    (0, import_react119.useEffect)(() => {
+    const canvasRef = (0, import_react116.useRef)(null);
+    const glRef = (0, import_react116.useRef)(null);
+    (0, import_react116.useEffect)(() => {
       glRef.current = initRippleGL(canvasRef.current, config.width, config.height);
       return () => {
         glRef.current?.gl.getExtension("WEBGL_lose_context")?.loseContext();
       };
     }, []);
-    (0, import_react119.useEffect)(() => {
+    (0, import_react116.useEffect)(() => {
       const s = glRef.current;
       if (!s) return;
       const { gl, u } = s;
       const t = frame / fps;
       const [cr, cg, cb] = hexToVec3(palette.accent);
       const [br, bg_, bb] = hexToVec3(palette.bg);
+      const bp = config.params?.bg ?? {};
       gl.uniform1f(u("iTime"), t);
       gl.uniform2f(u("iResolution"), config.width, config.height);
       gl.uniform3f(u("gridColor"), cr, cg, cb);
-      gl.uniform1f(u("rippleIntensity"), 0.06);
-      gl.uniform1f(u("gridSize"), 10);
-      gl.uniform1f(u("gridThickness"), 12);
+      gl.uniform1f(u("rippleIntensity"), bp.rippleIntensity ?? 0.06);
+      gl.uniform1f(u("gridSize"), bp.gridSize ?? 10);
+      gl.uniform1f(u("gridThickness"), bp.gridThickness ?? 12);
       gl.uniform1f(u("fadeDistance"), 1.5);
       gl.uniform1f(u("vignetteStrength"), 2);
       gl.uniform1f(u("glowIntensity"), 0.12);
@@ -25776,166 +25215,251 @@ void main() {
       gl.clearColor(br, bg_, bb, 1);
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
-    }, [frame, fps, palette, config.width, config.height]);
-    return /* @__PURE__ */ import_react119.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react119.default.createElement("canvas", { ref: canvasRef, style: { width: "100%", height: "100%" } }));
+    }, [frame, fps, palette, config.width, config.height, config.params]);
+    return /* @__PURE__ */ import_react116.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react116.default.createElement("canvas", { ref: canvasRef, style: { width: "100%", height: "100%" } }));
   };
 
-  // src/dimensions/background/GalaxyBg.tsx
-  var import_react120 = __toESM(require_react());
+  // src/dimensions/background/NebulaBg.tsx
+  var import_react117 = __toESM(require_react());
+  var FRAG6 = `
+precision mediump float;
+
+uniform float iTime;
+uniform vec2  iResolution;
+
+#define NUM_OCTAVES 3
+
+// tanh is not a WebGL 1 built-in \u2014 implement manually
+vec4 tanh4(vec4 x) {
+  vec4 e2 = exp(clamp(2.0 * x, -40.0, 40.0));
+  return (e2 - 1.0) / (e2 + 1.0);
+}
+
+float rand(vec2 n) {
+  return fract(sin(dot(n, vec2(12.9898, 4.1414))) * 43758.5453);
+}
+
+float noise(vec2 p) {
+  vec2 ip = floor(p);
+  vec2 u  = fract(p);
+  u = u * u * (3.0 - 2.0 * u);
+  float res = mix(
+    mix(rand(ip),                   rand(ip + vec2(1.0, 0.0)), u.x),
+    mix(rand(ip + vec2(0.0, 1.0)), rand(ip + vec2(1.0, 1.0)), u.x),
+    u.y
+  );
+  return res * res;
+}
+
+float fbm(vec2 x) {
+  float v = 0.0;
+  float a = 0.3;
+  vec2  shift = vec2(100.0);
+  mat2  rot   = mat2(cos(0.5), sin(0.5), -sin(0.5), cos(0.5));
+  for (int i = 0; i < NUM_OCTAVES; ++i) {
+    v += a * noise(x);
+    x  = rot * x * 2.0 + shift;
+    a *= 0.4;
+  }
+  return v;
+}
+
+void main() {
+  vec2 shake = vec2(sin(iTime * 1.2) * 0.005, cos(iTime * 2.1) * 0.005);
+  vec2 p = ((gl_FragCoord.xy + shake * iResolution.xy) - iResolution.xy * 0.5)
+           / iResolution.y * mat2(6.0, -4.0, 4.0, 6.0);
+  vec2 v;
+  vec4 o = vec4(0.0);
+
+  float f = 2.0 + fbm(p + vec2(iTime * 5.0, 0.0)) * 0.5;
+
+  // WebGL 1: use int loop counter, cast to float inside
+  for (int ii = 0; ii < 35; ii++) {
+    float i = float(ii);
+
+    v = p + cos(i * i + (iTime + p.x * 0.08) * 0.025 + i * vec2(13.0, 11.0)) * 3.5
+          + vec2(sin(iTime * 3.0 + i) * 0.003, cos(iTime * 3.5 - i) * 0.003);
+
+    float tailNoise = fbm(v + vec2(iTime * 0.5, i)) * 0.3 * (1.0 - (i / 35.0));
+
+    vec4 auroraColors = vec4(
+      0.1 + 0.3 * sin(i * 0.2 + iTime * 0.4),
+      0.3 + 0.5 * cos(i * 0.3 + iTime * 0.5),
+      0.7 + 0.3 * sin(i * 0.4 + iTime * 0.3),
+      1.0
+    );
+
+    vec4 contrib   = auroraColors * exp(sin(i * i + iTime * 0.8))
+                     / length(max(v, vec2(v.x * f * 0.015, v.y * 1.5)));
+    float thinness = smoothstep(0.0, 1.0, i / 35.0) * 0.6;
+    o += contrib * (1.0 + tailNoise * 0.8) * thinness;
+  }
+
+  o = tanh4(pow(max(o / 100.0, vec4(0.0)), vec4(1.6)));
+  gl_FragColor = o * 1.5;
+}
+`;
+  var NebulaBg = ({ frame, fps, config }) => {
+    const canvasRef = (0, import_react117.useRef)(null);
+    const glRef = (0, import_react117.useRef)(null);
+    (0, import_react117.useEffect)(() => {
+      const setup = initGL(canvasRef.current, FULLSCREEN_VERT, FRAG6, config.width, config.height);
+      glRef.current = setup;
+      return () => {
+        glRef.current?.gl.getExtension("WEBGL_lose_context")?.loseContext();
+      };
+    }, []);
+    (0, import_react117.useEffect)(() => {
+      const s = glRef.current;
+      if (!s) return;
+      const { gl, u } = s;
+      gl.uniform1f(u("iTime"), frame / fps);
+      gl.uniform2f(u("iResolution"), config.width, config.height);
+      gl.clearColor(0, 0, 0, 1);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+    }, [frame, fps, config.width, config.height]);
+    return /* @__PURE__ */ import_react117.default.createElement(AbsoluteFill, { style: { background: "#000" } }, /* @__PURE__ */ import_react117.default.createElement("canvas", { ref: canvasRef, style: { width: "100%", height: "100%" } }));
+  };
+
+  // src/dimensions/background/ShaderLinesBg.tsx
+  var import_react118 = __toESM(require_react());
   var FRAG7 = `
 precision highp float;
 
-uniform float uTime;
-uniform vec3  uResolution;
-uniform vec2  uFocal;
-uniform vec2  uRotation;
-uniform float uStarSpeed;
-uniform float uDensity;
-uniform float uHueShift;
-uniform float uSpeed;
-uniform vec2  uMouse;
-uniform float uGlowIntensity;
-uniform float uSaturation;
-uniform float uTwinkleIntensity;
-uniform float uRotationSpeed;
-uniform float uMouseActiveFactor;
-uniform float uAutoCenterRepulsion;
+uniform vec2  resolution;
+uniform float time;
 
-varying vec2 vUv;
-
-#define NUM_LAYER 4.0
-#define STAR_COLOR_CUTOFF 0.2
-#define MAT45 mat2(0.7071,-0.7071,0.7071,0.7071)
-#define PERIOD 3.0
-
-float Hash21(vec2 p){
-  p=fract(p*vec2(123.34,456.21));
-  p+=dot(p,p+45.32);
-  return fract(p.x*p.y);
-}
-float tri(float x){return abs(fract(x)*2.0-1.0);}
-float tris(float x){float t=fract(x);return 1.0-smoothstep(0.0,1.0,abs(2.0*t-1.0));}
-float trisn(float x){float t=fract(x);return 2.0*(1.0-smoothstep(0.0,1.0,abs(2.0*t-1.0)))-1.0;}
-
-vec3 hsv2rgb(vec3 c){
-  vec4 K=vec4(1.0,2.0/3.0,1.0/3.0,3.0);
-  vec3 p=abs(fract(c.xxx+K.xyz)*6.0-K.www);
-  return c.z*mix(K.xxx,clamp(p-K.xxx,0.0,1.0),c.y);
+float random(in float x) {
+  return fract(sin(x) * 1e4);
 }
 
-float Star(vec2 uv,float flare){
-  float d=length(uv);
-  float m=(0.05*uGlowIntensity)/d;
-  float rays=smoothstep(0.0,1.0,1.0-abs(uv.x*uv.y*1000.0));
-  m+=rays*flare*uGlowIntensity;
-  uv*=MAT45;
-  rays=smoothstep(0.0,1.0,1.0-abs(uv.x*uv.y*1000.0));
-  m+=rays*0.3*flare*uGlowIntensity;
-  m*=smoothstep(1.0,0.2,d);
-  return m;
-}
+void main(void) {
+  vec2 uv = (gl_FragCoord.xy * 2.0 - resolution.xy) / min(resolution.x, resolution.y);
 
-vec3 StarLayer(vec2 uv){
-  vec3 col=vec3(0.0);
-  vec2 gv=fract(uv)-0.5;
-  vec2 id=floor(uv);
-  for(int y=-1;y<=1;y++){
-    for(int x=-1;x<=1;x++){
-      vec2 offset=vec2(float(x),float(y));
-      vec2 si=id+vec2(float(x),float(y));
-      float seed=Hash21(si);
-      float size=fract(seed*345.32);
-      float gloss=tri(uStarSpeed/(PERIOD*seed+1.0));
-      float flareSize=smoothstep(0.9,1.0,size)*gloss;
-      float red=smoothstep(STAR_COLOR_CUTOFF,1.0,Hash21(si+1.0))+STAR_COLOR_CUTOFF;
-      float blu=smoothstep(STAR_COLOR_CUTOFF,1.0,Hash21(si+3.0))+STAR_COLOR_CUTOFF;
-      float grn=min(red,blu)*seed;
-      vec3 base=vec3(red,grn,blu);
-      float hue=atan(base.g-base.r,base.b-base.r)/(2.0*3.14159)+0.5;
-      hue=fract(hue+uHueShift/360.0);
-      float sat=length(base-vec3(dot(base,vec3(0.299,0.587,0.114))))*uSaturation;
-      float val=max(max(base.r,base.g),base.b);
-      base=hsv2rgb(vec3(hue,sat,val));
-      vec2 pad=vec2(tris(seed*34.0+uTime*uSpeed/10.0),tris(seed*38.0+uTime*uSpeed/30.0))-0.5;
-      float star=Star(gv-offset-pad,flareSize);
-      float twinkle=trisn(uTime*uSpeed+seed*6.2831)*0.5+1.0;
-      twinkle=mix(1.0,twinkle,uTwinkleIntensity);
-      star*=twinkle;
-      col+=star*size*base;
+  vec2 fMosaicScal = vec2(4.0, 2.0);
+  vec2 vScreenSize = vec2(256.0, 256.0);
+  uv.x = floor(uv.x * vScreenSize.x / fMosaicScal.x) / (vScreenSize.x / fMosaicScal.x);
+  uv.y = floor(uv.y * vScreenSize.y / fMosaicScal.y) / (vScreenSize.y / fMosaicScal.y);
+
+  float t         = time * 0.06 + random(uv.x) * 0.4;
+  float lineWidth = 0.0008;
+
+  vec3 color = vec3(0.0);
+  for (int j = 0; j < 3; j++) {
+    for (int i = 0; i < 5; i++) {
+      color[j] += lineWidth * float(i * i)
+                  / abs(fract(t - 0.01 * float(j) + float(i) * 0.01) - length(uv));
     }
   }
-  return col;
-}
 
-void main(){
-  vec2 focalPx = uFocal * uResolution.xy;
-  vec2 uv      = (vUv * uResolution.xy - focalPx) / uResolution.y;
-
-  float autoRot = uTime * uRotationSpeed;
-  mat2  rot     = mat2(cos(autoRot),-sin(autoRot),sin(autoRot),cos(autoRot));
-  uv = rot * uv;
-  uv = mat2(uRotation.x,-uRotation.y,uRotation.y,uRotation.x) * uv;
-
-  vec3 col = vec3(0.0);
-  for(float i=0.0;i<1.0;i+=1.0/NUM_LAYER){
-    float depth = fract(i + uStarSpeed * uSpeed);
-    float scale = mix(20.0*uDensity, 0.5*uDensity, depth);
-    float fade  = depth * smoothstep(1.0,0.9,depth);
-    col += StarLayer(uv*scale + i*453.32) * fade;
-  }
-
-  float alpha = length(col);
-  alpha = smoothstep(0.0, 0.3, alpha);
-  alpha = min(alpha, 1.0);
-  gl_FragColor = vec4(col, alpha);
+  gl_FragColor = vec4(color[2], color[1], color[0], 1.0);
 }
 `;
-  var GalaxyBg = ({ frame, fps, palette, config }) => {
-    const canvasRef = (0, import_react120.useRef)(null);
-    const glRef = (0, import_react120.useRef)(null);
-    const starSpeedRef = (0, import_react120.useRef)(0);
-    (0, import_react120.useEffect)(() => {
-      starSpeedRef.current = 0;
+  var ShaderLinesBg = ({ frame, fps, config }) => {
+    const canvasRef = (0, import_react118.useRef)(null);
+    const glRef = (0, import_react118.useRef)(null);
+    (0, import_react118.useEffect)(() => {
       const setup = initGL(canvasRef.current, FULLSCREEN_VERT, FRAG7, config.width, config.height);
       glRef.current = setup;
       return () => {
         glRef.current?.gl.getExtension("WEBGL_lose_context")?.loseContext();
       };
     }, []);
-    (0, import_react120.useEffect)(() => {
+    (0, import_react118.useEffect)(() => {
       const s = glRef.current;
       if (!s) return;
       const { gl, u } = s;
-      const t = frame / fps;
-      const [br, bg_, bb] = hexToVec3(palette.bg);
-      gl.uniform1f(u("uTime"), t);
-      gl.uniform3f(u("uResolution"), config.width, config.height, config.width / config.height);
-      gl.uniform2f(u("uFocal"), 0.5, 0.5);
-      gl.uniform2f(u("uRotation"), 1, 0);
-      gl.uniform1f(u("uStarSpeed"), t * 0.5 / 10);
-      gl.uniform1f(u("uDensity"), 1);
-      gl.uniform1f(u("uHueShift"), 0);
-      gl.uniform1f(u("uSpeed"), 0.5);
-      gl.uniform2f(u("uMouse"), 0.5, 0.5);
-      gl.uniform1f(u("uGlowIntensity"), 0.35);
-      gl.uniform1f(u("uSaturation"), 1);
-      gl.uniform1f(u("uTwinkleIntensity"), 0.4);
-      gl.uniform1f(u("uRotationSpeed"), 0.06);
-      gl.uniform1f(u("uMouseActiveFactor"), 0);
-      gl.uniform1f(u("uAutoCenterRepulsion"), 0);
-      gl.clearColor(br, bg_, bb, 1);
+      gl.uniform1f(u("time"), frame / fps);
+      gl.uniform2f(u("resolution"), config.width, config.height);
+      gl.clearColor(0, 0, 0, 1);
       gl.clear(gl.COLOR_BUFFER_BIT);
       gl.drawArrays(gl.TRIANGLES, 0, 3);
-    }, [frame, fps, palette, config.width, config.height]);
-    return /* @__PURE__ */ import_react120.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react120.default.createElement("canvas", { ref: canvasRef, style: { width: "100%", height: "100%" } }));
+    }, [frame, fps, config.width, config.height]);
+    return /* @__PURE__ */ import_react118.default.createElement(AbsoluteFill, { style: { background: "#000" } }, /* @__PURE__ */ import_react118.default.createElement("canvas", { ref: canvasRef, style: { width: "100%", height: "100%" } }));
+  };
+
+  // src/dimensions/background/NenoShaderBg.tsx
+  var import_react119 = __toESM(require_react());
+  var FRAG8 = `
+precision highp float;
+
+uniform vec2  resolution;
+uniform float time;
+
+mat2 rotate2d(float angle) {
+  return mat2(cos(angle), -sin(angle),
+              sin(angle),  cos(angle));
+}
+
+float random(vec2 st) {
+  return fract(sin(dot(st.xy, vec2(12.9898, 78.233))) * 43758.5453123);
+}
+
+void main(void) {
+  vec2 uv = (gl_FragCoord.xy * 2.0 - resolution.xy) / min(resolution.x, resolution.y);
+  float t = time * 0.1;
+
+  // Warp and breathe
+  uv += vec2(sin(uv.y * 4.0 + t * 2.0), cos(uv.x * 4.0 + t * 2.0)) * 0.1;
+  uv  = rotate2d(t * 0.25) * uv;
+
+  float intensity = 0.0;
+  float lineWidth = 0.02;
+
+  for (int i = 0; i < 7; i++) {
+    float fi   = float(i);
+    float wave = sin(t * 2.0 + fi * 0.5) * 0.5 + 0.5;
+    intensity += lineWidth / abs(wave - length(uv) + sin(uv.x + uv.y) * 0.1);
+  }
+
+  vec3 color1   = vec3(0.0, 0.5, 1.0);   // Electric Blue
+  vec3 color2   = vec3(1.0, 0.2, 0.5);   // Magenta/Pink
+  vec3 baseColor = mix(color1, color2, sin(length(uv) * 2.0 - t) * 0.5 + 0.5);
+
+  vec3 finalColor = baseColor * intensity;
+  finalColor += (random(uv + t) - 0.5) * 0.08;
+
+  gl_FragColor = vec4(finalColor, 1.0);
+}
+`;
+  var NenoShaderBg = ({ frame, fps, config }) => {
+    const canvasRef = (0, import_react119.useRef)(null);
+    const glRef = (0, import_react119.useRef)(null);
+    (0, import_react119.useEffect)(() => {
+      const setup = initGL(canvasRef.current, FULLSCREEN_VERT, FRAG8, config.width, config.height);
+      glRef.current = setup;
+      return () => {
+        glRef.current?.gl.getExtension("WEBGL_lose_context")?.loseContext();
+      };
+    }, []);
+    (0, import_react119.useEffect)(() => {
+      const s = glRef.current;
+      if (!s) return;
+      const { gl, u } = s;
+      gl.uniform1f(u("time"), frame / fps);
+      gl.uniform2f(u("resolution"), config.width, config.height);
+      gl.clearColor(0, 0, 0, 1);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+    }, [frame, fps, config.width, config.height]);
+    return /* @__PURE__ */ import_react119.default.createElement(AbsoluteFill, { style: { background: "#000" } }, /* @__PURE__ */ import_react119.default.createElement("canvas", { ref: canvasRef, style: { width: "100%", height: "100%" } }));
   };
 
   // src/dimensions/textEffect/StaticText.tsx
-  var import_react121 = __toESM(require_react());
+  var import_react120 = __toESM(require_react());
+
+  // src/layout.ts
+  var MARGIN_V = 0.07;
+  var TEXT_H = 0.2;
+  var TEXT_GAP = 0.03;
+  var IMG_OFFSET = MARGIN_V + TEXT_H + TEXT_GAP;
+
+  // src/dimensions/textEffect/StaticText.tsx
   var StaticText = ({ palette, config }) => {
     const isTop = config.dimensions.layout === "titleTop";
-    const posStyle = isTop ? { top: 0, height: config.height * 0.22 } : { bottom: 0, height: config.height * 0.22 };
-    return /* @__PURE__ */ import_react121.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react121.default.createElement("div", { style: {
+    const posStyle = isTop ? { top: config.height * MARGIN_V, height: config.height * TEXT_H } : { bottom: config.height * MARGIN_V, height: config.height * TEXT_H };
+    return /* @__PURE__ */ import_react120.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react120.default.createElement("div", { style: {
       position: "absolute",
       left: 80,
       right: 80,
@@ -25943,7 +25467,7 @@ void main(){
       display: "flex",
       alignItems: "center",
       justifyContent: "center"
-    } }, /* @__PURE__ */ import_react121.default.createElement("h1", { style: {
+    } }, /* @__PURE__ */ import_react120.default.createElement("h1", { style: {
       margin: 0,
       textAlign: "center",
       fontSize: 88,
@@ -25956,10 +25480,10 @@ void main(){
   };
 
   // src/dimensions/textEffect/FadeText.tsx
-  var import_react122 = __toESM(require_react());
+  var import_react121 = __toESM(require_react());
   var FadeText = ({ frame, palette, config }) => {
     const isTop = config.dimensions.layout === "titleTop";
-    const posStyle = isTop ? { top: 0, height: config.height * 0.22 } : { bottom: 0, height: config.height * 0.22 };
+    const posStyle = isTop ? { top: config.height * MARGIN_V, height: config.height * TEXT_H } : { bottom: config.height * MARGIN_V, height: config.height * TEXT_H };
     const opacity = interpolate(frame, [5, 80], [0, 1], {
       extrapolateLeft: "clamp",
       extrapolateRight: "clamp"
@@ -25968,7 +25492,7 @@ void main(){
       extrapolateLeft: "clamp",
       extrapolateRight: "clamp"
     });
-    return /* @__PURE__ */ import_react122.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react122.default.createElement("div", { style: {
+    return /* @__PURE__ */ import_react121.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react121.default.createElement("div", { style: {
       position: "absolute",
       left: 80,
       right: 80,
@@ -25978,7 +25502,7 @@ void main(){
       justifyContent: "center",
       opacity,
       transform: `translateY(${translateY}px)`
-    } }, /* @__PURE__ */ import_react122.default.createElement("h1", { style: {
+    } }, /* @__PURE__ */ import_react121.default.createElement("h1", { style: {
       margin: 0,
       textAlign: "center",
       fontSize: 88,
@@ -25991,13 +25515,13 @@ void main(){
   };
 
   // src/dimensions/textEffect/BlurText.tsx
-  var import_react123 = __toESM(require_react());
+  var import_react122 = __toESM(require_react());
   var BlurText = ({ frame, fps, palette, config }) => {
     const isTop = config.dimensions.layout === "titleTop";
-    const posStyle = isTop ? { top: 0, height: config.height * 0.22 } : { bottom: 0, height: config.height * 0.22 };
+    const posStyle = isTop ? { top: config.height * MARGIN_V, height: config.height * TEXT_H } : { bottom: config.height * MARGIN_V, height: config.height * TEXT_H };
     const chars = Array.from(config.title);
     const stagger = chars.length <= 1 ? 0 : Math.max(1, Math.floor(42 / (chars.length - 1)));
-    return /* @__PURE__ */ import_react123.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react123.default.createElement("div", { style: {
+    return /* @__PURE__ */ import_react122.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react122.default.createElement("div", { style: {
       position: "absolute",
       left: 80,
       right: 80,
@@ -26016,7 +25540,7 @@ void main(){
       const opacity = clamped;
       const translateY = (1 - clamped) * -50;
       const blur = interpolate(clamped, [0, 1], [10, 0]);
-      return /* @__PURE__ */ import_react123.default.createElement("span", { key: i, style: {
+      return /* @__PURE__ */ import_react122.default.createElement("span", { key: i, style: {
         display: "inline-block",
         fontSize: 88,
         fontWeight: 800,
@@ -26032,10 +25556,10 @@ void main(){
   };
 
   // src/dimensions/textEffect/GradientText.tsx
-  var import_react124 = __toESM(require_react());
+  var import_react123 = __toESM(require_react());
   var GradientText = ({ frame, palette, config }) => {
     const isTop = config.dimensions.layout === "titleTop";
-    const posStyle = isTop ? { top: 0, height: config.height * 0.22 } : { bottom: 0, height: config.height * 0.22 };
+    const posStyle = isTop ? { top: config.height * MARGIN_V, height: config.height * TEXT_H } : { bottom: config.height * MARGIN_V, height: config.height * TEXT_H };
     const gradientPos = interpolate(frame, [0, 45, 90], [0, 100, 0], {
       extrapolateLeft: "clamp",
       extrapolateRight: "clamp"
@@ -26057,7 +25581,7 @@ void main(){
       WebkitTextFillColor: "transparent",
       color: "transparent"
     };
-    return /* @__PURE__ */ import_react124.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react124.default.createElement("div", { style: {
+    return /* @__PURE__ */ import_react123.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react123.default.createElement("div", { style: {
       position: "absolute",
       left: 80,
       right: 80,
@@ -26065,54 +25589,17 @@ void main(){
       display: "flex",
       alignItems: "center",
       justifyContent: "center"
-    } }, /* @__PURE__ */ import_react124.default.createElement("h1", { style: textStyle }, config.title)));
-  };
-
-  // src/dimensions/textEffect/ShinyText.tsx
-  var import_react125 = __toESM(require_react());
-  var ShinyText = ({ frame, palette, config }) => {
-    const isTop = config.dimensions.layout === "titleTop";
-    const posStyle = isTop ? { top: 0, height: config.height * 0.22 } : { bottom: 0, height: config.height * 0.22 };
-    const shinePos = interpolate(frame, [0, 90], [150, -50], {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp"
-    });
-    const textStyle = {
-      margin: 0,
-      textAlign: "center",
-      fontSize: 88,
-      fontWeight: 800,
-      lineHeight: 1.15,
-      letterSpacing: "-0.02em",
-      fontFamily: "system-ui, -apple-system, sans-serif",
-      // gradient: base color either side of a bright white shine band
-      backgroundImage: `linear-gradient(120deg, ${palette.text} 0%, ${palette.text} 35%, rgba(255,255,255,0.92) 50%, ${palette.text} 65%, ${palette.text} 100%)`,
-      backgroundSize: "200% auto",
-      backgroundPosition: `${shinePos}% center`,
-      WebkitBackgroundClip: "text",
-      backgroundClip: "text",
-      WebkitTextFillColor: "transparent",
-      color: "transparent"
-    };
-    return /* @__PURE__ */ import_react125.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react125.default.createElement("div", { style: {
-      position: "absolute",
-      left: 80,
-      right: 80,
-      ...posStyle,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center"
-    } }, /* @__PURE__ */ import_react125.default.createElement("h1", { style: textStyle }, config.title)));
+    } }, /* @__PURE__ */ import_react123.default.createElement("h1", { style: textStyle }, config.title)));
   };
 
   // src/dimensions/textEffect/SplitText.tsx
-  var import_react126 = __toESM(require_react());
+  var import_react124 = __toESM(require_react());
   var SplitText = ({ frame, fps, palette, config }) => {
     const isTop = config.dimensions.layout === "titleTop";
-    const posStyle = isTop ? { top: 0, height: config.height * 0.22 } : { bottom: 0, height: config.height * 0.22 };
+    const posStyle = isTop ? { top: config.height * MARGIN_V, height: config.height * TEXT_H } : { bottom: config.height * MARGIN_V, height: config.height * TEXT_H };
     const chars = Array.from(config.title);
     const stagger = chars.length <= 1 ? 0 : Math.max(1, Math.floor(42 / (chars.length - 1)));
-    return /* @__PURE__ */ import_react126.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react126.default.createElement("div", { style: {
+    return /* @__PURE__ */ import_react124.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react124.default.createElement("div", { style: {
       position: "absolute",
       left: 80,
       right: 80,
@@ -26121,7 +25608,7 @@ void main(){
       alignItems: "center",
       justifyContent: "center",
       overflow: "hidden"
-    } }, /* @__PURE__ */ import_react126.default.createElement("div", { style: { display: "flex", flexWrap: "wrap", justifyContent: "center" } }, chars.map((char, i) => {
+    } }, /* @__PURE__ */ import_react124.default.createElement("div", { style: { display: "flex", flexWrap: "wrap", justifyContent: "center" } }, chars.map((char, i) => {
       const progress = spring({
         frame: frame - i * stagger,
         fps,
@@ -26129,7 +25616,7 @@ void main(){
       });
       const opacity = Math.min(1, Math.max(0, progress));
       const translateY = (1 - progress) * 56;
-      return /* @__PURE__ */ import_react126.default.createElement("span", { key: i, style: {
+      return /* @__PURE__ */ import_react124.default.createElement("span", { key: i, style: {
         display: "inline-block",
         fontSize: 88,
         fontWeight: 800,
@@ -26143,61 +25630,17 @@ void main(){
     }))));
   };
 
-  // src/dimensions/textEffect/CircularText.tsx
-  var import_react127 = __toESM(require_react());
-  var CircularText = ({ frame, palette, config }) => {
-    const isTop = config.dimensions.layout === "titleTop";
-    const areaH = config.height * 0.22;
-    const centerX = config.width / 2;
-    const centerY = isTop ? areaH / 2 : config.height - areaH / 2;
-    const SEP = " \u2726 ";
-    const cycle = Array.from(config.title + SEP);
-    const TARGET = 24;
-    const repeated = Array.from(
-      (config.title + SEP).repeat(Math.ceil(TARGET / cycle.length))
-    ).slice(0, TARGET);
-    const radius = 155;
-    const rotationDeg = frame / 90 * 360;
-    const anglePerChar = 360 / repeated.length;
-    return /* @__PURE__ */ import_react127.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react127.default.createElement("div", { style: {
-      position: "absolute",
-      left: centerX,
-      top: centerY,
-      width: 0,
-      height: 0
-    } }, repeated.map((char, i) => {
-      const angle = anglePerChar * i + rotationDeg;
-      const angleRad = (angle - 90) * (Math.PI / 180);
-      const x = Math.cos(angleRad) * radius;
-      const y = Math.sin(angleRad) * radius;
-      return /* @__PURE__ */ import_react127.default.createElement("span", { key: i, style: {
-        position: "absolute",
-        display: "inline-block",
-        left: x,
-        top: y,
-        fontSize: 30,
-        fontWeight: 700,
-        color: palette.text,
-        fontFamily: "system-ui, -apple-system, sans-serif",
-        opacity: 0.88,
-        // center the glyph on (x,y) and rotate it to face outward
-        transform: `translate(-50%, -50%) rotate(${angle}deg)`,
-        whiteSpace: "nowrap"
-      } }, char);
-    })));
-  };
-
   // src/dimensions/textEffect/TextType.tsx
-  var import_react128 = __toESM(require_react());
+  var import_react125 = __toESM(require_react());
   var TextType = ({ frame, palette, config }) => {
     const isTop = config.dimensions.layout === "titleTop";
-    const posStyle = isTop ? { top: 0, height: config.height * 0.22 } : { bottom: 0, height: config.height * 0.22 };
+    const posStyle = isTop ? { top: config.height * MARGIN_V, height: config.height * TEXT_H } : { bottom: config.height * MARGIN_V, height: config.height * TEXT_H };
     const chars = Array.from(config.title);
     const framesPerChar = Math.max(1, Math.floor(60 / Math.max(chars.length, 1)));
     const charsVisible = Math.min(chars.length, Math.floor((frame + 1) / framesPerChar));
     const doneTyping = charsVisible >= chars.length;
     const cursorVisible = doneTyping ? Math.floor(frame / 7) % 2 === 0 : true;
-    return /* @__PURE__ */ import_react128.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react128.default.createElement("div", { style: {
+    return /* @__PURE__ */ import_react125.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react125.default.createElement("div", { style: {
       position: "absolute",
       left: 80,
       right: 80,
@@ -26205,7 +25648,7 @@ void main(){
       display: "flex",
       alignItems: "center",
       justifyContent: "center"
-    } }, /* @__PURE__ */ import_react128.default.createElement("h1", { style: {
+    } }, /* @__PURE__ */ import_react125.default.createElement("h1", { style: {
       margin: 0,
       textAlign: "center",
       fontSize: 88,
@@ -26214,19 +25657,19 @@ void main(){
       letterSpacing: "-0.02em",
       color: palette.text,
       fontFamily: "system-ui, -apple-system, sans-serif"
-    } }, chars.slice(0, charsVisible).join(""), cursorVisible && /* @__PURE__ */ import_react128.default.createElement("span", { style: { color: palette.accent, fontWeight: 400, opacity: 0.9 } }, "|"))));
+    } }, chars.slice(0, charsVisible).join(""), cursorVisible && /* @__PURE__ */ import_react125.default.createElement("span", { style: { color: palette.accent, fontWeight: 400, opacity: 0.9 } }, "|"))));
   };
 
   // src/dimensions/textEffect/ShuffleText.tsx
-  var import_react129 = __toESM(require_react());
+  var import_react126 = __toESM(require_react());
   var CHARSET = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#%^&*";
   var ShuffleText = ({ frame, palette, config }) => {
     const isTop = config.dimensions.layout === "titleTop";
-    const posStyle = isTop ? { top: 0, height: config.height * 0.22 } : { bottom: 0, height: config.height * 0.22 };
+    const posStyle = isTop ? { top: config.height * MARGIN_V, height: config.height * TEXT_H } : { bottom: config.height * MARGIN_V, height: config.height * TEXT_H };
     const chars = Array.from(config.title);
     const SCRAMBLE_LEAD = 12;
     const stagger = chars.length <= 1 ? 0 : Math.max(1, Math.floor(48 / (chars.length - 1)));
-    return /* @__PURE__ */ import_react129.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react129.default.createElement("div", { style: {
+    return /* @__PURE__ */ import_react126.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react126.default.createElement("div", { style: {
       position: "absolute",
       left: 80,
       right: 80,
@@ -26234,7 +25677,7 @@ void main(){
       display: "flex",
       alignItems: "center",
       justifyContent: "center"
-    } }, /* @__PURE__ */ import_react129.default.createElement("div", { style: { display: "flex", flexWrap: "wrap", justifyContent: "center" } }, chars.map((char, i) => {
+    } }, /* @__PURE__ */ import_react126.default.createElement("div", { style: { display: "flex", flexWrap: "wrap", justifyContent: "center" } }, chars.map((char, i) => {
       const arriveFrame = SCRAMBLE_LEAD + i * stagger;
       const settled = frame >= arriveFrame;
       let display;
@@ -26246,7 +25689,7 @@ void main(){
         const idx = (frame * 7 + i * 13) % CHARSET.length;
         display = CHARSET[Math.floor(idx)];
       }
-      return /* @__PURE__ */ import_react129.default.createElement("span", { key: i, style: {
+      return /* @__PURE__ */ import_react126.default.createElement("span", { key: i, style: {
         display: "inline-block",
         fontSize: 88,
         fontWeight: 800,
@@ -26263,7 +25706,7 @@ void main(){
   };
 
   // src/dimensions/textEffect/FuzzyText.tsx
-  var import_react130 = __toESM(require_react());
+  var import_react127 = __toESM(require_react());
   var xorshift32 = (n) => {
     n = Math.imul(n ^ n >>> 15, 1 | n);
     n = Math.imul(n ^ n >>> 7, 61 | n) ^ n;
@@ -26276,9 +25719,9 @@ void main(){
   var FUZZ_RANGE = 30;
   var INTENSITY = 0.18;
   var FuzzyText = ({ frame, palette, config }) => {
-    const canvasRef = (0, import_react130.useRef)(null);
+    const canvasRef = (0, import_react127.useRef)(null);
     const isTop = config.dimensions.layout === "titleTop";
-    (0, import_react130.useEffect)(() => {
+    (0, import_react127.useEffect)(() => {
       const canvas = canvasRef.current;
       if (!canvas) return;
       const ctx = canvas.getContext("2d");
@@ -26313,9 +25756,9 @@ void main(){
       }
       ctx.restore();
     }, [frame, palette.text, config.title]);
-    const areaH = Math.round(config.height * 0.22);
-    const areaTop = isTop ? 0 : config.height - areaH;
-    return /* @__PURE__ */ import_react130.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react130.default.createElement("div", { style: {
+    const areaH = Math.round(config.height * TEXT_H);
+    const areaTop = isTop ? Math.round(config.height * MARGIN_V) : config.height - Math.round(config.height * MARGIN_V) - areaH;
+    return /* @__PURE__ */ import_react127.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react127.default.createElement("div", { style: {
       position: "absolute",
       left: 0,
       right: 0,
@@ -26324,24 +25767,24 @@ void main(){
       display: "flex",
       alignItems: "center",
       justifyContent: "center"
-    } }, /* @__PURE__ */ import_react130.default.createElement("canvas", { ref: canvasRef })));
+    } }, /* @__PURE__ */ import_react127.default.createElement("canvas", { ref: canvasRef })));
   };
 
   // src/dimensions/textEffect/RotatingText.tsx
-  var import_react131 = __toESM(require_react());
+  var import_react128 = __toESM(require_react());
   var SPRING_CFG = { damping: 25, stiffness: 300 };
   var STAGGER_GAP = 1.5;
   var RotatingText = ({ frame, fps, palette, config }) => {
     const isTop = config.dimensions.layout === "titleTop";
-    const areaH = Math.round(config.height * 0.22);
-    const posStyle = isTop ? { top: 0, height: areaH } : { bottom: 0, height: areaH };
+    const areaH = Math.round(config.height * TEXT_H);
+    const posStyle = isTop ? { top: Math.round(config.height * MARGIN_V), height: areaH } : { bottom: Math.round(config.height * MARGIN_V), height: areaH };
     const texts = config.title.includes(" / ") ? config.title.split(" / ").map((s) => s.trim()) : [config.title];
     const intervalFrames = Math.round(fps * 2);
     const textIdx = texts.length > 1 ? Math.floor(frame / intervalFrames) % texts.length : 0;
     const currentText = texts[textIdx];
     const baseFrame = texts.length > 1 ? frame % intervalFrames : frame;
     const chars = currentText.split("");
-    return /* @__PURE__ */ import_react131.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react131.default.createElement("div", { style: {
+    return /* @__PURE__ */ import_react128.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react128.default.createElement("div", { style: {
       position: "absolute",
       left: 80,
       right: 80,
@@ -26350,7 +25793,7 @@ void main(){
       alignItems: "center",
       justifyContent: "center",
       overflow: "hidden"
-    } }, /* @__PURE__ */ import_react131.default.createElement("h1", { style: {
+    } }, /* @__PURE__ */ import_react128.default.createElement("h1", { style: {
       margin: 0,
       textAlign: "center",
       fontSize: 88,
@@ -26366,7 +25809,7 @@ void main(){
       const charFrame = Math.max(0, baseFrame - i * STAGGER_GAP);
       const progress = spring({ fps, frame: charFrame, config: SPRING_CFG });
       const y = (1 - progress) * 100;
-      return /* @__PURE__ */ import_react131.default.createElement(
+      return /* @__PURE__ */ import_react128.default.createElement(
         "span",
         {
           key: `${textIdx}-${i}`,
@@ -26383,7 +25826,7 @@ void main(){
   };
 
   // src/dimensions/textEffect/GlitchText.tsx
-  var import_react132 = __toESM(require_react());
+  var import_react129 = __toESM(require_react());
   var lcg = (s) => (Math.imul(s, 1664525) + 1013904223 >>> 0) / 4294967295;
   var polygonStrip = (top, h) => {
     const t = top.toFixed(1);
@@ -26392,24 +25835,27 @@ void main(){
   };
   var GlitchText = ({ frame, palette, config }) => {
     const isTop = config.dimensions.layout === "titleTop";
-    const areaH = Math.round(config.height * 0.22);
-    const posStyle = isTop ? { top: 0, height: areaH } : { bottom: 0, height: areaH };
+    const areaH = Math.round(config.height * TEXT_H);
+    const posStyle = isTop ? { top: Math.round(config.height * MARGIN_V), height: areaH } : { bottom: Math.round(config.height * MARGIN_V), height: areaH };
     const isGlitching = frame % 30 < 6;
     const seed = Math.floor(frame / 2);
     const strip1 = polygonStrip(lcg(seed * 11) * 80, lcg(seed * 11 + 3) * 15 + 5);
     const strip2 = polygonStrip(lcg(seed * 17) * 80, lcg(seed * 17 + 5) * 15 + 5);
+    const tp = config.params?.text ?? {};
+    const fontSize = tp.fontSize ?? 88;
+    const letterSpacing = tp.letterSpacing !== void 0 ? `${tp.letterSpacing}em` : "-0.02em";
     const baseStyle = {
       margin: 0,
       textAlign: "center",
-      fontSize: 88,
+      fontSize,
       fontWeight: 800,
       lineHeight: 1.15,
-      letterSpacing: "-0.02em",
+      letterSpacing,
       fontFamily: "system-ui, -apple-system, sans-serif",
       color: palette.text,
       width: "100%"
     };
-    return /* @__PURE__ */ import_react132.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react132.default.createElement("div", { style: {
+    return /* @__PURE__ */ import_react129.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react129.default.createElement("div", { style: {
       position: "absolute",
       left: 80,
       right: 80,
@@ -26417,13 +25863,13 @@ void main(){
       display: "flex",
       alignItems: "center",
       justifyContent: "center"
-    } }, /* @__PURE__ */ import_react132.default.createElement("div", { style: { position: "relative", width: "100%", textAlign: "center" } }, /* @__PURE__ */ import_react132.default.createElement("h1", { style: baseStyle }, config.title), isGlitching && /* @__PURE__ */ import_react132.default.createElement("h1", { style: {
+    } }, /* @__PURE__ */ import_react129.default.createElement("div", { style: { position: "relative", width: "100%", textAlign: "center" } }, /* @__PURE__ */ import_react129.default.createElement("h1", { style: baseStyle }, config.title), isGlitching && /* @__PURE__ */ import_react129.default.createElement("h1", { style: {
       ...baseStyle,
       position: "absolute",
       inset: 0,
       textShadow: "-5px 0 red",
       clipPath: strip1
-    } }, config.title), isGlitching && /* @__PURE__ */ import_react132.default.createElement("h1", { style: {
+    } }, config.title), isGlitching && /* @__PURE__ */ import_react129.default.createElement("h1", { style: {
       ...baseStyle,
       position: "absolute",
       inset: 0,
@@ -26432,233 +25878,80 @@ void main(){
     } }, config.title))));
   };
 
-  // src/dimensions/textEffect/CountUpText.tsx
-  var import_react133 = __toESM(require_react());
-  var CountUpText = ({ frame, fps, palette, config }) => {
+  // src/dimensions/textEffect/HandwritingText.tsx
+  var import_react130 = __toESM(require_react());
+  var DASH = 3200;
+  var HandwritingText = ({ frame, fps, palette, config }) => {
     const isTop = config.dimensions.layout === "titleTop";
-    const areaH = Math.round(config.height * 0.22);
-    const posStyle = isTop ? { top: 0, height: areaH } : { bottom: 0, height: areaH };
-    const numMatch = config.title.match(/([\d,]+\.?\d*)/);
-    const target = numMatch ? parseFloat(numMatch[1].replace(/,/g, "")) : 100;
-    const suffix = numMatch ? config.title.slice(config.title.indexOf(numMatch[1]) + numMatch[1].length) : "";
-    const decimals = numMatch?.[1].includes(".") ? numMatch[1].split(".")[1].replace(/0+$/, "").length : 0;
-    const progress = spring({
-      fps,
-      frame,
-      config: { damping: 40, stiffness: 50 },
-      durationInFrames: fps * 2
+    const stripH = config.height * TEXT_H;
+    const stripW = config.width;
+    const drawEnd = Math.floor(2.5 * fps);
+    const fadeStart = Math.floor(0.4 * fps);
+    const fadeEnd = Math.floor(1.2 * fps);
+    const dashOffset = interpolate(frame, [0, drawEnd], [DASH, 0], {
+      extrapolateRight: "clamp"
     });
-    const current = progress * target;
-    const display = Intl.NumberFormat("en-US", {
-      minimumFractionDigits: decimals,
-      maximumFractionDigits: decimals
-    }).format(current);
-    return /* @__PURE__ */ import_react133.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react133.default.createElement("div", { style: {
-      position: "absolute",
-      left: 80,
-      right: 80,
-      ...posStyle,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center"
-    } }, /* @__PURE__ */ import_react133.default.createElement("h1", { style: {
-      margin: 0,
-      textAlign: "center",
-      fontSize: 88,
-      fontWeight: 800,
-      lineHeight: 1.15,
-      letterSpacing: "-0.02em",
-      fontFamily: "system-ui, -apple-system, sans-serif",
-      color: palette.text
-    } }, display, suffix)));
-  };
-
-  // src/dimensions/decoration/CircleDots.tsx
-  var import_react134 = __toESM(require_react());
-  function hashSeed(str) {
-    let h = 2166136261;
-    for (let i = 0; i < str.length; i++) {
-      h ^= str.charCodeAt(i);
-      h = Math.imul(h, 16777619) >>> 0;
-    }
-    return h || 1;
-  }
-  function createRng(seed) {
-    let s = seed >>> 0;
-    return () => {
-      s += 1831565813;
-      let t = s;
-      t = Math.imul(t ^ t >>> 15, t | 1);
-      t ^= t + Math.imul(t ^ t >>> 7, t | 61);
-      return ((t ^ t >>> 14) >>> 0) / 4294967296;
-    };
-  }
-  var CircleDots = ({ palette, config }) => {
-    const rng3 = createRng(hashSeed(config.seed + "-dots"));
-    const rand = (min, max) => min + rng3() * (max - min);
-    const dots = Array.from({ length: 12 }, () => ({
-      x: rand(4, 96),
-      y: rand(4, 96),
-      size: rand(16, 56),
-      opacity: rand(0.15, 0.45)
-    }));
-    return /* @__PURE__ */ import_react134.default.createElement(AbsoluteFill, { style: { pointerEvents: "none" } }, dots.map((dot, i) => /* @__PURE__ */ import_react134.default.createElement(
-      "div",
-      {
-        key: i,
-        style: {
-          position: "absolute",
-          left: `${dot.x}%`,
-          top: `${dot.y}%`,
-          width: dot.size,
-          height: dot.size,
-          borderRadius: "50%",
-          background: palette.accent,
-          opacity: dot.opacity,
-          transform: "translate(-50%, -50%)"
-        }
-      }
-    )));
-  };
-
-  // src/dimensions/decoration/LineStrokes.tsx
-  var import_react135 = __toESM(require_react());
-  function hashSeed2(str) {
-    let h = 2166136261;
-    for (let i = 0; i < str.length; i++) {
-      h ^= str.charCodeAt(i);
-      h = Math.imul(h, 16777619) >>> 0;
-    }
-    return h || 1;
-  }
-  function createRng2(seed) {
-    let s = seed >>> 0;
-    return () => {
-      s += 1831565813;
-      let t = s;
-      t = Math.imul(t ^ t >>> 15, t | 1);
-      t ^= t + Math.imul(t ^ t >>> 7, t | 61);
-      return ((t ^ t >>> 14) >>> 0) / 4294967296;
-    };
-  }
-  var LineStrokes = ({ palette, config }) => {
-    const rng3 = createRng2(hashSeed2(config.seed + "-lines"));
-    const rand = (min, max) => min + rng3() * (max - min);
-    const lines = Array.from({ length: 4 }, () => ({
-      x: rand(5, 95),
-      y: rand(5, 95),
-      length: rand(100, 250),
-      angle: rand(0, 360)
-    }));
-    const { width, height } = config;
-    return /* @__PURE__ */ import_react135.default.createElement(AbsoluteFill, { style: { pointerEvents: "none" } }, /* @__PURE__ */ import_react135.default.createElement(
+    const textOpacity = interpolate(frame, [fadeStart, fadeEnd], [0, 1], {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp"
+    });
+    const textSlide = interpolate(frame, [fadeStart, fadeEnd], [isTop ? -22 : 22, 0], {
+      extrapolateLeft: "clamp",
+      extrapolateRight: "clamp"
+    });
+    const cx = stripW / 2;
+    const cy = stripH / 2;
+    const rx = stripW * 0.41;
+    const ry = stripH * 0.36;
+    const len = config.title.length;
+    const fontSize = len <= 8 ? 80 : len <= 14 ? 66 : len <= 20 ? 54 : 42;
+    const posStyle = isTop ? { top: config.height * MARGIN_V, height: stripH } : { bottom: config.height * MARGIN_V, height: stripH };
+    return /* @__PURE__ */ import_react130.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react130.default.createElement("div", { style: { position: "absolute", left: 0, right: 0, ...posStyle } }, /* @__PURE__ */ import_react130.default.createElement(
       "svg",
       {
-        width,
-        height,
-        style: { position: "absolute", top: 0, left: 0 }
+        width: stripW,
+        height: stripH,
+        style: { position: "absolute", inset: 0 }
       },
-      lines.map((line, i) => {
-        const cx = line.x / 100 * width;
-        const cy = line.y / 100 * height;
-        const rad = line.angle * Math.PI / 180;
-        const dx = Math.cos(rad) * line.length * 0.5;
-        const dy = Math.sin(rad) * line.length * 0.5;
-        return /* @__PURE__ */ import_react135.default.createElement(
-          "line",
-          {
-            key: i,
-            x1: cx - dx,
-            y1: cy - dy,
-            x2: cx + dx,
-            y2: cy + dy,
-            stroke: palette.accent2,
-            strokeWidth: 2,
-            opacity: 0.2,
-            strokeLinecap: "round"
-          }
-        );
-      })
-    ));
-  };
-
-  // src/dimensions/decoration/GlowRing.tsx
-  var import_react136 = __toESM(require_react());
-  var GlowRing = ({ frame, palette, config }) => {
-    const isTop = config.dimensions.layout === "titleTop";
-    const titleFrac = 0.26;
-    const imageTop = isTop ? titleFrac * 100 + 1 : 1;
-    const imageBottom = isTop ? 99 : (1 - titleFrac) * 100 - 1;
-    const imageHeight = imageBottom - imageTop;
-    const pulse = interpolate(frame, [0, 45, 90], [0.75, 1, 0.75], {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp"
-    });
-    const glow1 = Math.round(80 * pulse);
-    const glow2 = Math.round(160 * pulse);
-    const glow3 = Math.round(40 * pulse);
-    const spread1 = Math.round(40 * pulse);
-    const spread2 = Math.round(80 * pulse);
-    return /* @__PURE__ */ import_react136.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react136.default.createElement("div", { style: {
+      /* @__PURE__ */ import_react130.default.createElement(
+        "ellipse",
+        {
+          cx,
+          cy,
+          rx,
+          ry,
+          fill: "none",
+          strokeWidth: "7",
+          stroke: palette.accent,
+          strokeLinecap: "round",
+          strokeDasharray: DASH,
+          strokeDashoffset: dashOffset,
+          transform: `rotate(-90 ${cx} ${cy})`,
+          opacity: 0.88
+        }
+      )
+    ), /* @__PURE__ */ import_react130.default.createElement("div", { style: {
       position: "absolute",
-      left: "6%",
-      right: "6%",
-      top: `${imageTop}%`,
-      height: `${imageHeight}%`,
-      borderRadius: 52,
-      boxShadow: [
-        `0 0 ${glow1}px ${spread1}px ${palette.accent}77`,
-        `0 0 ${glow2}px ${spread2}px ${palette.accent2}44`,
-        `0 0 ${glow3}px ${glow3}px   ${palette.accent}55`
-      ].join(", "),
-      pointerEvents: "none"
-    } }));
-  };
-
-  // src/dimensions/decoration/CircularTextDecor.tsx
-  var import_react137 = __toESM(require_react());
-  var CircularTextDecor = ({ frame, palette, config }) => {
-    const isTop = config.dimensions.layout === "titleTop";
-    const titleFrac = 0.26;
-    const imageCentreY = isTop ? (titleFrac + (1 - titleFrac) / 2) * 100 : (1 - titleFrac) / 2 * 100;
-    const rotation = interpolate(frame, [0, 90], [0, 30], {
-      extrapolateLeft: "clamp",
-      extrapolateRight: "clamp"
-    });
-    const separator = "  \xB7  ";
-    const unit = config.title + separator;
-    const fullText = unit.repeat(Math.ceil(40 / unit.length) + 1).slice(0, 44);
-    const chars = Array.from(fullText);
-    const radius = Math.round(config.width * 0.41);
-    const angleStep = 360 / chars.length;
-    return /* @__PURE__ */ import_react137.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react137.default.createElement("div", { style: {
-      position: "absolute",
-      left: "50%",
-      top: `${imageCentreY}%`,
-      width: 0,
-      height: 0,
-      transform: `translate(-50%, -50%) rotate(${rotation}deg)`
-    } }, chars.map((char, i) => {
-      const angle = i * angleStep;
-      return /* @__PURE__ */ import_react137.default.createElement("span", { key: i, style: {
-        position: "absolute",
-        left: 0,
-        top: 0,
-        fontSize: 32,
-        fontWeight: 700,
-        color: palette.accent,
-        opacity: 0.22,
-        fontFamily: "system-ui, -apple-system, sans-serif",
-        letterSpacing: 1,
-        transform: `rotate(${angle}deg) translateY(-${radius}px)`,
-        transformOrigin: "0 0",
-        pointerEvents: "none"
-      } }, char);
-    })));
+      inset: 0,
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+      opacity: textOpacity,
+      transform: `translateY(${textSlide.toFixed(1)}px)`
+    } }, /* @__PURE__ */ import_react130.default.createElement("span", { style: {
+      fontSize,
+      fontWeight: 800,
+      letterSpacing: "-0.03em",
+      lineHeight: 1.1,
+      color: palette.text,
+      fontFamily: "system-ui, -apple-system, sans-serif",
+      textAlign: "center",
+      padding: "0 80px"
+    } }, config.title))));
   };
 
   // src/dimensions/entrance/FadeSlideUp.tsx
-  var import_react138 = __toESM(require_react());
+  var import_react131 = __toESM(require_react());
   var FadeSlideUp = ({ frame, children }) => {
     const opacity = interpolate(frame, [0, 42], [0, 1], {
       extrapolateLeft: "clamp",
@@ -26668,11 +25961,11 @@ void main(){
       extrapolateLeft: "clamp",
       extrapolateRight: "clamp"
     });
-    return /* @__PURE__ */ import_react138.default.createElement("div", { style: { width: "100%", height: "100%", opacity, transform: `translateY(${translateY}px)` } }, children);
+    return /* @__PURE__ */ import_react131.default.createElement("div", { style: { width: "100%", height: "100%", opacity, transform: `translateY(${translateY}px)` } }, children);
   };
 
   // src/dimensions/entrance/ScaleIn.tsx
-  var import_react139 = __toESM(require_react());
+  var import_react132 = __toESM(require_react());
   var ScaleIn = ({ frame, children }) => {
     const opacity = interpolate(frame, [0, 28], [0, 1], {
       extrapolateLeft: "clamp",
@@ -26682,7 +25975,7 @@ void main(){
       extrapolateLeft: "clamp",
       extrapolateRight: "clamp"
     });
-    return /* @__PURE__ */ import_react139.default.createElement("div", { style: {
+    return /* @__PURE__ */ import_react132.default.createElement("div", { style: {
       width: "100%",
       height: "100%",
       opacity,
@@ -26692,7 +25985,7 @@ void main(){
   };
 
   // src/dimensions/entrance/FloatIn.tsx
-  var import_react140 = __toESM(require_react());
+  var import_react133 = __toESM(require_react());
   var FloatIn = ({ frame, children }) => {
     const opacity = interpolate(frame, [0, 38], [0, 1], {
       extrapolateLeft: "clamp",
@@ -26706,7 +25999,7 @@ void main(){
       extrapolateLeft: "clamp",
       extrapolateRight: "clamp"
     });
-    return /* @__PURE__ */ import_react140.default.createElement("div", { style: {
+    return /* @__PURE__ */ import_react133.default.createElement("div", { style: {
       width: "100%",
       height: "100%",
       opacity,
@@ -26716,7 +26009,7 @@ void main(){
   };
 
   // src/dimensions/entrance/BlurIn.tsx
-  var import_react141 = __toESM(require_react());
+  var import_react134 = __toESM(require_react());
   var BlurIn = ({ frame, children }) => {
     const opacity = interpolate(frame, [0, 48], [0, 1], {
       extrapolateLeft: "clamp",
@@ -26730,7 +26023,7 @@ void main(){
       extrapolateLeft: "clamp",
       extrapolateRight: "clamp"
     });
-    return /* @__PURE__ */ import_react141.default.createElement("div", { style: {
+    return /* @__PURE__ */ import_react134.default.createElement("div", { style: {
       width: "100%",
       height: "100%",
       opacity,
@@ -26746,38 +26039,29 @@ void main(){
       gradient: GradientBg,
       blocks: BlocksBg,
       aurora: AuroraBg,
-      balatro: BalatrosBg,
       ballpit: BallpitBg,
-      beams: BeamsBg,
       dotField: DotFieldBg,
       dotGrid: DotGridBg,
-      waves: WavesBg,
       silk: SilkBg,
       threads: ThreadsBg,
       lineWaves: LineWavesBg,
       rippleGrid: RippleGridBg,
-      galaxy: GalaxyBg
+      nebula: NebulaBg,
+      shaderLines: ShaderLinesBg,
+      nenoShader: NenoShaderBg
     },
     textEffect: {
       static: StaticText,
       fade: FadeText,
       blurText: BlurText,
       gradientText: GradientText,
-      shinyText: ShinyText,
       splitText: SplitText,
-      circularText: CircularText,
       textType: TextType,
       shuffleText: ShuffleText,
       fuzzyText: FuzzyText,
       rotatingText: RotatingText,
       glitchText: GlitchText,
-      countUp: CountUpText
-    },
-    decoration: {
-      circles: CircleDots,
-      lines: LineStrokes,
-      glowRing: GlowRing,
-      circularText: CircularTextDecor
+      handwriting: HandwritingText
     },
     entrance: {
       fadeSlideUp: FadeSlideUp,
@@ -26788,7 +26072,7 @@ void main(){
   };
 
   // src/compositions/ImageLayer.tsx
-  var import_react142 = __toESM(require_react());
+  var import_react135 = __toESM(require_react());
   var MK_W = 1022;
   var MK_H = 2082;
   var SC_L = 52 / MK_W * 100;
@@ -26800,20 +26084,21 @@ void main(){
   var ImageLayer = ({ config }) => {
     const { imageUrl, mockupUrl, dimensions, height } = config;
     const isTop = dimensions.layout === "titleTop";
-    const imageAreaStyle = isTop ? { position: "absolute", top: height * 0.26, bottom: 0, left: 60, right: 60 } : { position: "absolute", top: 0, bottom: height * 0.26, left: 60, right: 60 };
-    return /* @__PURE__ */ import_react142.default.createElement("div", { style: imageAreaStyle }, /* @__PURE__ */ import_react142.default.createElement("div", { style: {
+    const imageAreaStyle = isTop ? { position: "absolute", top: height * IMG_OFFSET, bottom: height * MARGIN_V, left: 60, right: 60 } : { position: "absolute", top: height * MARGIN_V, bottom: height * IMG_OFFSET, left: 60, right: 60 };
+    return /* @__PURE__ */ import_react135.default.createElement("div", { style: imageAreaStyle }, /* @__PURE__ */ import_react135.default.createElement("div", { style: {
       width: "100%",
       height: "100%",
       display: "flex",
       alignItems: "center",
       justifyContent: "center"
-    } }, /* @__PURE__ */ import_react142.default.createElement("div", { style: {
+    } }, /* @__PURE__ */ import_react135.default.createElement("div", { style: {
       position: "relative",
       height: "92%",
       aspectRatio: `${MK_W} / ${MK_H}`,
       maxWidth: "92%",
-      flexShrink: 0
-    } }, /* @__PURE__ */ import_react142.default.createElement(
+      flexShrink: 0,
+      transform: `scale(${config.params?.mockup?.scale ?? 1.32})`
+    } }, /* @__PURE__ */ import_react135.default.createElement(
       Img,
       {
         src: mockupUrl,
@@ -26826,7 +26111,7 @@ void main(){
           zIndex: 1
         }
       }
-    ), /* @__PURE__ */ import_react142.default.createElement("div", { style: {
+    ), /* @__PURE__ */ import_react135.default.createElement("div", { style: {
       position: "absolute",
       left: `${SC_L}%`,
       top: `${SC_T}%`,
@@ -26835,7 +26120,7 @@ void main(){
       borderRadius: `${SC_RX}% / ${SC_RY}%`,
       overflow: "hidden",
       zIndex: 2
-    } }, /* @__PURE__ */ import_react142.default.createElement(
+    } }, /* @__PURE__ */ import_react135.default.createElement(
       Img,
       {
         src: imageUrl,
@@ -26855,31 +26140,21 @@ void main(){
     const frame = useCurrentFrame();
     const { fps } = useVideoConfig();
     const BackgroundComp = DIMENSIONS.background[config.dimensions.background];
-    const DecorationComp = DIMENSIONS.decoration[config.dimensions.decoration];
     const TextComp = DIMENSIONS.textEffect[config.dimensions.textEffect];
-    const EntranceComp = DIMENSIONS.entrance[config.dimensions.entrance];
     const props = { frame, fps, palette: config.palette, config };
-    return /* @__PURE__ */ import_react143.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react143.default.createElement(BackgroundComp, { ...props }), /* @__PURE__ */ import_react143.default.createElement(DecorationComp, { ...props }), /* @__PURE__ */ import_react143.default.createElement(TextComp, { ...props }), /* @__PURE__ */ import_react143.default.createElement(EntranceComp, { ...props }, /* @__PURE__ */ import_react143.default.createElement(ImageLayer, { config })));
+    return /* @__PURE__ */ import_react136.default.createElement(AbsoluteFill, null, /* @__PURE__ */ import_react136.default.createElement(BackgroundComp, { ...props }), /* @__PURE__ */ import_react136.default.createElement("div", { style: { position: "absolute", inset: 0, transform: `scale(${config.textScale ?? 1})`, transformOrigin: "center center" } }, /* @__PURE__ */ import_react136.default.createElement(TextComp, { ...props })), /* @__PURE__ */ import_react136.default.createElement(ImageLayer, { config }));
   };
 
   // src/preview-app.tsx
-  var PLACEHOLDER = `data:image/svg+xml,${encodeURIComponent(
-    `<svg xmlns="http://www.w3.org/2000/svg" width="390" height="720">
-    <rect width="100%" height="100%" rx="32" fill="#1a1a2e"/>
-    <text x="195" y="340" text-anchor="middle" dominant-baseline="middle"
-      font-family="system-ui" font-size="18" fill="#333">App Screenshot</text>
-    <text x="195" y="370" text-anchor="middle" dominant-baseline="middle"
-      font-family="system-ui" font-size="13" fill="#2a2a3e">\u751F\u6210\u540E\u663E\u793A\u771F\u5B9E\u622A\u56FE</text>
-  </svg>`
-  )}`;
+  var PLACEHOLDER = "/placeholder-screenshot.png";
   var DEFAULT_CONFIG = {
     imageUrl: PLACEHOLDER,
     mockupUrl: "/mockup.png",
-    title: "\u9884\u89C8\u52A8\u6548",
+    title: "\u4E3B\u6807\u9898\u957F\u5EA6\u9884\u89C8",
+    textScale: 1.2,
     dimensions: {
       background: "gradient",
       textEffect: "gradientText",
-      decoration: "circles",
       entrance: "fadeSlideUp",
       layout: "titleTop"
     },
@@ -26898,12 +26173,22 @@ void main(){
     seed: "preview"
   };
   function App() {
-    const [config, setConfig] = (0, import_react144.useState)(DEFAULT_CONFIG);
-    (0, import_react144.useEffect)(() => {
+    const [config, setConfig] = (0, import_react137.useState)(DEFAULT_CONFIG);
+    (0, import_react137.useEffect)(() => {
       const handler = (e) => {
         if (!e.data) return;
         if (e.data.type === "UPDATE_CONFIG") {
-          setConfig(e.data.config);
+          setConfig((prev) => ({
+            ...e.data.config,
+            params: prev.params,
+            textScale: prev.textScale
+          }));
+        } else if (e.data.type === "UPDATE_PARAMS") {
+          setConfig((prev) => ({
+            ...prev,
+            params: e.data.params,
+            ...e.data.textScale !== void 0 ? { textScale: e.data.textScale } : {}
+          }));
         } else if (e.data.type === "UPDATE_DIMS") {
           setConfig((prev) => ({
             ...prev,
@@ -26916,7 +26201,7 @@ void main(){
       window.addEventListener("message", handler);
       return () => window.removeEventListener("message", handler);
     }, []);
-    return /* @__PURE__ */ import_react144.default.createElement("div", { style: {
+    return /* @__PURE__ */ import_react137.default.createElement("div", { style: {
       width: "100%",
       height: "100vh",
       background: "#050505",
@@ -26924,7 +26209,7 @@ void main(){
       alignItems: "center",
       justifyContent: "center",
       overflow: "hidden"
-    } }, /* @__PURE__ */ import_react144.default.createElement(
+    } }, /* @__PURE__ */ import_react137.default.createElement(
       Player,
       {
         component: BannerComposition,
@@ -26945,7 +26230,7 @@ void main(){
   }
   var container2 = document.getElementById("root");
   if (container2) {
-    (0, import_client.createRoot)(container2).render(/* @__PURE__ */ import_react144.default.createElement(App, null));
+    (0, import_client.createRoot)(container2).render(/* @__PURE__ */ import_react137.default.createElement(App, null));
   }
 })();
 /*! Bundled license information:

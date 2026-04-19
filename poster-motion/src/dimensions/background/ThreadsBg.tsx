@@ -95,17 +95,18 @@ export const ThreadsBg: React.FC<DimensionProps> = ({ frame, fps, palette, confi
     const [r, g, b] = hexToVec3(palette.text);
     const [br,bg_,bb] = hexToVec3(palette.bg);
 
+    const bp = config.params?.bg ?? {};
     gl.uniform1f(u('iTime'),       t);
     gl.uniform3f(u('iResolution'), config.width, config.height, config.width / config.height);
     gl.uniform3f(u('uColor'),      r, g, b);
-    gl.uniform1f(u('uAmplitude'),  1.4);
-    gl.uniform1f(u('uDistance'),   0.35);
+    gl.uniform1f(u('uAmplitude'),  bp.amplitude ?? 1.4);
+    gl.uniform1f(u('uDistance'),   bp.distance ?? 0.35);
     gl.uniform2f(u('uMouse'),      0.5, 0.5);
 
     gl.clearColor(br, bg_, bb, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
-  }, [frame, fps, palette, config.width, config.height]);
+  }, [frame, fps, palette, config.width, config.height, config.params]);
 
   return (
     <AbsoluteFill>

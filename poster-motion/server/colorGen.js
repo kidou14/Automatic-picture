@@ -328,8 +328,7 @@ function generatePaletteFallback(rng) {
 const DIMENSION_OPTIONS = {
   background: ['gradient', 'blocks', 'aurora', 'balatro', 'ballpit', 'beams',
                'dotField', 'dotGrid', 'waves', 'silk', 'threads', 'lineWaves', 'rippleGrid', 'galaxy'],
-  textEffect: ['splitText', 'blurText', 'circularText', 'textType', 'shuffleText', 'gradientText', 'shinyText'],
-  decoration: ['circles', 'lines', 'glowRing', 'circularText'],
+  textEffect: ['splitText', 'blurText', 'textType', 'shuffleText', 'gradientText', 'fuzzyText', 'rotatingText', 'glitchText', 'handwriting'],
   entrance:   ['fadeSlideUp', 'scaleIn', 'floatIn', 'blurIn'],
   layout:     ['titleTop', 'titleBottom'],
 };
@@ -351,7 +350,6 @@ async function generateBannerConfig({ seed, imageUrl, mockupUrl, title = '全新
   const resolvedDimensions = {
     background: dimensions?.background || pick(DIMENSION_OPTIONS.background),
     textEffect: dimensions?.textEffect || pick(DIMENSION_OPTIONS.textEffect),
-    decoration: dimensions?.decoration || pick(DIMENSION_OPTIONS.decoration),
     entrance:   dimensions?.entrance   || pick(DIMENSION_OPTIONS.entrance),
     layout:     dimensions?.layout     || pick(DIMENSION_OPTIONS.layout),
   };

@@ -1,6 +1,7 @@
 import React from 'react';
 import { AbsoluteFill, spring } from 'remotion';
 import { DimensionProps } from '../../types/BannerConfig';
+import { MARGIN_V, TEXT_H } from '../../layout';
 
 // Faithful Remotion port of reactbits.dev RotatingText.
 // Characters slide in from y=100% with per-char spring stagger (damping:25, stiffness:300).
@@ -13,10 +14,10 @@ const STAGGER_GAP  = 1.5; // frames between each character's spring start
 
 export const RotatingText: React.FC<DimensionProps> = ({ frame, fps, palette, config }) => {
   const isTop = config.dimensions.layout === 'titleTop';
-  const areaH = Math.round(config.height * 0.22);
+  const areaH = Math.round(config.height * TEXT_H);
   const posStyle: React.CSSProperties = isTop
-    ? { top: 0, height: areaH }
-    : { bottom: 0, height: areaH };
+    ? { top: Math.round(config.height * MARGIN_V), height: areaH }
+    : { bottom: Math.round(config.height * MARGIN_V), height: areaH };
 
   const texts = config.title.includes(' / ')
     ? config.title.split(' / ').map((s: string) => s.trim())

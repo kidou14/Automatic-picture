@@ -7,28 +7,20 @@ import React, { useState, useEffect } from 'react';
 import { createRoot } from 'react-dom/client';
 import { Player } from '@remotion/player';
 import { BannerComposition } from './compositions/BannerComposition';
-import { BannerConfig } from './types/BannerConfig';
+import { BannerConfig, BannerParams } from './types/BannerConfig';
 
-// Placeholder image — a simple dark rectangle so layout/animations are visible
-// even before a real screenshot has been taken.
-const PLACEHOLDER = `data:image/svg+xml,${encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="390" height="720">
-    <rect width="100%" height="100%" rx="32" fill="#1a1a2e"/>
-    <text x="195" y="340" text-anchor="middle" dominant-baseline="middle"
-      font-family="system-ui" font-size="18" fill="#333">App Screenshot</text>
-    <text x="195" y="370" text-anchor="middle" dominant-baseline="middle"
-      font-family="system-ui" font-size="13" fill="#2a2a3e">生成后显示真实截图</text>
-  </svg>`
-)}`;
+// Default preview image — use the placeholder screenshot so the phone frame
+// shows a realistic app UI immediately, before any render is triggered.
+const PLACEHOLDER = '/placeholder-screenshot.png';
 
 const DEFAULT_CONFIG: BannerConfig = {
   imageUrl:   PLACEHOLDER,
   mockupUrl:  '/mockup.png',
-  title: '预览动效',
+  title: '主标题长度预览',
+  textScale: 1.2,
   dimensions: {
     background: 'gradient',
     textEffect: 'gradientText',
-    decoration: 'circles',
     entrance: 'fadeSlideUp',
     layout: 'titleTop',
   },
@@ -54,9 +46,22 @@ function App() {
     const handler = (e: MessageEvent) => {
       if (!e.data) return;
 
-      // Full config replacement (after a real render / re-render)
+      // Full config replacement (after a real render / re-render).
+      // Preserve any param/textScale overrides the user has dialled in via sliders.
       if (e.data.type === 'UPDATE_CONFIG') {
-        setConfig(e.data.config as BannerConfig);
+        setConfig(prev => ({
+          ...(e.data.config as BannerConfig),
+          params:    prev.params,
+          textScale: prev.textScale,
+        }));
+
+      // Param slider update — patches params and optionally textScale
+      } else if (e.data.type === 'UPDATE_PARAMS') {
+        setConfig(prev => ({
+          ...prev,
+          params: e.data.params as BannerParams,
+          ...(e.data.textScale !== undefined ? { textScale: e.data.textScale as number } : {}),
+        }));
 
       // Dimension-only update (before any render — keeps default palette + placeholder)
       } else if (e.data.type === 'UPDATE_DIMS') {

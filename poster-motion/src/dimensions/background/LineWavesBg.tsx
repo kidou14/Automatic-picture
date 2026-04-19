@@ -108,16 +108,17 @@ export const LineWavesBg: React.FC<DimensionProps> = ({ frame, fps, palette, con
     const [br, bg_, bb] = hexToVec3(palette.bg);
     const rotRad        = (-45 * Math.PI) / 180;
 
+    const bp = config.params?.bg ?? {};
     gl.uniform1f(u('uTime'),           t);
     gl.uniform3f(u('uResolution'),     config.width, config.height, config.width/config.height);
-    gl.uniform1f(u('uSpeed'),          0.3);
+    gl.uniform1f(u('uSpeed'),          bp.speed ?? 0.3);
     gl.uniform1f(u('uInnerLines'),     32.0);
     gl.uniform1f(u('uOuterLines'),     36.0);
-    gl.uniform1f(u('uWarpIntensity'),  1.2);
+    gl.uniform1f(u('uWarpIntensity'),  bp.warpIntensity ?? 1.2);
     gl.uniform1f(u('uRotation'),       rotRad);
     gl.uniform1f(u('uEdgeFadeWidth'),  0.0);
     gl.uniform1f(u('uColorCycleSpeed'),1.0);
-    gl.uniform1f(u('uBrightness'),     0.2);
+    gl.uniform1f(u('uBrightness'),     bp.brightness ?? 0.2);
     gl.uniform3f(u('uColor1'), c1r, c1g, c1b);
     gl.uniform3f(u('uColor2'), c2r, c2g, c2b);
     gl.uniform3f(u('uColor3'), c3r, c3g, c3b);
@@ -126,7 +127,7 @@ export const LineWavesBg: React.FC<DimensionProps> = ({ frame, fps, palette, con
     gl.clearColor(br, bg_, bb, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
-  }, [frame, fps, palette, config.width, config.height]);
+  }, [frame, fps, palette, config.width, config.height, config.params]);
 
   return (
     <AbsoluteFill>
