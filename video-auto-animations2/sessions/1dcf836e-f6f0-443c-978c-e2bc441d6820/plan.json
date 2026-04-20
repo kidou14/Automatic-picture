@@ -1,0 +1,47 @@
+{
+  "product_name": "EV Calculator",
+  "tagline": "Quantify every trade with probability math",
+  "accent_color": "#6c63ff",
+  "steps": [
+    {
+      "action": "fill",
+      "selector": "input[placeholder='100']",
+      "value": "45000",
+      "scroll_y": 0,
+      "description": "Set current asset price to a realistic trading scenario",
+      "callout_text": "Enter asset price"
+    },
+    {
+      "action": "fill",
+      "selector": "input[placeholder='1']",
+      "value": "0.5",
+      "scroll_y": 0,
+      "description": "Define position size for the trade",
+      "callout_text": "Set position size"
+    },
+    {
+      "action": "scroll",
+      "selector": null,
+      "value": null,
+      "scroll_y": 600,
+      "description": "Reveal the price targets and probability distribution section",
+      "callout_text": "Set price targets"
+    },
+    {
+      "action": "click",
+      "selector": "button.add-target, button[onclick*='add'], button:has-text('添加价格目标')",
+      "value": null,
+      "scroll_y": 600,
+      "description": "Add a new price target row to build probability distribution",
+      "callout_text": "Add profit targets"
+    },
+    {
+      "action": "click",
+      "selector": "button.calculate, button[onclick*='calc'], button:has-text('计算期望值')",
+      "value": null,
+      "scroll_y": 800,
+      "description": "Calculate expected value across all probability-weighted scenarios",
+      "callout_text": "Calculate expected value"
+    }
+  ]
+}

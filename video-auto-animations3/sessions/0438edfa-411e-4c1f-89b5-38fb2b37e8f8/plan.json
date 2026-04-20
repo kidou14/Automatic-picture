@@ -1,0 +1,47 @@
+{
+  "product_name": "EV Calculator",
+  "tagline": "Quantify every trade before you take it",
+  "accent_color": "#6B6BF8",
+  "steps": [
+    {
+      "action": "fill",
+      "selector": "input[placeholder='100']",
+      "value": "42500",
+      "scroll_y": 0,
+      "description": "Current price field populated with a realistic asset price, setting up the trade scenario",
+      "callout_text": "Enter your price"
+    },
+    {
+      "action": "fill",
+      "selector": "input[placeholder='1']",
+      "value": "5",
+      "scroll_y": 0,
+      "description": "Position size updated to 5 contracts, scaling the expected value calculation",
+      "callout_text": "Set position size"
+    },
+    {
+      "action": "scroll",
+      "selector": null,
+      "value": null,
+      "scroll_y": 600,
+      "description": "Price targets and probability table come into full view, showing target price and probability input rows",
+      "callout_text": "Define price targets"
+    },
+    {
+      "action": "fill",
+      "selector": "input[placeholder='止盈价']",
+      "value": "46000",
+      "scroll_y": 600,
+      "description": "Take-profit target filled in, first scenario row now has a concrete price level",
+      "callout_text": "Set take-profit target"
+    },
+    {
+      "action": "click",
+      "selector": "button.calculate-btn, button[onclick*='calculate'], button:last-of-type",
+      "value": null,
+      "scroll_y": 800,
+      "description": "Expected value result appears — a clear positive or negative EV number with breakdown, proving the trade is worth taking or skipping",
+      "callout_text": "Instant EV result!"
+    }
+  ]
+}

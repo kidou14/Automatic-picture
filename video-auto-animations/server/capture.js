@@ -6,9 +6,23 @@
 const { chromium } = require("playwright");
 const path = require("path");
 const fs = require("fs");
+const sharp = require("sharp");
 
 const VIEWPORT = { width: 390, height: 844 };
 const DPR = 2.769; // → 1080px native width
+
+/** Apply mild unsharp mask to a PNG in-place — sharpens text and edges */
+async function sharpenPng(filePath) {
+  try {
+    const buf = await sharp(filePath)
+      .sharpen({ sigma: 0.6, m1: 0.3, m2: 0.8 })
+      .toBuffer();
+    fs.writeFileSync(filePath, buf);
+  } catch (e) {
+    // Non-fatal — skip sharpening if sharp fails for any reason
+    console.warn("[capture] sharpen skipped:", e.message);
+  }
+}
 
 /**
  * Load URL, take initial screenshot, extract DOM metadata.
@@ -39,10 +53,13 @@ async function captureInitial(url, sessionDir) {
   const ssFile = "ss_00.png";
   const ssPath = path.join(sessionDir, ssFile);
   await page.screenshot({ path: ssPath, fullPage: true, timeout: 60000 });
+  await sharpenPng(ssPath);
 
   // Viewport-only screenshot for Claude (full-page can exceed 8000px limit)
   const aiSsFile = "ss_ai.png";
-  await page.screenshot({ path: path.join(sessionDir, aiSsFile), fullPage: false, timeout: 60000 });
+  const aiSsPath = path.join(sessionDir, aiSsFile);
+  await page.screenshot({ path: aiSsPath, fullPage: false, timeout: 60000 });
+  await sharpenPng(aiSsPath);
 
   const metadata = await page.evaluate(() => {
     const vis = (el) => el && el.offsetParent !== null;
@@ -138,8 +155,10 @@ async function executeInteractionPlan(url, plan, sessionDir) {
 
   // Capture initial state
   const initialSs = `ss_${String(ssCounter).padStart(2, "0")}.png`;
-  await page.screenshot({ path: path.join(sessionDir, initialSs), fullPage: true });
-  ssHeights[initialSs] = await getPngHeight(path.join(sessionDir, initialSs));
+  const initialSsPath = path.join(sessionDir, initialSs);
+  await page.screenshot({ path: initialSsPath, fullPage: true });
+  await sharpenPng(initialSsPath);
+  ssHeights[initialSs] = await getPngHeight(initialSsPath);
 
   for (let i = 0; i < plan.steps.length; i++) {
     const step = plan.steps[i];
@@ -183,13 +202,10 @@ async function executeInteractionPlan(url, plan, sessionDir) {
         // Take before screenshot AFTER scroll
         ssCounter++;
         const beforeAfterScroll = `ss_${String(ssCounter).padStart(2, "0")}.png`;
-        await page.screenshot({
-          path: path.join(sessionDir, beforeAfterScroll),
-          fullPage: true,
-        });
-        ssHeights[beforeAfterScroll] = await getPngHeight(
-          path.join(sessionDir, beforeAfterScroll)
-        );
+        const beforeAfterScrollPath = path.join(sessionDir, beforeAfterScroll);
+        await page.screenshot({ path: beforeAfterScrollPath, fullPage: true });
+        await sharpenPng(beforeAfterScrollPath);
+        ssHeights[beforeAfterScroll] = await getPngHeight(beforeAfterScrollPath);
         const beforeSsActual = beforeAfterScroll;
         const scrollBeforeActual = await page.evaluate(
           () => window.scrollY * 2.769
@@ -205,11 +221,10 @@ async function executeInteractionPlan(url, plan, sessionDir) {
         const scrollAfter = await page.evaluate(() => window.scrollY * 2.769);
         ssCounter++;
         const afterSs = `ss_${String(ssCounter).padStart(2, "0")}.png`;
-        await page.screenshot({
-          path: path.join(sessionDir, afterSs),
-          fullPage: true,
-        });
-        ssHeights[afterSs] = await getPngHeight(path.join(sessionDir, afterSs));
+        const afterSsPath = path.join(sessionDir, afterSs);
+        await page.screenshot({ path: afterSsPath, fullPage: true });
+        await sharpenPng(afterSsPath);
+        ssHeights[afterSs] = await getPngHeight(afterSsPath);
 
         interactions.push({
           action: "click",
@@ -251,11 +266,10 @@ async function executeInteractionPlan(url, plan, sessionDir) {
         const scrollAfter = await page.evaluate(() => window.scrollY * 2.769);
         ssCounter++;
         const afterSs = `ss_${String(ssCounter).padStart(2, "0")}.png`;
-        await page.screenshot({
-          path: path.join(sessionDir, afterSs),
-          fullPage: true,
-        });
-        ssHeights[afterSs] = await getPngHeight(path.join(sessionDir, afterSs));
+        const afterSsPath = path.join(sessionDir, afterSs);
+        await page.screenshot({ path: afterSsPath, fullPage: true });
+        await sharpenPng(afterSsPath);
+        ssHeights[afterSs] = await getPngHeight(afterSsPath);
 
         interactions.push({
           action: "fill",
@@ -280,11 +294,10 @@ async function executeInteractionPlan(url, plan, sessionDir) {
         const scrollAfter = await page.evaluate(() => window.scrollY * 2.769);
         ssCounter++;
         const afterSs = `ss_${String(ssCounter).padStart(2, "0")}.png`;
-        await page.screenshot({
-          path: path.join(sessionDir, afterSs),
-          fullPage: true,
-        });
-        ssHeights[afterSs] = await getPngHeight(path.join(sessionDir, afterSs));
+        const afterSsPath = path.join(sessionDir, afterSs);
+        await page.screenshot({ path: afterSsPath, fullPage: true });
+        await sharpenPng(afterSsPath);
+        ssHeights[afterSs] = await getPngHeight(afterSsPath);
 
         interactions.push({
           action: "scroll",

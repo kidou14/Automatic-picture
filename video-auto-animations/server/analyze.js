@@ -28,47 +28,50 @@ Form Inputs: ${
 Nav Links: ${metadata.links.map((l) => l.text).join(", ") || "(none)"}
 Body Text Excerpt: ${metadata.bodyText.substring(0, 600)}`;
 
-  const systemPrompt = `You are an expert product demo director. Given a web page screenshot and metadata, you design a concise promotional walkthrough that showcases the product's most impressive features in 4-5 steps.
+  const systemPrompt = `You are an expert product demo director creating a 15-second promotional video. Given a web page screenshot and metadata, design a walkthrough that tells a compelling story in 4-5 steps.
 
 Rules:
-- Focus on the core value proposition and key interactions
-- Prefer clicks on tabs, buttons, CTAs over scrolling
-- For forms, pick 1-2 key inputs to fill with realistic sample values
-- Each step must have a concrete, specific CSS selector that is likely to work
-- callout_text must be 3-5 words maximum
+- Pick interactions that create clear BEFORE → AFTER visual contrast (state changes, reveals, results appearing)
+- Each step should show the product doing something impressive — avoid redundant or low-impact actions
+- Prefer: clicking tabs/buttons that reveal new content, filling forms that show live results, navigating to a key feature
+- Avoid: scrolling without purpose, clicking links that navigate away, hovering with no state change
+- callout_text should be action-oriented and specific (e.g. "Instant results", "One click" — not "Step 1")
+- accent_color: pick the most prominent brand color visible in the screenshot (buttons, headers, logo)
+- Each step must have a concrete CSS selector (id > specific class > tag) that is likely present
 - Return ONLY valid JSON, no markdown code fences, no explanation`;
 
   const userPrompt = `${contextText}
 
-Design a 4-5 step interaction plan that highlights what makes this product special.
+Design a 4-5 step walkthrough. Think like a product marketer: what sequence of interactions best proves the product's value in under 15 seconds?
 
 Return this exact JSON structure:
 {
   "product_name": "short product name (2-4 words)",
-  "tagline": "compelling tagline (5-9 words)",
-  "accent_color": "#hexcolor matching the brand's primary color",
+  "tagline": "compelling benefit-focused tagline (5-9 words)",
+  "accent_color": "#hexcolor — most prominent brand color from the screenshot",
   "steps": [
     {
       "action": "click",
       "selector": "#specific-id or .specific-class",
       "value": null,
       "scroll_y": 0,
-      "description": "what this action demonstrates",
-      "callout_text": "3-5 word caption"
+      "description": "what changes visually after this click",
+      "callout_text": "3-5 words, action-oriented"
     },
     {
       "action": "fill",
       "selector": "#input-id",
-      "value": "realistic sample value",
+      "value": "realistic, specific sample value (not placeholder text)",
       "scroll_y": 0,
-      "description": "what filling this shows",
-      "callout_text": "Enter your data"
+      "description": "what this input triggers or shows",
+      "callout_text": "Live calculation"
     }
   ]
 }
 
 Action types: "click", "fill", "scroll"
-For scroll: set scroll_y in CSS pixels, selector can be null.`;
+For scroll: set scroll_y in CSS pixels (the final scroll position), selector can be null.
+Prioritize steps where the after-state looks meaningfully different from the before-state.`;
 
   const response = await anthropic.messages.create({
     model: "claude-sonnet-4-6",

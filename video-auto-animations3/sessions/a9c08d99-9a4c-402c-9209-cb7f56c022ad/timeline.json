@@ -1,0 +1,35 @@
+{
+  "timeline": [
+    {
+      "step": 0,
+      "before_ms": 4668,
+      "click_ms": 4683,
+      "after_ms": 7012
+    },
+    {
+      "step": 1,
+      "before_ms": 7514,
+      "click_ms": 7519,
+      "after_ms": 9860
+    },
+    {
+      "step": 2,
+      "before_ms": 10361,
+      "click_ms": 10362,
+      "after_ms": 12653
+    },
+    {
+      "step": 3,
+      "before_ms": 13154,
+      "click_ms": 13162,
+      "after_ms": 15509
+    },
+    {
+      "step": 4,
+      "before_ms": 16011,
+      "click_ms": 16667,
+      "after_ms": 18996
+    }
+  ],
+  "resultMs": 21998
+}

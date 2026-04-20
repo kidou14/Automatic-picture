@@ -1,0 +1,14 @@
+[
+  {
+    "scene": "intro",
+    "prompt": "Dark cinematic reveal: glowing purple light sweeps across a deep navy background, bold Chinese text emerges with dramatic lens flare, premium typography animates in — 'Quantify every trade with probability math.'"
+  },
+  {
+    "scene": "interaction",
+    "prompt": "Sleek smartphone floats on dark surface, close-up shot slowly pushes in as a finger taps the price field and types '42,500', soft purple glow pulses around the active input field."
+  },
+  {
+    "scene": "result",
+    "prompt": "Smartphone screen fills frame, expected value result dramatically counts up in glowing white numerals, purple accent highlights flash across the interface, camera pulls back with cinematic bokeh."
+  }
+]

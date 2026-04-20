@@ -1,0 +1,72 @@
+{
+  "product_name": "EV Calculator",
+  "tagline": "Quantify every trade before you risk",
+  "accent_color": "#6c63ff",
+  "screen_video_url": "http://localhost:4322/sessions/4b336aeb-2420-47fa-886e-ee86cfb03c87/screen.mp4",
+  "background_video_url": "http://localhost:4322/sessions/4b336aeb-2420-47fa-886e-ee86cfb03c87/background.mp4",
+  "style_seed": "4b336aeb-2420-47fa-886e-ee86cfb03c87",
+  "scenes": [
+    {
+      "type": "intro",
+      "duration": 120,
+      "title": "EV Calculator",
+      "subtitle": "Quantify every trade before you risk",
+      "video_start_ms": 5108
+    },
+    {
+      "type": "interaction",
+      "duration": 150,
+      "video_start_ms": 7108,
+      "click_ms": 7628,
+      "click_x": null,
+      "click_y": null,
+      "scroll_before": 0,
+      "callout_text": "Set your entry price",
+      "step_number": 1
+    },
+    {
+      "type": "interaction",
+      "duration": 150,
+      "video_start_ms": 9978,
+      "click_ms": 10491,
+      "click_x": null,
+      "click_y": null,
+      "scroll_before": 0,
+      "callout_text": "Define position size",
+      "step_number": 2
+    },
+    {
+      "type": "interaction",
+      "duration": 150,
+      "video_start_ms": 12864,
+      "click_ms": 13365,
+      "click_x": null,
+      "click_y": null,
+      "scroll_before": 0,
+      "callout_text": "Set targets & probabilities",
+      "step_number": 3
+    },
+    {
+      "type": "interaction",
+      "duration": 150,
+      "video_start_ms": 15655,
+      "click_ms": 16166,
+      "click_x": null,
+      "click_y": null,
+      "scroll_before": 831,
+      "callout_text": "Auto-normalized odds",
+      "step_number": 4
+    },
+    {
+      "type": "result",
+      "duration": 120,
+      "video_start_ms": 21535,
+      "callout_text": "Instant EV revealed"
+    },
+    {
+      "type": "outro",
+      "duration": 100,
+      "cta": "Try EV Calculator"
+    }
+  ]
+}

@@ -10,10 +10,10 @@ interface Props {
 
 /** Particle burst + glow flash at a click point */
 export const ClickBurst: React.FC<Props> = ({ frame, x, y, color = "#6366f1" }) => {
-  if (frame < 0 || frame > 40) return null;
+  if (frame < 0 || frame > 80) return null;
 
   const PARTICLES = 12;
-  const flash = interpolate(frame, [0, 5, 15], [0.8, 0.3, 0], { extrapolateRight: "clamp" });
+  const flash = interpolate(frame, [0, 10, 30], [0.8, 0.3, 0], { extrapolateRight: "clamp" });
 
   return (
     <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none" }}>
@@ -32,10 +32,10 @@ export const ClickBurst: React.FC<Props> = ({ frame, x, y, color = "#6366f1" }) 
       {/* Particles */}
       {Array.from({ length: PARTICLES }, (_, i) => {
         const angle = (i / PARTICLES) * Math.PI * 2;
-        const speed = 3.5 + (i % 4) * 1.2;
+        const speed = 1.75 + (i % 4) * 0.6; // halved — same pixels/sec at 60fps
         const px = x + Math.cos(angle) * speed * frame;
-        const py = y + Math.sin(angle) * speed * frame + frame * frame * 0.04; // gravity
-        const opacity = interpolate(frame, [0, 15, 40], [1, 0.8, 0], { extrapolateRight: "clamp" });
+        const py = y + Math.sin(angle) * speed * frame + frame * frame * 0.01; // gravity
+        const opacity = interpolate(frame, [0, 30, 80], [1, 0.8, 0], { extrapolateRight: "clamp" });
         const size = 4 + (i % 3) * 2;
         return (
           <div key={i} style={{

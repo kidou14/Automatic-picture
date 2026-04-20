@@ -26,7 +26,7 @@ export const RemotionRoot: React.FC = () => {
             (sum, s) => sum + (s.duration || 0),
             0
           ) || 300;
-          return { durationInFrames: total, fps: 30, width: 1080, height: 1920 };
+          return { durationInFrames: total, fps: 60, width: 1080, height: 1920 };
         }}
         defaultProps={{ script: defaultScript }}
       />

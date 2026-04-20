@@ -22,7 +22,7 @@ const SonarPing: React.FC<Props> = ({ frame, clickAt, targetX, targetY, accentCo
   // Hide once click fires
   if (frame >= clickAt - 1) return null;
 
-  const PERIOD = 26; // frames per ring cycle
+  const PERIOD = 52; // frames per ring cycle (doubled for 60fps)
   const RINGS = 3;
   const MAX_R = 76;
 
@@ -62,8 +62,8 @@ const SonarPing: React.FC<Props> = ({ frame, clickAt, targetX, targetY, accentCo
 const HaloPulse: React.FC<Props> = ({ frame, clickAt, targetX, targetY, accentColor }) => {
   if (frame >= clickAt - 1) return null;
 
-  const glowR = 22 + Math.sin(frame * 0.22) * 9;
-  const glowOpacity = 0.5 + Math.sin(frame * 0.22) * 0.28;
+  const glowR = 22 + Math.sin(frame * 0.11) * 9;
+  const glowOpacity = 0.5 + Math.sin(frame * 0.11) * 0.28;
 
   // Encode the gradient opacity into the id name to avoid radialGradient id collisions
   // across multiple SVGs on the same page (rare but possible)

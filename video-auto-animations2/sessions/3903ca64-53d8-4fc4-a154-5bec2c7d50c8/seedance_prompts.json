@@ -1,0 +1,30 @@
+[
+  {
+    "scene": "intro",
+    "prompt": "Dark cinematic reveal, deep navy background, bold Chinese title '交易期望值计算器' emerges from light rays, dramatic upward camera drift, premium financial UI glowing with violet accent light."
+  },
+  {
+    "scene": "interaction",
+    "prompt": "Sleek smartphone held at angle on dark surface, finger taps the price input field, '100' types in with subtle haptic ripple, soft purple glow pulses around the active field."
+  },
+  {
+    "scene": "interaction",
+    "prompt": "Close-up smartphone screen, hand scrolls to position size field, enters '1', UI elements animate smoothly, violet highlights cascade downward, cinematic shallow depth of field."
+  },
+  {
+    "scene": "interaction",
+    "prompt": "Fluid downward camera pan follows fingertip scrolling, probability distribution section rises into frame with elegant motion, glowing target icons pulse in deep navy interface."
+  },
+  {
+    "scene": "interaction",
+    "prompt": "Macro shot of screen, new price target row materializes with smooth fade animation, probability percentage fills in, multiple scenario rows glow sequentially in rich violet gradient."
+  },
+  {
+    "scene": "result",
+    "prompt": "Expected value result card dramatically slides into frame, bold glowing numbers pulse with golden-violet light, camera slowly pushes in, dark background shimmers with particle depth."
+  },
+  {
+    "scene": "outro",
+    "prompt": "Minimalist deep navy card, '交易期望值计算器' text fades in elegantly centered, tagline appears below in clean white type, 'Try it free' button blooms with violet accent glow."
+  }
+]

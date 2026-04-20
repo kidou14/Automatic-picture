@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auto Video Generator — Seedance Edition</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #0a0a0f;
+      color: #e8e8f0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 48px 20px;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+    h1 span { color: #a78bfa; }
+
+    .subtitle {
+      font-size: 0.85rem;
+      color: #666;
+      margin-bottom: 36px;
+    }
+
+    .card {
+      background: #13131a;
+      border: 1px solid #222;
+      border-radius: 16px;
+      padding: 28px;
+      width: 100%;
+      max-width: 560px;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    input[type="url"] {
+      flex: 1;
+      background: #0a0a0f;
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: #e8e8f0;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    input[type="url"]:focus { border-color: #a78bfa; }
+    input[type="url"]::placeholder { color: #444; }
+
+    button#generateBtn {
+      background: #7c3aed;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 22px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s, opacity 0.2s;
+    }
+    button#generateBtn:hover { background: #6d28d9; }
+    button#generateBtn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* Progress section */
+    #progress {
+      display: none;
+      margin-top: 24px;
+    }
+
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .step {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.82rem;
+      color: #555;
+      transition: color 0.3s;
+    }
+    .step.active { color: #a78bfa; }
+    .step.done   { color: #34d399; }
+
+    .step-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #333;
+      flex-shrink: 0;
+      transition: background 0.3s;
+    }
+    .step.active .step-dot { background: #a78bfa; animation: pulse 1.2s infinite; }
+    .step.done   .step-dot { background: #34d399; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(1.4); }
+    }
+
+    .status-msg {
+      font-size: 0.8rem;
+      color: #666;
+      text-align: center;
+      min-height: 18px;
+    }
+
+    /* Video result */
+    #result {
+      display: none;
+      margin-top: 24px;
+      text-align: center;
+    }
+
+    video {
+      width: 100%;
+      border-radius: 10px;
+      background: #000;
+      outline: none;
+    }
+
+    .download-btn {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 10px 24px;
+      background: #1a1a24;
+      border: 1px solid #333;
+      border-radius: 8px;
+      color: #a78bfa;
+      text-decoration: none;
+      font-size: 0.85rem;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    .download-btn:hover { background: #222; }
+
+    /* Error */
+    #errorMsg {
+      display: none;
+      margin-top: 16px;
+      padding: 12px 16px;
+      background: #1a0a0a;
+      border: 1px solid #3a1010;
+      border-radius: 8px;
+      color: #f87171;
+      font-size: 0.82rem;
+    }
+
+    .badge {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 20px;
+      background: #1e1030;
+      color: #a78bfa;
+      border: 1px solid #3d1f7a;
+      margin-left: 8px;
+      vertical-align: middle;
+    }
+  </style>
+</head>
+<body>
+  <h1>Auto Video Generator <span class="badge">Seedance</span></h1>
+  <p class="subtitle">URL → AI-generated cinematic promo video · port 4321</p>
+
+  <div class="card">
+    <div class="input-row">
+      <input type="url" id="urlInput" placeholder="https://your-product.com" value="https://justyn.spailab.com/ev-calc.html" />
+      <button id="generateBtn">Generate</button>
+    </div>
+
+    <div id="errorMsg"></div>
+
+    <div id="progress">
+      <div class="steps">
+        <div class="step" id="s1"><div class="step-dot"></div>Capture page screenshots</div>
+        <div class="step" id="s2"><div class="step-dot"></div>Analyze features with Claude</div>
+        <div class="step" id="s3"><div class="step-dot"></div>Execute interactions &amp; capture frames</div>
+        <div class="step" id="s4"><div class="step-dot"></div>Write cinematic prompts per scene</div>
+        <div class="step" id="s5"><div class="step-dot"></div>Generate video clips with Seedance</div>
+        <div class="step" id="s6"><div class="step-dot"></div>Concatenate clips with transitions</div>
+      </div>
+      <div class="status-msg" id="statusMsg">Starting…</div>
+    </div>
+
+    <div id="result">
+      <video id="videoEl" controls playsinline></video>
+      <br />
+      <a id="downloadLink" class="download-btn" download="promo-video.mp4">Download MP4</a>
+    </div>
+  </div>
+
+  <script>
+    const urlInput    = document.getElementById("urlInput");
+    const generateBtn = document.getElementById("generateBtn");
+    const progressEl  = document.getElementById("progress");
+    const resultEl    = document.getElementById("result");
+    const errorMsgEl  = document.getElementById("errorMsg");
+    const statusMsg   = document.getElementById("statusMsg");
+    const videoEl     = document.getElementById("videoEl");
+    const downloadLink= document.getElementById("downloadLink");
+
+    const stepEls = [null, "s1", "s2", "s3", "s4", "s5", "s6"].map(
+      (id) => (id ? document.getElementById(id) : null)
+    );
+
+    function setStep(current) {
+      for (let i = 1; i <= 6; i++) {
+        const el = stepEls[i];
+        el.classList.remove("active", "done");
+        if (i < current)  el.classList.add("done");
+        if (i === current) el.classList.add("active");
+      }
+    }
+
+    function showError(msg) {
+      errorMsgEl.textContent = msg;
+      errorMsgEl.style.display = "block";
+      generateBtn.disabled = false;
+      generateBtn.textContent = "Generate";
+    }
+
+    generateBtn.addEventListener("click", async () => {
+      const url = urlInput.value.trim();
+      if (!url.startsWith("http")) {
+        showError("Please enter a valid URL starting with http:// or https://");
+        return;
+      }
+
+      // Reset UI
+      errorMsgEl.style.display = "none";
+      resultEl.style.display = "none";
+      progressEl.style.display = "block";
+      generateBtn.disabled = true;
+      generateBtn.textContent = "Generating…";
+      for (let i = 1; i <= 6; i++) stepEls[i].classList.remove("active", "done");
+      statusMsg.textContent = "Starting…";
+
+      // Start pipeline
+      let sessionId;
+      try {
+        const res = await fetch("/api/generate", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url }),
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Failed to start");
+        sessionId = data.sessionId;
+      } catch (err) {
+        showError(err.message);
+        progressEl.style.display = "none";
+        return;
+      }
+
+      // Subscribe to SSE progress
+      const sse = new EventSource(`/api/progress/${sessionId}`);
+
+      sse.onmessage = (e) => {
+        const update = JSON.parse(e.data);
+
+        if (update.error) {
+          sse.close();
+          showError(update.message || update.error);
+          progressEl.style.display = "none";
+          return;
+        }
+
+        if (update.step) {
+          setStep(update.step);
+          let msg = update.message || "";
+          if (update.clipProgress != null) {
+            msg += ` (${update.clipProgress}%)`;
+          }
+          statusMsg.textContent = msg;
+        }
+
+        if (update.done && update.videoUrl) {
+          sse.close();
+          setStep(7); // mark all done
+          statusMsg.textContent = "Done!";
+
+          videoEl.src = update.videoUrl;
+          downloadLink.href = update.videoUrl;
+          resultEl.style.display = "block";
+          generateBtn.disabled = false;
+          generateBtn.textContent = "Generate";
+        }
+      };
+
+      sse.onerror = () => {
+        sse.close();
+        showError("Connection lost. Check the server console for errors.");
+        progressEl.style.display = "none";
+        generateBtn.disabled = false;
+        generateBtn.textContent = "Generate";
+      };
+    });
+
+    // Allow Enter key to submit
+    urlInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") generateBtn.click();
+    });
+  </script>
+</body>
+</html>

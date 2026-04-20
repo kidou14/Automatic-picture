@@ -1,0 +1,14 @@
+[
+  {
+    "scene": "intro",
+    "prompt": "Dark studio, dramatic violet beam splits black void revealing floating text 'Quantify Every Trade' in crisp white. Camera slowly pushes forward, particles dissolve into glowing purple UI interface."
+  },
+  {
+    "scene": "interaction",
+    "prompt": "Sleek smartphone held by steady hand, dark background, soft purple rim light. Finger taps asset price field, types '42500', input field pulses violet glow confirming entry. Smooth macro focus pull."
+  },
+  {
+    "scene": "result",
+    "prompt": "Smartphone screen fills frame, probability-weighted EV result animates upward with green accent numbers. Camera pulls back slowly revealing full app UI, dramatic cinematic grade, deep navy-to-purple gradient background."
+  }
+]

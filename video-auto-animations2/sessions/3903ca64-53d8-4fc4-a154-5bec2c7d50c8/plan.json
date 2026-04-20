@@ -1,0 +1,47 @@
+{
+  "product_name": "交易期望值计算器",
+  "tagline": "Quantify every trade with probability math",
+  "accent_color": "#6C63FF",
+  "steps": [
+    {
+      "action": "fill",
+      "selector": "input[placeholder='100']",
+      "value": "50000",
+      "scroll_y": 0,
+      "description": "Enter the current asset price to anchor the calculation",
+      "callout_text": "Set target price"
+    },
+    {
+      "action": "fill",
+      "selector": "input[placeholder='1']",
+      "value": "5",
+      "scroll_y": 0,
+      "description": "Set position size to scale the expected value output",
+      "callout_text": "Define position size"
+    },
+    {
+      "action": "scroll",
+      "selector": null,
+      "value": null,
+      "scroll_y": 600,
+      "description": "Scroll down to reveal the price target and probability distribution section",
+      "callout_text": "Map price scenarios"
+    },
+    {
+      "action": "click",
+      "selector": "button.add-target, button[onclick*='addTarget'], button:contains('添加价格目标')",
+      "value": null,
+      "scroll_y": 700,
+      "description": "Add an additional price target to build a multi-scenario probability distribution",
+      "callout_text": "Add profit targets"
+    },
+    {
+      "action": "click",
+      "selector": "button.calculate-btn, button[onclick*='calculate'], button:contains('计算期望值')",
+      "value": null,
+      "scroll_y": 900,
+      "description": "Calculate the expected value across all defined scenarios instantly",
+      "callout_text": "Reveal expected value"
+    }
+  ]
+}

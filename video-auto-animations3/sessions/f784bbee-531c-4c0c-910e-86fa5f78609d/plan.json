@@ -1,0 +1,47 @@
+{
+  "product_name": "EV Calculator",
+  "tagline": "Quantify every trade with probability math",
+  "accent_color": "#6C63FF",
+  "steps": [
+    {
+      "action": "fill",
+      "selector": "input[placeholder='100']",
+      "value": "42500",
+      "scroll_y": 0,
+      "description": "Current price field populates with a realistic asset price, setting the baseline for calculations",
+      "callout_text": "Set your entry price"
+    },
+    {
+      "action": "fill",
+      "selector": "input[placeholder='1']",
+      "value": "5",
+      "scroll_y": 0,
+      "description": "Position size updates, scaling the expected value output proportionally",
+      "callout_text": "Size your position"
+    },
+    {
+      "action": "fill",
+      "selector": "input[placeholder='止盈价']",
+      "value": "46000",
+      "scroll_y": 300,
+      "description": "Take-profit target field fills in, activating the first price scenario row",
+      "callout_text": "Define profit target"
+    },
+    {
+      "action": "fill",
+      "selector": "input[placeholder='止损价']",
+      "value": "41000",
+      "scroll_y": 300,
+      "description": "Stop-loss price fills in, completing the risk/reward scenario setup",
+      "callout_text": "Cap your downside"
+    },
+    {
+      "action": "click",
+      "selector": "button.calculate-btn, button:last-of-type",
+      "value": null,
+      "scroll_y": 500,
+      "description": "Expected value result appears instantly — showing positive EV, win rate, and risk-reward ratio in a results panel",
+      "callout_text": "Instant EV revealed!"
+    }
+  ]
+}

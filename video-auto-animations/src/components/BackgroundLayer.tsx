@@ -1,9 +1,10 @@
 /**
  * BackgroundLayer.tsx
  * Dimension A: background atmosphere variants.
- *   A1 — Deep Space   (original: floating particles + HUD grid)
- *   A2 — Constellation (particles + auto-connecting lines)
- *   A6 — Bokeh Circles (soft blurry orbs, organic)
+ *   A1  — Deep Space    (floating particles + HUD grid)
+ *   A2  — Constellation (particles + auto-connecting lines)
+ *   A3  — Neon Rain     (vertical streaks falling downward)
+ *   A6  — Bokeh Circles (soft blurry orbs, organic)
  *   A10 — Gradient Mesh (animated multi-point radial gradient)
  */
 import React from "react";
@@ -98,6 +99,44 @@ const ConstellationField: React.FC<{ frame: number; accentColor: string }> = ({ 
   );
 };
 
+// ─── A3: Neon Rain ────────────────────────────────────────────────────────────
+const STREAKS = Array.from({ length: 22 }, (_, i) => ({
+  x: (i * 211.3 + 40) % W,
+  baseY: (i * 173.7) % H,
+  length: 40 + (i % 5) * 28,
+  speed: 2.8 + (i % 4) * 1.1,
+  opacity: 0.12 + (i % 4) * 0.09,
+  phase: i * 0.97,
+  colorIdx: i % 3,
+}));
+
+const NeonRain: React.FC<{ frame: number; accentColor: string }> = ({ frame, accentColor }) => {
+  const colors = [accentColor, "#38bdf8", "#818cf8"];
+  return (
+    <svg
+      width={W} height={H} viewBox={`0 0 ${W} ${H}`}
+      style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}
+    >
+      {STREAKS.map((s, i) => {
+        const y = ((s.baseY + s.speed * frame) % H + H) % H;
+        const pulse = 0.6 + Math.sin(frame * 0.035 + s.phase) * 0.4;
+        const color = colors[s.colorIdx];
+        return (
+          <line
+            key={i}
+            x1={s.x} y1={y}
+            x2={s.x} y2={y + s.length}
+            stroke={color}
+            strokeOpacity={s.opacity * pulse}
+            strokeWidth="1.5"
+            strokeLinecap="round"
+          />
+        );
+      })}
+    </svg>
+  );
+};
+
 // ─── A6: Bokeh Circles ────────────────────────────────────────────────────────
 const BOKEH = Array.from({ length: 14 }, (_, i) => ({
   x: (i * 211.3 + 80) % W,
@@ -132,6 +171,161 @@ const BokehField: React.FC<{ frame: number; accentColor: string }> = ({ frame, a
             fill={colors[i % colors.length]}
             opacity={b.opacity * pulse}
             filter="url(#bk-blur)"
+          />
+        );
+      })}
+    </svg>
+  );
+};
+
+// ─── A4: Aurora Bands ─────────────────────────────────────────────────────────
+const AURORA = [
+  { baseY: 0.22, freq: 0.0028, phase: 0.0 },
+  { baseY: 0.50, freq: 0.0036, phase: 2.1 },
+  { baseY: 0.78, freq: 0.0021, phase: 4.3 },
+];
+
+const AuroraBands: React.FC<{ frame: number; accentColor: string }> = ({ frame, accentColor }) => {
+  const colors = [accentColor, "#38bdf8", "#818cf8"];
+  const bands = AURORA.map((b, i) => ({
+    cy: (b.baseY + Math.sin(frame * b.freq + b.phase) * 0.06) * H,
+    opacity: 0.14 * (0.6 + Math.sin(frame * 0.018 + b.phase) * 0.4),
+    color: colors[i],
+  }));
+  return (
+    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}
+      style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}>
+      <defs>
+        {bands.map((band, i) => (
+          <linearGradient key={i} id={`aug${i}`}
+            x1="0" y1={band.cy - 220} x2="0" y2={band.cy + 220}
+            gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stopColor={band.color} stopOpacity="0" />
+            <stop offset="50%" stopColor={band.color} stopOpacity={band.opacity} />
+            <stop offset="100%" stopColor={band.color} stopOpacity="0" />
+          </linearGradient>
+        ))}
+      </defs>
+      {bands.map((band, i) => (
+        <rect key={i} x={0} y={band.cy - 220} width={W} height={440} fill={`url(#aug${i})`} />
+      ))}
+    </svg>
+  );
+};
+
+// ─── A5: Floating Shapes ──────────────────────────────────────────────────────
+const SHAPES_DATA = Array.from({ length: 7 }, (_, i) => ({
+  cx: (i * 211.3 + 100) % W,
+  cy: (i * 173.7 + 80) % H,
+  size: 44 + (i % 4) * 28,
+  type: i % 3,
+  speedX: ((i % 3) - 1) * 0.10,
+  speedY: 0.03 + (i % 3) * 0.04,
+  rotSpeed: ((i % 5) - 2) * 0.009,
+  phase: i * 1.41,
+  opacity: 0.07 + (i % 3) * 0.04,
+  colorIdx: i % 3,
+}));
+
+const FloatingShapes: React.FC<{ frame: number; accentColor: string }> = ({ frame, accentColor }) => {
+  const colors = [accentColor, "#818cf8", "#38bdf8"];
+  return (
+    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}
+      style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}>
+      {SHAPES_DATA.map((s, i) => {
+        const x = ((s.cx + s.speedX * frame) % W + W) % W;
+        const y = ((s.cy + s.speedY * frame) % H + H) % H;
+        const rot = s.rotSpeed * frame;
+        const op = s.opacity * (0.7 + Math.sin(frame * 0.022 + s.phase) * 0.3);
+        const color = colors[s.colorIdx];
+        const half = s.size / 2;
+        if (s.type === 0) {
+          return <rect key={i} x={x - half} y={y - half} width={s.size} height={s.size} fill="none" stroke={color} strokeWidth="1" opacity={op} transform={`rotate(${rot} ${x} ${y})`} />;
+        } else if (s.type === 1) {
+          return <rect key={i} x={x - half} y={y - half} width={s.size} height={s.size} fill="none" stroke={color} strokeWidth="1" opacity={op} transform={`rotate(${45 + rot} ${x} ${y})`} />;
+        } else {
+          const pts = `${x},${y - half} ${x + half * 0.866},${y + half * 0.5} ${x - half * 0.866},${y + half * 0.5}`;
+          return <polygon key={i} points={pts} fill="none" stroke={color} strokeWidth="1" opacity={op} transform={`rotate(${rot} ${x} ${y})`} />;
+        }
+      })}
+    </svg>
+  );
+};
+
+// ─── A7: Concentric Rings ─────────────────────────────────────────────────────
+const ConcentricRings: React.FC<{ frame: number; accentColor: string }> = ({ frame, accentColor }) => {
+  const cx = W / 2;
+  const cy = H * 0.44;
+  const NUM = 5;
+  const PERIOD = 200;
+  return (
+    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}
+      style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}>
+      {Array.from({ length: NUM }, (_, i) => {
+        const phase = ((i / NUM) + (frame / PERIOD)) % 1;
+        const r = 60 + phase * 820;
+        const opacity = (1 - phase) * 0.13;
+        const color = i % 2 === 0 ? accentColor : "#818cf8";
+        return <circle key={i} cx={cx} cy={cy} r={r} fill="none" stroke={color} strokeWidth="1" opacity={opacity} />;
+      })}
+    </svg>
+  );
+};
+
+// ─── A8: Horizon Line ─────────────────────────────────────────────────────────
+const HorizonLine: React.FC<{ frame: number; accentColor: string }> = ({ frame, accentColor }) => {
+  const y1 = H * (0.40 + Math.sin(frame * 0.007) * 0.05);
+  const y2 = H * (0.65 + Math.sin(frame * 0.011 + 1.5) * 0.04);
+  const op1 = 0.38 + Math.sin(frame * 0.014) * 0.16;
+  const op2 = 0.24 + Math.sin(frame * 0.020 + 2.0) * 0.10;
+  return (
+    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}
+      style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}>
+      <defs>
+        <linearGradient id="hl-g1" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="transparent" />
+          <stop offset="18%" stopColor={accentColor} />
+          <stop offset="82%" stopColor="#38bdf8" />
+          <stop offset="100%" stopColor="transparent" />
+        </linearGradient>
+        <linearGradient id="hl-g2" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor="transparent" />
+          <stop offset="28%" stopColor="#818cf8" />
+          <stop offset="72%" stopColor={accentColor} />
+          <stop offset="100%" stopColor="transparent" />
+        </linearGradient>
+      </defs>
+      <line x1={0} y1={y1} x2={W} y2={y1} stroke="url(#hl-g1)" strokeWidth="2" opacity={op1} />
+      <line x1={0} y1={y2} x2={W} y2={y2} stroke="url(#hl-g2)" strokeWidth="1.5" opacity={op2} />
+    </svg>
+  );
+};
+
+// ─── A9: Data Lines ───────────────────────────────────────────────────────────
+const DATA_LINES_DATA = Array.from({ length: 7 }, (_, i) => ({
+  y: (i * 0.145 + 0.08) * H,
+  speed: 0.25 + (i % 3) * 0.18,
+  len: 60 + (i % 4) * 100,
+  opacity: 0.07 + (i % 3) * 0.04,
+  phase: i * 1.88,
+  colorIdx: i % 3,
+}));
+
+const DataLines: React.FC<{ frame: number; accentColor: string }> = ({ frame, accentColor }) => {
+  const colors = [accentColor, "#38bdf8", "#818cf8"];
+  return (
+    <svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}
+      style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}>
+      {DATA_LINES_DATA.map((dl, i) => {
+        const xEnd = ((W + dl.len) - (frame * dl.speed) % (W + dl.len) + (W + dl.len)) % (W + dl.len);
+        const xStart = xEnd - dl.len;
+        const pulse = 0.7 + Math.sin(frame * 0.02 + dl.phase) * 0.3;
+        return (
+          <line key={i}
+            x1={xStart} y1={dl.y} x2={xEnd} y2={dl.y}
+            stroke={colors[dl.colorIdx]}
+            strokeWidth="1"
+            opacity={dl.opacity * pulse}
           />
         );
       })}
@@ -226,9 +420,15 @@ interface Props {
 export const BackgroundLayer: React.FC<Props> = ({ frame, style, accentColor }) => (
   <>
     <AmbientBlobs frame={frame} accentColor={accentColor} />
-    {style === "A1"  && <DeepSpaceField   frame={frame} accentColor={accentColor} />}
+    {style === "A1"  && <DeepSpaceField    frame={frame} accentColor={accentColor} />}
     {style === "A2"  && <ConstellationField frame={frame} accentColor={accentColor} />}
+    {style === "A3"  && <NeonRain          frame={frame} accentColor={accentColor} />}
+    {style === "A4"  && <AuroraBands       frame={frame} accentColor={accentColor} />}
+    {style === "A5"  && <FloatingShapes    frame={frame} accentColor={accentColor} />}
     {style === "A6"  && <BokehField        frame={frame} accentColor={accentColor} />}
+    {style === "A7"  && <ConcentricRings   frame={frame} accentColor={accentColor} />}
+    {style === "A8"  && <HorizonLine       frame={frame} accentColor={accentColor} />}
+    {style === "A9"  && <DataLines         frame={frame} accentColor={accentColor} />}
     {style === "A10" && <GradientMesh      frame={frame} accentColor={accentColor} />}
     {/* HUD grid only on tech-aesthetic variants */}
     {(style === "A1" || style === "A2") && <HUDGrid frame={frame} />}

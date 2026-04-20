@@ -1,0 +1,47 @@
+{
+  "product_name": "交易期望值计算器",
+  "tagline": "Quantify every trade with probability math",
+  "accent_color": "#6B6BF8",
+  "steps": [
+    {
+      "action": "fill",
+      "selector": "input[placeholder='100']",
+      "value": "50000",
+      "scroll_y": 0,
+      "description": "Current price field populated with a realistic asset price",
+      "callout_text": "Set your entry price"
+    },
+    {
+      "action": "fill",
+      "selector": "input[placeholder='1']",
+      "value": "5",
+      "scroll_y": 0,
+      "description": "Position size updated, affecting P&L calculations downstream",
+      "callout_text": "Define position size"
+    },
+    {
+      "action": "scroll",
+      "selector": null,
+      "value": null,
+      "scroll_y": 600,
+      "description": "Price target and probability distribution table comes into full view",
+      "callout_text": "Set price targets"
+    },
+    {
+      "action": "fill",
+      "selector": "input[placeholder='止盈价']",
+      "value": "55000",
+      "scroll_y": 600,
+      "description": "Take-profit target filled in, probability field activates alongside it",
+      "callout_text": "Assign win probability"
+    },
+    {
+      "action": "click",
+      "selector": "button.calculate-btn, button[class*='calc'], button:last-of-type",
+      "value": null,
+      "scroll_y": 700,
+      "description": "Expected value result card appears showing EV, win/loss ratio, and probability-weighted outcome",
+      "callout_text": "Instant EV revealed!"
+    }
+  ]
+}

@@ -310,6 +310,7 @@
           id="urlInput"
           class="url-input"
           placeholder="https://your-product.com"
+          value="https://justyn.spailab.com/ev-calc.html"
           autocomplete="off"
           spellcheck="false"
         />
@@ -390,7 +391,7 @@
       document.getElementById('errorMsg').classList.remove('visible');
       document.getElementById('generateBtn').disabled = false;
       document.getElementById('generateBtn').textContent = 'Generate Video';
-      document.getElementById('urlInput').value = '';
+      document.getElementById('urlInput').value = 'https://justyn.spailab.com/ev-calc.html';
       setProgress(0, '');
       [1,2,3,4,5].forEach(i => {
         const dot = document.getElementById('dot'+i);

@@ -18,11 +18,11 @@ const ROOT_DIR = path.resolve(__dirname, "..");
 const SESSIONS_DIR = path.join(ROOT_DIR, "sessions");
 const OUTPUT_DIR = path.join(ROOT_DIR, "output");
 
-// Per-scene frame budgets
-const FRAME_INTRO = 50;
-const FRAME_INTERACTION = 58;
-const FRAME_RESULT = 65;
-const FRAME_OUTRO = 40;
+// Per-scene frame budgets (at 60fps — same wall-clock duration as old 30fps values)
+const FRAME_INTRO = 100;
+const FRAME_INTERACTION = 116;
+const FRAME_RESULT = 130;
+const FRAME_OUTRO = 80;
 
 /**
  * Run the full pipeline.

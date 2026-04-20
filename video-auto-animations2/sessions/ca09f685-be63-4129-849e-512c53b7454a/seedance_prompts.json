@@ -1,0 +1,30 @@
+[
+  {
+    "scene": "intro",
+    "prompt": "Dramatic dark studio, purple-violet light beam cuts through fog, bold title 'EV Calculator' materializes in mid-air, cinematic slow push-in, premium Apple-reveal atmosphere, deep navy background."
+  },
+  {
+    "scene": "interaction",
+    "prompt": "Sleek smartphone floats on dark surface, finger taps price field showing '100', violet glow pulses around input, smooth macro close-up, soft bokeh, premium fintech aesthetic."
+  },
+  {
+    "scene": "interaction",
+    "prompt": "Smartphone held at elegant angle, thumb glides to '期权产品' tab, interface transitions with fluid animation, cool violet highlight illuminates selection, cinematic side-lit close-up."
+  },
+  {
+    "scene": "interaction",
+    "prompt": "Hand returns to smartphone, finger taps '线性产品' tab with precision, glowing purple accent activates, screen reflects on glossy surface below, smooth slow-motion close-up."
+  },
+  {
+    "scene": "interaction",
+    "prompt": "Smartphone screen scrolls down revealing probability distribution panel, data fields illuminate sequentially in violet, dramatic upward tilt camera move, dark gradient background, premium feel."
+  },
+  {
+    "scene": "result",
+    "prompt": "Smartphone screen flashes calculated EV score, bold glowing number emerges center-frame, violet light blooms outward dramatically, slow push-in macro lens, triumphant cinematic reveal moment."
+  },
+  {
+    "scene": "outro",
+    "prompt": "Clean matte dark card, 'EV Calculator' logo appears with elegant fade, tagline types in below, violet underline sweeps across, 'Try it free' pulses softly, premium brand outro."
+  }
+]

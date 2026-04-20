@@ -15,6 +15,7 @@
   "license": "ISC",
   "dependencies": {
     "@anthropic-ai/sdk": "^0.89.0",
+    "sharp": "^0.33.5",
     "@remotion/cli": "^4.0.443",
     "@remotion/renderer": "^4.0.443",
     "@remotion/studio": "^4.0.443",

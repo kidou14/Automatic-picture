@@ -1,0 +1,47 @@
+{
+  "product_name": "EV Calculator",
+  "tagline": "Quantify every trade before you risk",
+  "accent_color": "#6c6ef5",
+  "steps": [
+    {
+      "action": "fill",
+      "selector": "input[placeholder='100']",
+      "value": "50000",
+      "scroll_y": 0,
+      "description": "Current price field updates with a realistic asset price, personalizing the calculation",
+      "callout_text": "Set your entry price"
+    },
+    {
+      "action": "fill",
+      "selector": "input[placeholder='1']",
+      "value": "5",
+      "scroll_y": 0,
+      "description": "Position size increases, scaling the expected value output proportionally",
+      "callout_text": "Scale your position"
+    },
+    {
+      "action": "scroll",
+      "selector": null,
+      "value": null,
+      "scroll_y": 500,
+      "description": "Price targets and probability table comes into full view, revealing the scenario input grid",
+      "callout_text": "Set price targets"
+    },
+    {
+      "action": "fill",
+      "selector": "input[placeholder='止盈价']",
+      "value": "55000",
+      "scroll_y": 500,
+      "description": "Take-profit price filled in, pairing with the probability field to define upside scenario",
+      "callout_text": "Define your upside"
+    },
+    {
+      "action": "click",
+      "selector": "button.calculate-btn, button[onclick*='calc'], button:last-of-type",
+      "value": null,
+      "scroll_y": 700,
+      "description": "Expected value result appears instantly — showing positive or negative EV with full probability breakdown",
+      "callout_text": "Instant EV result"
+    }
+  ]
+}

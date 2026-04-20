@@ -50,6 +50,9 @@ async function renderScript(script, outputPath, onProgress) {
     codec: "h264",
     outputLocation: outputPath,
     inputProps: { script },
+    crf: 18,
+    x264Preset: "slow",
+    pixelFormat: "yuv420p",
     onProgress: ({ progress }) => {
       const pct = Math.round(progress * 100);
       if (pct !== lastReported) {

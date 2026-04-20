@@ -1,0 +1,47 @@
+{
+  "product_name": "EV Calculator",
+  "tagline": "Quantify every trade with probability math",
+  "accent_color": "#6c63ff",
+  "steps": [
+    {
+      "action": "fill",
+      "selector": "input[placeholder='100']",
+      "value": "42500",
+      "scroll_y": 0,
+      "description": "Set the current asset price to a realistic trading value",
+      "callout_text": "Enter asset price"
+    },
+    {
+      "action": "fill",
+      "selector": "input[placeholder='1']",
+      "value": "5",
+      "scroll_y": 0,
+      "description": "Set position size to amplify expected value calculation",
+      "callout_text": "Scale your position"
+    },
+    {
+      "action": "fill",
+      "selector": "input[placeholder='止盈价']",
+      "value": "46000",
+      "scroll_y": 300,
+      "description": "Input a take-profit target price for the probability distribution",
+      "callout_text": "Set profit target"
+    },
+    {
+      "action": "fill",
+      "selector": "input[placeholder='止损价']",
+      "value": "40000",
+      "scroll_y": 300,
+      "description": "Input a stop-loss price to complete the risk/reward scenario",
+      "callout_text": "Define your risk"
+    },
+    {
+      "action": "click",
+      "selector": "button.calculate-btn, button[onclick*='calc'], button:last-of-type",
+      "value": null,
+      "scroll_y": 500,
+      "description": "Calculate expected value to reveal quantified trade opportunity",
+      "callout_text": "Instant EV result"
+    }
+  ]
+}
