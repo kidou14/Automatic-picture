@@ -21,3 +21,11 @@ build/
 
 # Generated exports
 Downloads/
+
+# AI video pipeline — generated outputs and session data
+# These are test artifacts that can be hundreds of MB, never commit them
+output/
+sessions/
+*.mp4
+*.webm
+*.mov
