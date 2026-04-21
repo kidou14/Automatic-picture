@@ -22,14 +22,57 @@ const OUTPUT_DIR = path.join(ROOT_DIR, "output");
 
 const MAX_SCENES = 3;
 
+// ── Cinematography option pools (Apple Store director style) ─────────────────
+const COMPOSITIONS = [
+  "centered composition",
+  "rule of thirds",
+  "leading lines",
+  "ample negative space",
+];
+const CAMERAS = [
+  "smooth push-in",
+  "gentle pull-out",
+  "precise pan left",
+  "precise pan right",
+  "smooth tilt up",
+  "macro close-up",
+  "dolly shot",
+  "subtle rotation",
+];
+const TRANSITIONS = [
+  "seamless UI animation transition",
+  "quick cut",
+  "soft dissolve",
+  "wipe transition",
+  "light flash transition",
+];
+const LIGHTINGS = [
+  "soft ambient lighting",
+  "subtle specular highlights",
+  "shallow depth of field",
+  "clean minimalist background",
+  "matte finish",
+  "glass texture",
+  "metallic sheen",
+];
+
+function pickRandom(arr) {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+function pickRandomTwo(arr) {
+  const shuffled = [...arr].sort(() => Math.random() - 0.5);
+  return [shuffled[0], shuffled[1]];
+}
+
 /**
  * Run the full pipeline.
  * @param {string} url
  * @param {string} sessionId
  * @param {(update: object) => void} emit — progress emitter
+ * @param {string} [model] — video generation model ID
  * @returns {string} videoUrl (relative to server root)
  */
-async function runPipeline(url, sessionId, emit) {
+async function runPipeline(url, sessionId, emit, model) {
   const sessionDir = path.join(SESSIONS_DIR, sessionId);
   const clipsDir = path.join(sessionDir, "clips");
   fs.mkdirSync(sessionDir, { recursive: true });
@@ -123,7 +166,16 @@ async function runPipeline(url, sessionId, emit) {
     console.log(`[pipeline] Trimmed to ${sceneList.length} scenes (MAX_SCENES=${MAX_SCENES})`);
   }
 
-  const seedancePrompts = await generateScenePrompts(plan, sceneList, aiSsPath);
+  // Build per-scene cinematography directives (randomized each run for variety)
+  const cinematographyPerScene = sceneList.map((scene, i) => ({
+    composition: pickRandom(COMPOSITIONS),
+    camera: pickRandom(CAMERAS),
+    lighting: pickRandomTwo(LIGHTINGS),
+    transition: i < sceneList.length - 1 ? pickRandom(TRANSITIONS) : "fade to black",
+  }));
+  console.log("[pipeline] Cinematography:", JSON.stringify(cinematographyPerScene));
+
+  const seedancePrompts = await generateScenePrompts(plan, sceneList, aiSsPath, cinematographyPerScene);
   fs.writeFileSync(
     path.join(sessionDir, "seedance_prompts.json"),
     JSON.stringify(
@@ -137,14 +189,15 @@ async function runPipeline(url, sessionId, emit) {
   // ── Step 5: generate video clips (parallel) ──────────────────────────────
   const totalClips = sceneList.length;
   let completedClips = 0;
+  const modelLabel = (model || "seedance").split("/").pop();
 
-  emit({ step: 5, total: 6, message: `Submitting ${totalClips} clips in parallel…`, clipProgress: 0 });
+  emit({ step: 5, total: 6, message: `Generating ${totalClips} clips with ${modelLabel}…`, clipProgress: 0 });
 
   const clipPaths = await Promise.all(
     sceneList.map(async (scene, i) => {
       const prompt = seedancePrompts[i];
       const clipPath = path.join(clipsDir, `clip_${String(i).padStart(2, "0")}.mp4`);
-      await generateClip(scene.screenshotPath, prompt, clipPath, CLIP_DURATION);
+      await generateClip(scene.screenshotPath, prompt, clipPath, CLIP_DURATION, model);
       completedClips++;
       emit({
         step: 5,

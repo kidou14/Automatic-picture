@@ -113,40 +113,53 @@ For scroll: set scroll_y in CSS pixels, selector can be null.`;
  * @param {object} plan - { product_name, tagline, accent_color }
  * @param {Array}  sceneList - [{ type, description, callout_text, screenshotPath }]
  * @param {string} initialScreenshotPath - viewport screenshot for visual context
+ * @param {Array}  [cinematographyPerScene] - per-scene { composition, camera, transition, lighting[] }
  * @returns {string[]} array of Seedance prompts, one per scene
  */
-async function generateScenePrompts(plan, sceneList, initialScreenshotPath) {
+async function generateScenePrompts(plan, sceneList, initialScreenshotPath, cinematographyPerScene = []) {
   const base64Image = fs.readFileSync(initialScreenshotPath).toString("base64");
 
   const scenesText = sceneList
-    .map(
-      (s, i) =>
-        `${i + 1}. [${s.type.toUpperCase()}] ${s.description}${
-          s.callout_text ? ` | Key moment: "${s.callout_text}"` : ""
-        }`
-    )
-    .join("\n");
+    .map((s, i) => {
+      const c = cinematographyPerScene[i] || {};
+      const lines = [`${i + 1}. [${s.type.toUpperCase()}] ${s.description}`];
+      if (s.callout_text) lines.push(`   Key moment: "${s.callout_text}"`);
+      if (c.composition)  lines.push(`   Composition: ${c.composition}`);
+      if (c.camera)       lines.push(`   Camera: ${c.camera}`);
+      if (c.lighting)     lines.push(`   Lighting: ${Array.isArray(c.lighting) ? c.lighting.join(", ") : c.lighting}`);
+      if (c.transition)   lines.push(`   Transition out: ${c.transition}`);
+      return lines.join("\n");
+    })
+    .join("\n\n");
 
-  const systemPrompt = `You are a video director writing prompts for Seedance, an AI video generation model.
-Write cinematic 20-35 word prompts for professional product demo video clips.
-Style: Apple/Google product reveal — clean, modern, dramatic lighting, smooth camera movement, premium feel.
-For scenes showing the app, describe a smartphone in-frame with the interface visible.
-For the outro, describe a clean brand card with text reveal.
-Return ONLY valid JSON, no markdown fences.`;
+  const systemPrompt = `You are a cinematic director writing prompts for Seedance, an AI video generation model.
+Write 35-50 word prompts that produce Apple Store app preview video quality.
+Style: minimalist, clean, modern, high-fidelity UI, cinematic, soft ambient lighting, subtle reflections, professional, sleek, elegant.
+
+For each scene:
+- Show the app UI on a smartphone screen, pixel-perfect and crisp — no text distortion, no layout warping
+- Incorporate the specified composition, camera movement, and lighting exactly
+- Describe the visual motion and atmosphere, not just the subject
+
+Rules:
+- Preserve all UI text and numbers exactly as shown — zero hallucination
+- Avoid: blurry, shaky camera, cartoonish, noisy, distorted UI, garbled characters, bad lighting, watermark
+- Return ONLY valid JSON, no markdown fences.`;
 
   const userPrompt = `Product: ${plan.product_name}
 Tagline: "${plan.tagline}"
 Brand accent color: ${plan.accent_color}
+Target audience: tech-savvy professionals seeking efficient, seamless experiences
 
 Scenes to generate (${sceneList.length} total):
 ${scenesText}
 
-Write one Seedance video prompt per scene. Make each feel like a distinct shot in a premium product ad.
+Write one Seedance video prompt per scene. Each prompt must incorporate the specified composition, camera, and lighting directives. Make each shot feel like a distinct frame in an Apple Store product preview.
 
 Return exactly:
 {
   "scenes": [
-    { "prompt": "20-35 word cinematic description..." },
+    { "prompt": "35-50 word cinematic description incorporating all directives..." },
     ...
   ]
 }`;

@@ -9,6 +9,12 @@ const http = require("http");
 const MODEL = process.env.SEEDANCE_MODEL || "bytedance/seedance-2.0";
 const OPENROUTER_BASE = "https://openrouter.ai/api/v1";
 
+const NEGATIVE_PROMPT =
+  "low quality, blurry, distorted UI, text hallucination, garbled characters, pixelated, " +
+  "amateurish, shaky camera, unnatural movement, poor lighting, cartoonish, noisy, watermark, " +
+  "bad composition, ugly, deformed, extra limbs, bad anatomy, cropped, out of frame, " +
+  "jpeg artifacts, glitch, error";
+
 const CLIP_DURATION = 5;
 const POLL_INTERVAL_MS = 10_000; // 10s between polls
 const TIMEOUT_MS = 600_000;      // 10 min total
@@ -20,19 +26,22 @@ function getApiKey() {
 }
 
 /**
- * Generate a single video clip via Seedance on OpenRouter.
+ * Generate a single video clip via OpenRouter.
  * @param {string|null} screenshotPath - local PNG path (null = text-only)
- * @param {string} prompt - Seedance cinematic prompt
+ * @param {string} prompt - cinematic prompt
  * @param {string} outputPath - where to save the downloaded MP4
  * @param {number} [duration] - clip length in seconds
+ * @param {string} [modelOverride] - override the default model
  * @returns {string} outputPath
  */
-async function generateClip(screenshotPath, prompt, outputPath, duration = CLIP_DURATION) {
+async function generateClip(screenshotPath, prompt, outputPath, duration = CLIP_DURATION, modelOverride) {
   const apiKey = getApiKey();
+  const activeModel = modelOverride || MODEL;
 
   const requestBody = {
-    model: MODEL,
+    model: activeModel,
     prompt,
+    negative_prompt: NEGATIVE_PROMPT,
     duration,
     resolution: "1080p",
     aspect_ratio: "9:16",
@@ -50,7 +59,7 @@ async function generateClip(screenshotPath, prompt, outputPath, duration = CLIP_
     ];
   }
 
-  console.log(`[seedance] Submitting: "${prompt.substring(0, 70)}…" (${duration}s)`);
+  console.log(`[seedance] Submitting [${activeModel}]: "${prompt.substring(0, 70)}…" (${duration}s)`);
 
   const submitRes = await fetch(`${OPENROUTER_BASE}/videos`, {
     method: "POST",

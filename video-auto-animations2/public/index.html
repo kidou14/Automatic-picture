@@ -176,13 +176,108 @@
       margin-left: 8px;
       vertical-align: middle;
     }
+
+    /* Model selector */
+    .model-label {
+      font-size: 0.75rem;
+      color: #555;
+      margin-bottom: 8px;
+      margin-top: 18px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .model-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 18px;
+    }
+
+    .model-option {
+      position: relative;
+    }
+    .model-option input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+    .model-option label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      padding: 10px 8px;
+      border: 1px solid #2a2a35;
+      border-radius: 10px;
+      cursor: pointer;
+      background: #0d0d14;
+      transition: border-color 0.2s, background 0.2s;
+      text-align: center;
+    }
+    .model-option input:checked + label {
+      border-color: #7c3aed;
+      background: #150e2a;
+    }
+    .model-option label:hover {
+      border-color: #4a3a7a;
+      background: #110d1e;
+    }
+    .model-brand {
+      font-size: 0.65rem;
+      color: #555;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .model-name {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #c4b5fd;
+    }
+    .model-tag {
+      font-size: 0.6rem;
+      padding: 1px 6px;
+      border-radius: 10px;
+      background: #1e1030;
+      color: #a78bfa;
+      border: 1px solid #3d1f7a;
+    }
   </style>
 </head>
 <body>
-  <h1>Auto Video Generator <span class="badge">Seedance</span></h1>
+  <h1>Auto Video Generator <span class="badge">AI Video</span></h1>
   <p class="subtitle">URL → AI-generated cinematic promo video · port 4321</p>
 
   <div class="card">
+    <div class="model-label">Video Model</div>
+    <div class="model-grid">
+      <div class="model-option">
+        <input type="radio" name="model" id="m-seedance" value="bytedance/seedance-2.0" checked />
+        <label for="m-seedance">
+          <span class="model-brand">ByteDance</span>
+          <span class="model-name">Seedance 2.0</span>
+          <span class="model-tag">Default</span>
+        </label>
+      </div>
+      <div class="model-option">
+        <input type="radio" name="model" id="m-kling" value="kwaivgi/kling-video-o1" />
+        <label for="m-kling">
+          <span class="model-brand">Kuaishou</span>
+          <span class="model-name">Kling Video O1</span>
+          <span class="model-tag">Cinematic</span>
+        </label>
+      </div>
+      <div class="model-option">
+        <input type="radio" name="model" id="m-wan" value="alibaba/wan-2.7" />
+        <label for="m-wan">
+          <span class="model-brand">Alibaba</span>
+          <span class="model-name">Wan 2.7</span>
+          <span class="model-tag">Reference</span>
+        </label>
+      </div>
+    </div>
+
     <div class="input-row">
       <input type="url" id="urlInput" placeholder="https://your-product.com" value="https://justyn.spailab.com/ev-calc.html" />
       <button id="generateBtn">Generate</button>
@@ -212,6 +307,7 @@
   <script>
     const urlInput    = document.getElementById("urlInput");
     const generateBtn = document.getElementById("generateBtn");
+    const getModel    = () => document.querySelector('input[name="model"]:checked').value;
     const progressEl  = document.getElementById("progress");
     const resultEl    = document.getElementById("result");
     const errorMsgEl  = document.getElementById("errorMsg");
@@ -261,7 +357,7 @@
         const res = await fetch("/api/generate", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ url }),
+          body: JSON.stringify({ url, model: getModel() }),
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Failed to start");

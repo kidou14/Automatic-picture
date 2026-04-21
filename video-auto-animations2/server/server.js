@@ -29,12 +29,20 @@ app.use("/sessions", express.static(path.join(ROOT_DIR, "sessions")));
 
 const sessions = new Map();
 
+const ALLOWED_MODELS = new Set([
+  "bytedance/seedance-2.0",
+  "kwaivgi/kling-video-o1",
+  "alibaba/wan-2.7",
+]);
+
 // ── POST /api/generate ────────────────────────────────────────────────────
 app.post("/api/generate", (req, res) => {
-  const { url } = req.body;
+  const { url, model } = req.body;
   if (!url || !url.startsWith("http")) {
     return res.status(400).json({ error: "Invalid URL. Must start with http/https." });
   }
+
+  const selectedModel = ALLOWED_MODELS.has(model) ? model : "bytedance/seedance-2.0";
 
   const sessionId = uuidv4();
   const emitter = new EventEmitter();
@@ -56,7 +64,7 @@ app.post("/api/generate", (req, res) => {
       if (update.error) sess.status = "error";
     }
     emitter.emit("update", update);
-  }).catch((err) => {
+  }, selectedModel).catch((err) => {
     console.error(`[server] Pipeline failed for ${sessionId}:`, err);
     const update = { error: err.message, message: `Error: ${err.message}` };
     const sess = sessions.get(sessionId);
